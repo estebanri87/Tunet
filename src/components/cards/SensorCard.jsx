@@ -430,7 +430,8 @@ const SensorCard = memo(
     // "Trash pickup" variant: entity state is a "days,wasteType" pair (e.g. "1,Restmüll")
     // and is rendered as a big countdown number next to a short description.
     if (variant === 'trashPickup') {
-      const trashMatch = typeof state === 'string' ? state.match(/^\s*(-?\d+)\s*,\s*(.*)$/) : null;
+      const trashMatch =
+        typeof state === 'string' ? state.match(/^\s*(-?\d+)[\s,;:]+([^\d\s].*)$/) : null;
       const trashDays = trashMatch ? parseInt(trashMatch[1], 10) : NaN;
       const wasteType = trashMatch ? trashMatch[2].trim() : '';
       const hasValidDays = Number.isFinite(trashDays);

@@ -2368,7 +2368,7 @@ export default function EditCardModal({
                       : !isNaN(parseFloat(state));
                   const canGraph = isNumeric && domain !== 'input_number';
                   const isTrashPickupState =
-                    typeof state === 'string' && /^\s*-?\d+\s*,\s*.+$/.test(state);
+                    typeof state === 'string' && /^\s*-?\d+[\s,;:]+[^\d\s].*$/.test(state);
                   const variant = editSettings.sensorVariant || 'default';
                   const needsMinMax = ['gauge', 'donut', 'bar'].includes(variant) && isNumeric;
                   const colorThresholdDefaults = [
