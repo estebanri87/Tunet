@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
-import { Minus, Plus, Activity, Play, List } from 'lucide-react';
+import { Minus, Plus, Activity, Play, List, Trash2 } from 'lucide-react';
 import { getHistory, getStatistics } from '../../services/haClient';
 import SparkLine from '../charts/SparkLine';
 import { Gauge, Donut, Bar } from '../charts/SensorGauge';
@@ -443,6 +443,8 @@ const SensorCard = memo(
             ? translate('sensor.trashPickup.daySingular')
             : translate('sensor.trashPickup.daysPlural');
 
+      const TrashIcon = Icon || Trash2;
+
       return (
         <div
           ref={cardRef}
@@ -451,31 +453,44 @@ const SensorCard = memo(
           onClick={(e) => {
             if (!editMode) onOpen?.(e);
           }}
-          className={`touch-feedback group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isSmall ? 'justify-center gap-1.5 p-4' : 'justify-center gap-2 p-5'} ${!editMode ? 'cursor-pointer' : 'cursor-move'}`}
+          className={`touch-feedback group relative flex h-full items-center overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isSmall ? 'p-3' : 'p-5'} ${!editMode ? 'cursor-pointer' : 'cursor-move'}`}
           style={{ ...cardStyle, containerType: 'inline-size' }}
         >
           {controls}
-          <div className="flex min-w-0 items-center gap-3">
-            {hasValidDays && (
+          <div className="grid w-full grid-cols-3 items-center gap-2">
+            <div className="flex min-w-0 items-center justify-center">
               <span
-                className={`flex-shrink-0 font-black leading-none text-[var(--text-primary)] ${isSmall ? 'text-4xl' : 'text-6xl'}`}
+                className={`font-black leading-none text-[var(--text-primary)] ${isSmall ? 'text-3xl' : 'text-6xl'}`}
               >
-                {trashDays}
+                {hasValidDays ? trashDays : '–'}
               </span>
-            )}
-            <span
-              className={`min-w-0 leading-tight font-bold whitespace-pre-line text-[var(--text-primary)] ${isSmall ? 'text-xs' : 'text-lg'}`}
-            >
-              {countdownLabel}
-            </span>
+            </div>
+            <div className="flex min-w-0 items-center justify-center text-center">
+              <span
+                className={`leading-tight font-bold whitespace-pre-line text-[var(--text-primary)] ${isSmall ? 'text-[10px]' : 'text-base'}`}
+              >
+                {countdownLabel}
+              </span>
+            </div>
+            <div className="flex min-w-0 flex-col items-center justify-center gap-1.5 text-center">
+              {showIcon && (
+                <div
+                  className={`flex flex-shrink-0 items-center justify-center rounded-xl ${isSmall ? 'h-8 w-8' : 'h-10 w-10'} ${iconToneClass}`}
+                >
+                  <TrashIcon
+                    className={`${isSmall ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px]`}
+                  />
+                </div>
+              )}
+              {wasteType && (
+                <p
+                  className={`w-full truncate font-medium text-[var(--text-secondary)] ${isSmall ? 'text-[9px]' : 'text-sm'}`}
+                >
+                  {wasteType}
+                </p>
+              )}
+            </div>
           </div>
-          {wasteType && (
-            <p
-              className={`truncate font-medium text-[var(--text-secondary)] ${isSmall ? 'text-[10px]' : 'text-sm'}`}
-            >
-              {wasteType}
-            </p>
-          )}
         </div>
       );
     }
