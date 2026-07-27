@@ -1,6 +1,6 @@
 name: 'Tunet'
 description: 'A modern, responsive dashboard for Home Assistant'
-version: "1.20.5-maindev"
+version: "1.20.6-maindev"
 slug: 'tunet'
 url: 'https://github.com/estebanri87/Tunet'
 init: false
@@ -13,7 +13,7 @@ auth_api: true
 ingress: true
 ingress_port: 3002
 panel_icon: 'mdi:view-dashboard-variant'
-panel_title: 'Tunet'
+panel_title: 'Tunet New'
 ports:
   3002/tcp: null
 ports_description:

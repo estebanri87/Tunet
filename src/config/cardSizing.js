@@ -49,6 +49,7 @@ export const RESIZABLE_PREFIXES = [
   'fan_card_',
   'nordpool_card_',
   'energy_flow_',
+  'sonos_group_',
 ];
 
 /** Returns the next size in the cycle small → medium → large → full → small. */
