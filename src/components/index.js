@@ -7,6 +7,7 @@ export { default as AlarmCard } from './cards/AlarmCard';
 export { default as GenericAndroidTVCard } from './cards/GenericAndroidTVCard';
 export { default as GenericClimateCard } from './cards/GenericClimateCard';
 export { default as GenericEnergyCostCard } from './cards/GenericEnergyCostCard';
+export { default as EnergyFlowCard } from './cards/EnergyFlowCard';
 export { default as GenericNordpoolCard } from './cards/GenericNordpoolCard';
 export { default as FanCard } from './cards/FanCard';
 export { default as LightCard } from './cards/LightCard';

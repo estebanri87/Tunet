@@ -47,6 +47,11 @@ export function useAddCard({
   const [costSelectionTarget, setCostSelectionTarget] = useState('today');
   const [selectedNordpoolId, setSelectedNordpoolId] = useState(null);
   const [nordpoolDecimals, setNordpoolDecimals] = useState(2);
+  const [selectedEnergyGridId, setSelectedEnergyGridId] = useState(null);
+  const [selectedEnergySolarId, setSelectedEnergySolarId] = useState(null);
+  const [selectedEnergyBatteryId, setSelectedEnergyBatteryId] = useState(null);
+  const [selectedEnergyHomeId, setSelectedEnergyHomeId] = useState(null);
+  const [energySelectionTarget, setEnergySelectionTarget] = useState('grid');
   const [selectedSpacerVariant, setSelectedSpacerVariant] = useState('divider');
 
   // ── Sync target page to active page ────────────────────────────────────
@@ -76,6 +81,11 @@ export function useAddCard({
       setCostSelectionTarget('today');
       setSelectedNordpoolId(null);
       setNordpoolDecimals(2);
+      setSelectedEnergyGridId(null);
+      setSelectedEnergySolarId(null);
+      setSelectedEnergyBatteryId(null);
+      setSelectedEnergyHomeId(null);
+      setEnergySelectionTarget('grid');
       setSelectedSpacerVariant('divider');
     }
   }, [showAddCardModal]);
@@ -107,6 +117,11 @@ export function useAddCard({
     setCostSelectionTarget('today');
     setSelectedNordpoolId(null);
     setNordpoolDecimals(2);
+    setSelectedEnergyGridId(null);
+    setSelectedEnergySolarId(null);
+    setSelectedEnergyBatteryId(null);
+    setSelectedEnergyHomeId(null);
+    setEnergySelectionTarget('grid');
   }, [addCardType, showAddCardModal]);
 
   // ── Labels ─────────────────────────────────────────────────────────────
@@ -121,6 +136,7 @@ export function useAddCard({
     if (addCardType === 'cover') return t('addCard.available.covers');
     if (addCardType === 'alarm') return t('addCard.available.alarms');
     if (addCardType === 'cost') return t('addCard.available.costs');
+    if (addCardType === 'energyflow') return t('addCard.available.energyFlow');
     if (addCardType === 'media') return t('addCard.available.players');
     if (addCardType === 'sonos') return t('addCard.available.sonos');
     if (addCardType === 'car') return t('addCard.available.cars');
@@ -152,6 +168,8 @@ export function useAddCard({
                       ? 'addCard.item.alarms'
                       : addCardType === 'cost'
                         ? 'addCard.item.costs'
+                        : addCardType === 'energyflow'
+                          ? 'addCard.item.energyFlow'
                         : addCardType === 'media'
                           ? 'addCard.item.players'
                           : addCardType === 'sonos'
@@ -185,6 +203,10 @@ export function useAddCard({
       selectedCostMonthId,
       selectedNordpoolId,
       nordpoolDecimals,
+      selectedEnergyGridId,
+      selectedEnergySolarId,
+      selectedEnergyBatteryId,
+      selectedEnergyHomeId,
       selectedSpacerVariant: options.spacerVariant || selectedSpacerVariant,
       cardSettings,
       persistCardSettings,
@@ -202,6 +224,11 @@ export function useAddCard({
       setCostSelectionTarget,
       setSelectedNordpoolId,
       setNordpoolDecimals,
+      setSelectedEnergyGridId,
+      setSelectedEnergySolarId,
+      setSelectedEnergyBatteryId,
+      setSelectedEnergyHomeId,
+      setEnergySelectionTarget,
       saveCardSetting,
       setShowEditCardModal,
       setEditCardSettingsKey,
@@ -234,6 +261,16 @@ export function useAddCard({
     setSelectedNordpoolId,
     nordpoolDecimals,
     setNordpoolDecimals,
+    selectedEnergyGridId,
+    setSelectedEnergyGridId,
+    selectedEnergySolarId,
+    setSelectedEnergySolarId,
+    selectedEnergyBatteryId,
+    setSelectedEnergyBatteryId,
+    selectedEnergyHomeId,
+    setSelectedEnergyHomeId,
+    energySelectionTarget,
+    setEnergySelectionTarget,
     selectedSpacerVariant,
     setSelectedSpacerVariant,
     onAddSelected,

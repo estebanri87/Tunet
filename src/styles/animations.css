@@ -139,6 +139,28 @@
   opacity: 0.45;
 }
 
+/* Energy Flow Card */
+@keyframes energyFlowDash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.energy-flow-line-active {
+  stroke-dasharray: 6 6;
+  animation: energyFlowDash 0.85s linear infinite;
+}
+
+.energy-flow-line-reverse {
+  animation-direction: reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .energy-flow-line-active {
+    animation: none;
+  }
+}
+
 /* Respect user motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .aurora-blob-1,

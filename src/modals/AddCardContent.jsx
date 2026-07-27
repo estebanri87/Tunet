@@ -1,5 +1,7 @@
 import {
+  ArrowLeftRight,
   ArrowUpDown,
+  Battery,
   Bot,
   Calendar,
   Camera,
@@ -17,6 +19,7 @@ import {
   Music,
   Speaker,
   Sprout,
+  Sun,
   Plus,
   Search,
   Shield,
@@ -201,6 +204,16 @@ function AddCardContent({
   setSelectedNordpoolId,
   nordpoolDecimals,
   setNordpoolDecimals,
+  selectedEnergyGridId,
+  setSelectedEnergyGridId,
+  selectedEnergySolarId,
+  setSelectedEnergySolarId,
+  selectedEnergyBatteryId,
+  setSelectedEnergyBatteryId,
+  selectedEnergyHomeId,
+  setSelectedEnergyHomeId,
+  energySelectionTarget,
+  setEnergySelectionTarget,
   selectedSpacerVariant,
   setSelectedSpacerVariant,
   onAddSelected,
@@ -347,6 +360,8 @@ function AddCardContent({
       if (addCardType === 'alarm') return id.startsWith('alarm_control_panel.');
       if (addCardType === 'androidtv') return id.startsWith('media_player.') || id.startsWith('remote.');
       if (addCardType === 'cost') return id.startsWith('sensor.') || id.startsWith('input_number.');
+      if (addCardType === 'energyflow')
+        return id.startsWith('sensor.') || id.startsWith('input_number.');
       if (addCardType === 'media') return id.startsWith('media_player.');
       if (addCardType === 'sonos') return id.startsWith('media_player.') && isSonosMediaEntity(entities[id]);
       if (addCardType === 'sensor') {
@@ -759,6 +774,24 @@ function AddCardContent({
   };
 
   const renderGenericEntityList = () => {
+    const energyFlowSetterByTarget = {
+      grid: setSelectedEnergyGridId,
+      solar: setSelectedEnergySolarId,
+      battery: setSelectedEnergyBatteryId,
+      home: setSelectedEnergyHomeId,
+    };
+    const energyFlowValueByTarget = {
+      grid: selectedEnergyGridId,
+      solar: selectedEnergySolarId,
+      battery: selectedEnergyBatteryId,
+      home: selectedEnergyHomeId,
+    };
+    const energyFlowSelectedIds = [
+      selectedEnergyGridId,
+      selectedEnergySolarId,
+      selectedEnergyBatteryId,
+      selectedEnergyHomeId,
+    ];
     return (
       <div>
         {addCardType === 'cost' && (
@@ -800,6 +833,44 @@ function AddCardContent({
             </div>
           </div>
         )}
+        {addCardType === 'energyflow' && (
+          <div className="mb-5">
+            <p className="mb-2 ml-4 text-xs font-bold text-[var(--text-muted)] uppercase">
+              {t('addCard.energyFlowPickTarget')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: 'grid', icon: Zap, label: t('energyFlow.grid') },
+                { key: 'solar', icon: Sun, label: t('energyFlow.solar') },
+                { key: 'battery', icon: Battery, label: t('energyFlow.battery') },
+                { key: 'home', icon: Home, label: t('energyFlow.home') },
+              ].map(({ key, icon: TargetIcon, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setEnergySelectionTarget(key)}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-bold tracking-widest whitespace-nowrap uppercase transition-colors ${energySelectionTarget === key ? `${SELECTED_CONTAINER} ${SELECTED_TEXT}` : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`}
+                >
+                  <TargetIcon className="h-4 w-4" /> {label}
+                </button>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase">
+              {[
+                { key: 'grid', id: selectedEnergyGridId, label: t('energyFlow.grid') },
+                { key: 'solar', id: selectedEnergySolarId, label: t('energyFlow.solar') },
+                { key: 'battery', id: selectedEnergyBatteryId, label: t('energyFlow.battery') },
+                { key: 'home', id: selectedEnergyHomeId, label: t('energyFlow.home') },
+              ].map(({ key, id, label }) => (
+                <span
+                  key={key}
+                  className={`rounded-full border px-3 py-1 ${id ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]' : 'border-[var(--glass-border)] text-[var(--text-muted)]'}`}
+                >
+                  {label}: {id ? entities[id]?.attributes?.friendly_name || id : t('common.missing')}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         <p className="mb-4 ml-4 text-xs font-bold text-[var(--text-muted)] uppercase">
           {getAddCardAvailableLabel()}
         </p>
@@ -808,7 +879,9 @@ function AddCardContent({
             const isSelected =
               addCardType === 'cost'
                 ? selectedCostTodayId === id || selectedCostMonthId === id
-                : selectedEntitiesSet.has(id);
+                : addCardType === 'energyflow'
+                  ? energyFlowSelectedIds.includes(id)
+                  : selectedEntitiesSet.has(id);
             const isSelectedToday = selectedCostTodayId === id;
             const isSelectedMonth = selectedCostMonthId === id;
             return (
@@ -822,6 +895,12 @@ function AddCardContent({
                     } else {
                       setSelectedCostMonthId((prev) => (prev === id ? null : id));
                     }
+                    return;
+                  }
+                  if (addCardType === 'energyflow') {
+                    const setter = energyFlowSetterByTarget[energySelectionTarget];
+                    const current = energyFlowValueByTarget[energySelectionTarget];
+                    setter(current === id ? null : id);
                     return;
                   }
                   if (selectedEntitiesSet.has(id))
@@ -852,6 +931,34 @@ function AddCardContent({
                     {isSelectedMonth && (
                       <span className="rounded-full border border-[var(--accent-color)] bg-[var(--accent-bg)] px-2 py-1 text-[9px] font-bold tracking-widest text-[var(--accent-color)] uppercase">
                         {t('addCard.costMonth')}
+                      </span>
+                    )}
+                    {!isSelected && (
+                      <div className="rounded-full bg-[var(--glass-bg)] p-2 text-[var(--text-muted)] transition-colors group-hover:bg-[var(--accent-bg)] group-hover:text-[var(--accent-color)]">
+                        <Plus className="h-4 w-4" />
+                      </div>
+                    )}
+                  </div>
+                ) : addCardType === 'energyflow' ? (
+                  <div className="flex flex-shrink-0 items-center gap-2">
+                    {selectedEnergyGridId === id && (
+                      <span className="rounded-full border border-[var(--accent-color)] bg-[var(--accent-bg)] px-2 py-1 text-[9px] font-bold tracking-widest text-[var(--accent-color)] uppercase">
+                        {t('energyFlow.grid')}
+                      </span>
+                    )}
+                    {selectedEnergySolarId === id && (
+                      <span className="rounded-full border border-[var(--accent-color)] bg-[var(--accent-bg)] px-2 py-1 text-[9px] font-bold tracking-widest text-[var(--accent-color)] uppercase">
+                        {t('energyFlow.solar')}
+                      </span>
+                    )}
+                    {selectedEnergyBatteryId === id && (
+                      <span className="rounded-full border border-[var(--accent-color)] bg-[var(--accent-bg)] px-2 py-1 text-[9px] font-bold tracking-widest text-[var(--accent-color)] uppercase">
+                        {t('energyFlow.battery')}
+                      </span>
+                    )}
+                    {selectedEnergyHomeId === id && (
+                      <span className="rounded-full border border-[var(--accent-color)] bg-[var(--accent-bg)] px-2 py-1 text-[9px] font-bold tracking-widest text-[var(--accent-color)] uppercase">
+                        {t('energyFlow.home')}
                       </span>
                     )}
                     {!isSelected && (
@@ -1041,6 +1148,13 @@ function AddCardContent({
                   onSelect={setAddCardType}
                 />
                 <TypeButton
+                  type="energyflow"
+                  icon={ArrowLeftRight}
+                  label={t('addCard.type.energyflow')}
+                  isActive={addCardType === 'energyflow'}
+                  onSelect={setAddCardType}
+                />
+                <TypeButton
                   type="media"
                   icon={Music}
                   label={t('addCard.type.media')}
@@ -1161,6 +1275,11 @@ function AddCardContent({
           {addCardType === 'cost' && selectedCostTodayId && selectedCostMonthId && (
             <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
               <Plus className="h-5 w-5" /> {t('addCard.costCard')}
+            </button>
+          )}
+          {addCardType === 'energyflow' && selectedEnergyGridId && selectedEnergyHomeId && (
+            <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
+              <Plus className="h-5 w-5" /> {t('addCard.energyFlowCard')}
             </button>
           )}
           {addCardType === 'weather' && selectedWeatherId && (

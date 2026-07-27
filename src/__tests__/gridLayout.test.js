@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getCardGridSpan, getCardColSpan, buildGridLayout } from '../utils/gridLayout';
+import { getNextSize, SIZE_STEPS } from '../config/cardSizing';
 
 // ═════════════════════════════════════════════════════════════════════════
 // getCardGridSpan
@@ -16,6 +17,25 @@ describe('getCardGridSpan', () => {
     expect(getCardGridSpan('light_abc', identity, {}, 'home')).toBe(2);
   });
 
+  it('returns 3 for large lights', () => {
+    const settings = { light_abc: { size: 'large' } };
+    expect(getCardGridSpan('light_abc', identity, settings, 'home')).toBe(3);
+  });
+
+  it('returns 4 for full-size lights', () => {
+    const settings = { light_abc: { size: 'full' } };
+    expect(getCardGridSpan('light_abc', identity, settings, 'home')).toBe(4);
+  });
+
+  it('returns 2 for default energy flow cards', () => {
+    expect(getCardGridSpan('energy_flow_1', identity, {}, 'home')).toBe(2);
+  });
+
+  it('returns 4 for full-size energy flow cards', () => {
+    const settings = { energy_flow_1: { size: 'full' } };
+    expect(getCardGridSpan('energy_flow_1', identity, settings, 'home')).toBe(4);
+  });
+
   it('returns 1 for small calendar cards', () => {
     const settings = { calendar_card_1: { size: 'small' } };
     expect(getCardGridSpan('calendar_card_1', identity, settings, 'home')).toBe(1);
@@ -26,9 +46,20 @@ describe('getCardGridSpan', () => {
     expect(getCardGridSpan('calendar_card_1', identity, settings, 'home')).toBe(2);
   });
 
+  it('returns 3 for large calendar cards', () => {
+    const settings = { calendar_card_1: { size: 'large' } };
+    expect(getCardGridSpan('calendar_card_1', identity, settings, 'home')).toBe(3);
+  });
+
+  it('returns 4 for full calendar cards', () => {
+    const settings = { calendar_card_1: { size: 'full' } };
+    expect(getCardGridSpan('calendar_card_1', identity, settings, 'home')).toBe(4);
+  });
+
   it('returns 4 for default (large) calendar cards', () => {
     expect(getCardGridSpan('calendar_card_1', identity, {}, 'home')).toBe(4);
   });
+
 
   it('returns 1 for small car cards', () => {
     const settings = { car_card_1: { size: 'small' } };
@@ -168,4 +199,26 @@ describe('getCardColSpan', () => {
     const settings = { spacer_card_1: { colSpan: 3 } };
     expect(getCardColSpan('spacer_card_1', identity, settings)).toBe(3);
   });
+
+  it('applies to non-spacer card types too (e.g. lights)', () => {
+    const settings = { light_abc: { colSpan: 2 } };
+    expect(getCardColSpan('light_abc', identity, settings)).toBe(2);
+  });
 });
+
+// ═════════════════════════════════════════════════════════════════════════
+// getNextSize
+// ═════════════════════════════════════════════════════════════════════════
+describe('getNextSize', () => {
+  it('cycles through small → medium → large → full → small', () => {
+    expect(getNextSize('small')).toBe('medium');
+    expect(getNextSize('medium')).toBe('large');
+    expect(getNextSize('large')).toBe('full');
+    expect(getNextSize('full')).toBe('small');
+  });
+
+  it('starts the cycle at the first step for an unrecognised value', () => {
+    expect(getNextSize(undefined)).toBe(SIZE_STEPS[0]);
+  });
+});
+

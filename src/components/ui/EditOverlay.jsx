@@ -16,45 +16,12 @@ import {
   Minimize2,
   Trash2,
 } from '../../icons';
-
-/** Prefixes for cards that support size toggling. */
-const RESIZABLE_PREFIXES = [
-  'light_',
-  'light.',
-  'lock_card_',
-  'lock.',
-  'vacuum.',
-  'lawn_mower.',
-  'automation.',
-  'climate_card_',
-  'cost_card_',
-  'weather_temp_',
-  'androidtv_card_',
-  'calendar_card_',
-  'todo_card_',
-  'nordpool_card_',
-  'car_card_',
-  'cover_card_',
-  'camera_card_',
-  'fan.',
-  'fan_card_',
-  'alarm_card_',
-];
-
-/** Prefixes that cycle through 3 sizes (small → medium → large). */
-const TRIPLE_SIZE_PREFIXES = ['calendar_card_', 'todo_card_'];
+import { RESIZABLE_PREFIXES, getNextSize } from '../../config/cardSizing';
 
 function canResize(editId, settings) {
   if (editId === 'car') return true;
   if (['entity', 'toggle', 'sensor', 'fan'].includes(settings?.type)) return true;
   return RESIZABLE_PREFIXES.some((p) => editId.startsWith(p));
-}
-
-function getNextSize(editId, currentSize) {
-  if (TRIPLE_SIZE_PREFIXES.some((p) => editId.startsWith(p))) {
-    return currentSize === 'small' ? 'medium' : currentSize === 'medium' ? 'large' : 'small';
-  }
-  return currentSize === 'small' ? 'large' : 'small';
 }
 
 function EditOverlay({
@@ -79,7 +46,7 @@ function EditOverlay({
     isSpacerCard && Number(settings?.heightPx || 0) > 0 && Number(settings?.heightPx || 0) <= 56;
   const showResize = canResize(editId, settings);
   const isSmall = currentSize === 'small';
-  const isTriple = TRIPLE_SIZE_PREFIXES.some((p) => editId.startsWith(p));
+  const isFull = currentSize === 'full';
   const topOffsetClass = isCompactSpacer ? 'top-1' : 'top-2';
   const sideOffsetClass = isCompactSpacer ? 'left-1' : 'left-2';
   const rightOffsetClass = isCompactSpacer ? 'right-1' : 'right-2';
@@ -153,16 +120,14 @@ function EditOverlay({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onSaveSize(getNextSize(editId, currentSize));
+              onSaveSize(getNextSize(currentSize));
             }}
             className={`${isCompactSpacer ? 'p-1' : 'p-2'} rounded-full border border-white/20 text-white shadow-lg transition-colors hover:bg-[var(--accent-color)]`}
             style={{ backgroundColor: isSmall ? 'var(--accent-color)' : 'rgba(0, 0, 0, 0.6)' }}
-            title={
-              isTriple ? t('tooltip.cycleSize') : isSmall ? t('tooltip.largeSize') : t('tooltip.smallSize')
-            }
-            aria-label={isTriple ? t('tooltip.cycleSize') : isSmall ? t('tooltip.largeSize') : t('tooltip.smallSize')}
+            title={t('tooltip.cycleSize') || 'Cycle size'}
+            aria-label={t('tooltip.cycleSize') || 'Cycle size'}
           >
-            {isSmall ? <Maximize2 className={iconClass} /> : <Minimize2 className={iconClass} />}
+            {isFull ? <Minimize2 className={iconClass} /> : <Maximize2 className={iconClass} />}
           </button>
         )}
         {canRemove && (

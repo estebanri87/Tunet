@@ -744,6 +744,7 @@ export default function EditCardModal({
   isEditTodo,
   isEditCost,
   isEditNordpool,
+  isEditEnergyFlow,
   isEditCar,
   isEditSpacer,
   isEditCamera,
@@ -1440,49 +1441,53 @@ export default function EditCardModal({
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
 
-                  <div className="space-y-2 pt-2">
-                    <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
-                      {t('editCard.columnWidth') || 'Column Width'}
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          saveCardSetting(
-                            editSettingsKey,
-                            'colSpan',
-                            Math.max(1, (editSettings.colSpan || 1) - 1)
-                          )
-                        }
-                        className="popup-surface popup-surface-hover flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] text-lg font-bold text-[var(--text-primary)]"
-                      >
-                        −
-                      </button>
-                      <div className="flex-1 text-center">
-                        <span className="text-lg font-bold text-[var(--text-primary)]">
-                          {editSettings.colSpan || 1}
-                        </span>
-                        <span className="ml-1 text-xs text-[var(--text-muted)]">
-                          {(editSettings.colSpan || 1) === 1
-                            ? t('editCard.column') || 'column'
-                            : t('editCard.columns') || 'columns'}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          saveCardSetting(
-                            editSettingsKey,
-                            'colSpan',
-                            Math.min(maxColSpan, (editSettings.colSpan || 1) + 1)
-                          )
-                        }
-                        className="popup-surface popup-surface-hover flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] text-lg font-bold text-[var(--text-primary)]"
-                      >
-                        +
-                      </button>
+              {/* Column width (colSpan) is available for every card type except spacers,
+                  which have their own dedicated width/full-width control below. */}
+              {editSettingsKey && !isEditSpacer && (
+                <div className="space-y-2 pt-2">
+                  <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
+                    {t('editCard.columnWidth') || 'Column Width'}
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        saveCardSetting(
+                          editSettingsKey,
+                          'colSpan',
+                          Math.max(1, (editSettings.colSpan || 1) - 1)
+                        )
+                      }
+                      className="popup-surface popup-surface-hover flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] text-lg font-bold text-[var(--text-primary)]"
+                    >
+                      −
+                    </button>
+                    <div className="flex-1 text-center">
+                      <span className="text-lg font-bold text-[var(--text-primary)]">
+                        {editSettings.colSpan || 1}
+                      </span>
+                      <span className="ml-1 text-xs text-[var(--text-muted)]">
+                        {(editSettings.colSpan || 1) === 1
+                          ? t('editCard.column') || 'column'
+                          : t('editCard.columns') || 'columns'}
+                      </span>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        saveCardSetting(
+                          editSettingsKey,
+                          'colSpan',
+                          Math.min(maxColSpan, (editSettings.colSpan || 1) + 1)
+                        )
+                      }
+                      className="popup-surface popup-surface-hover flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] text-lg font-bold text-[var(--text-primary)]"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
               )}
@@ -3483,6 +3488,68 @@ export default function EditCardModal({
                       </div>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {isEditEnergyFlow && (
+                <div className="space-y-6">
+                  {[
+                    { key: 'gridId', label: t('energyFlow.grid') || 'Grid', required: true },
+                    { key: 'solarId', label: t('energyFlow.solar') || 'Solar', required: false },
+                    {
+                      key: 'batteryId',
+                      label: t('energyFlow.battery') || 'Battery',
+                      required: false,
+                    },
+                    { key: 'homeId', label: t('energyFlow.home') || 'Home', required: true },
+                  ].map(({ key, label, required }) => (
+                    <div key={key}>
+                      <label className="ml-4 block pb-2 text-xs font-bold text-[var(--text-muted)] uppercase">
+                        {label}
+                        {required ? ' *' : ''}
+                      </label>
+                      <div className="popup-surface custom-scrollbar max-h-40 space-y-2 overflow-y-auto rounded-2xl p-4">
+                        {numericEntityOptions.length === 0 ? (
+                          <p className="py-4 text-center text-sm text-[var(--text-muted)]">
+                            {t('addCard.noSensors') || 'No sensors found'}
+                          </p>
+                        ) : (
+                          numericEntityOptions.map((sensorId) => {
+                            const isSelected = editSettings[key] === sensorId;
+                            return (
+                              <div
+                                key={sensorId}
+                                className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-colors hover:bg-white/5"
+                                onClick={() => {
+                                  saveCardSetting(
+                                    editSettingsKey,
+                                    key,
+                                    isSelected ? null : sensorId
+                                  );
+                                }}
+                              >
+                                <div
+                                  className={`flex h-5 w-5 items-center justify-center rounded-md border transition-all duration-200 ${isSelected ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)]' : 'border-gray-500 bg-transparent'}`}
+                                >
+                                  {isSelected && (
+                                    <Check className="h-3.5 w-3.5 text-[var(--accent-color)]" />
+                                  )}
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium text-[var(--text-primary)]">
+                                    {entities[sensorId].attributes?.friendly_name || sensorId}
+                                  </span>
+                                  <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                                    {sensorId}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

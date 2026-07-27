@@ -14,6 +14,7 @@ const rendererMocks = vi.hoisted(() => ({
   renderWeatherTempCard: vi.fn(() => ({ renderer: 'weather_temp' })),
   renderGenericClimateCard: vi.fn(() => ({ renderer: 'climate' })),
   renderGenericCostCard: vi.fn(() => ({ renderer: 'cost' })),
+  renderEnergyFlowCard: vi.fn(() => ({ renderer: 'energy_flow' })),
   renderGenericAndroidTVCard: vi.fn(() => ({ renderer: 'androidtv' })),
   renderCalendarCard: vi.fn(() => ({ renderer: 'calendar' })),
   renderTodoCard: vi.fn(() => ({ renderer: 'todo' })),
@@ -57,6 +58,23 @@ describe('rendering registry dispatch', () => {
     expect(CARD_REGISTRY.some((entry) => entry.prefix === 'camera_card_')).toBe(true);
     expect(CARD_REGISTRY.some((entry) => entry.prefix === 'lock_card_')).toBe(true);
     expect(CARD_REGISTRY.some((entry) => entry.prefix === 'lock.')).toBe(true);
+    expect(CARD_REGISTRY.some((entry) => entry.prefix === 'energy_flow_')).toBe(true);
+  });
+
+  it('routes energy flow cards to the energy flow renderer', () => {
+    const { dragProps, getControls, cardStyle, settingsKey, ctx } = base();
+
+    const result = dispatchCardRender(
+      'energy_flow_123',
+      dragProps,
+      getControls,
+      cardStyle,
+      settingsKey,
+      ctx
+    );
+
+    expect(result).toEqual({ renderer: 'energy_flow' });
+    expect(rendererMocks.renderEnergyFlowCard).toHaveBeenCalledOnce();
   });
 
   it('routes automation card to sensor renderer for sensor-like types', () => {

@@ -10,7 +10,7 @@ Practical guide to what each card is best for, what you can configure, and commo
 
 ## Before you start
 
-- Most cards support **custom name**, **custom icon**, and (when available) **small/large size**.
+- Most cards support **custom name**, **custom icon**, and (when available) **size cycling** (small/medium/large/full) and **column width**.
 - Many cards can use **visibility rules** and **popup triggers**.
 - Some controls only appear if your Home Assistant entity supports them (capability-aware UI).
 
@@ -22,7 +22,8 @@ Practical guide to what each card is best for, what you can configure, and commo
 
 ## Shared options (most cards)
 
-- **Size**: `small` or `large` (when supported by that card type).
+- **Size**: click the resize button on a card to cycle its height through `small` → `medium` → `large` → `full` (when supported by that card type).
+- **Column width**: in the edit modal, use the `−`/`+` column-width control to make a card span 1 up to the number of grid columns. Available for every card type (spacer cards have their own dedicated width/full-width control instead).
 - **Custom name**: override Home Assistant friendly name.
 - **Custom icon**: choose icon from icon picker.
 - **Visibility controls**: hide/show based on state rules.
@@ -148,6 +149,19 @@ Practical guide to what each card is best for, what you can configure, and commo
 - Today + month entity mapping.
 - Currency + display formatting options.
 
+### Energy Flow
+
+**Best for:** at-a-glance overview of where your power is coming from and going to right now.
+
+- Maps a **Grid** power sensor (required) and a **Home** power sensor (required).
+- **Solar** and **Battery** power sensors are optional — the card adapts and only shows the nodes you configure.
+- Animated lines show the current direction of power flow between nodes.
+- Sign conventions (matching typical Home Assistant power sensors):
+  - Grid: positive = importing from the grid, negative = exporting to the grid.
+  - Solar: positive = producing power.
+  - Battery: positive = discharging (battery → home), negative = charging (home → battery).
+- Entity mapping can be changed later from the card's edit dialog.
+
 ### Nordpool
 
 **Best for:** hourly electricity price monitoring.
@@ -233,7 +247,7 @@ Practical guide to what each card is best for, what you can configure, and commo
 - **Control missing?** The selected entity likely does not expose that feature.
 - **Playlist/Favorites empty?** Confirm player type (Music Assistant vs Sonos).
 - **Unexpected units?** Check dashboard unit mode and Home Assistant unit settings.
-- **Card feels crowded?** Use `large` size and add `Spacer` cards between sections.
+- **Card feels crowded?** Use a bigger size tier (`large`/`full`) and add `Spacer` cards between sections.
 
 ## Notes for maintainers
 

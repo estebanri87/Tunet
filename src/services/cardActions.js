@@ -19,6 +19,10 @@ export const handleAddSelected = (ctx) => {
     selectedCostMonthId,
     selectedNordpoolId,
     nordpoolDecimals,
+    selectedEnergyGridId,
+    selectedEnergySolarId,
+    selectedEnergyBatteryId,
+    selectedEnergyHomeId,
     selectedSpacerVariant,
     cardSettings,
     persistCardSettings,
@@ -36,6 +40,11 @@ export const handleAddSelected = (ctx) => {
     setCostSelectionTarget,
     setSelectedNordpoolId,
     setNordpoolDecimals,
+    setSelectedEnergyGridId,
+    setSelectedEnergySolarId,
+    setSelectedEnergyBatteryId,
+    setSelectedEnergyHomeId,
+    setEnergySelectionTarget,
     setShowEditCardModal,
     setEditCardSettingsKey,
   } = ctx;
@@ -263,6 +272,23 @@ export const handleAddSelected = (ctx) => {
       commitSingleCard(cardId, { nordpoolId: selectedNordpoolId, decimals: nordpoolDecimals });
       setSelectedNordpoolId(null);
       setNordpoolDecimals(2);
+      return;
+    }
+
+    case 'energyflow': {
+      if (!selectedEnergyGridId || !selectedEnergyHomeId) return;
+      const cardId = `energy_flow_${Date.now()}`;
+      commitSingleCard(cardId, {
+        gridId: selectedEnergyGridId,
+        solarId: selectedEnergySolarId || null,
+        batteryId: selectedEnergyBatteryId || null,
+        homeId: selectedEnergyHomeId,
+      });
+      setSelectedEnergyGridId(null);
+      setSelectedEnergySolarId(null);
+      setSelectedEnergyBatteryId(null);
+      setSelectedEnergyHomeId(null);
+      setEnergySelectionTarget('grid');
       return;
     }
 

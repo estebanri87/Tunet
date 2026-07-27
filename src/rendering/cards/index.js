@@ -11,6 +11,7 @@ export { renderMediaGroupCard } from './mediaGroupRenderer';
 export { renderWeatherTempCard } from './weatherTempRenderer';
 export { renderGenericClimateCard } from './climateRenderer';
 export { renderGenericCostCard } from './costRenderer';
+export { renderEnergyFlowCard } from './energyFlowRenderer';
 export { renderGenericAndroidTVCard } from './androidTvRenderer';
 export { renderCalendarCard } from './calendarRenderer';
 export { renderTodoCard } from './todoRenderer';

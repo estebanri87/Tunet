@@ -31,6 +31,7 @@ export function useEditModalProps({
     const isEditCalendar = !!editId && editId.startsWith('calendar_card_');
     const isEditTodo = !!editId && editId.startsWith('todo_card_');
     const isEditCost = !!editId && editId.startsWith('cost_card_');
+    const isEditEnergyFlow = !!editId && editId.startsWith('energy_flow_');
     const isEditAndroidTV = !!editId && editId.startsWith('androidtv_card_');
     const isEditVacuum = !!editId && editId.startsWith('vacuum.');
     const isEditAutomation = !!editId && editId.startsWith('automation.');
@@ -78,6 +79,7 @@ export function useEditModalProps({
         isEditCover ||
         isEditAlarm ||
         isEditNordpool ||
+        isEditEnergyFlow ||
         editId.startsWith('automation.') ||
         editId.startsWith('vacuum.') ||
         editId.startsWith('climate_card_') ||
@@ -101,6 +103,7 @@ export function useEditModalProps({
       isEditTodo,
       isEditCost,
       isEditNordpool,
+      isEditEnergyFlow,
       isEditGenericType,
       isEditAndroidTV,
       isEditVacuum,

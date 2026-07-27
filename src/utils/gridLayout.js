@@ -2,6 +2,7 @@
  * Grid layout algorithm – computes card positions & spans for the dashboard grid.
  * Pure functions with zero React / UI dependencies.
  */
+import { SIZE_SPAN_TABLE, EXPANSIVE_SIZE_PREFIXES, RESIZABLE_PREFIXES } from '../config/cardSizing';
 
 /**
  * Determine how many grid columns a card should span.
@@ -13,26 +14,16 @@
  * @param {{rowPx?: number, gapPx?: number}} [layoutMetrics] Runtime layout metrics
  * @returns {number} 1+
  */
-// Size-to-span mappings per card type category
-const SPAN_TABLE = {
-  // { small, medium, large } → row span
-  triSize: { small: 1, medium: 2, default: 4 }, // calendar, todo
-  dualSize: { small: 1, default: 2 }, // light, car, room
-};
+// Size-to-span mapping table (small/medium/large/full → row span), shared with
+// EditOverlay's resize-button cycle. See src/config/cardSizing.js.
+const SPAN_TABLE = SIZE_SPAN_TABLE;
 
-const CARD_SPAN_RULES = [
-  // prefix match → category  (checked in order)
-  { prefix: 'calendar_card_', category: 'triSize' },
-  { prefix: 'todo_card_', category: 'triSize' },
-  { prefix: 'light_', category: 'dualSize' },
-  { prefix: 'light.', category: 'dualSize' },
-  { prefix: 'lock_card_', category: 'dualSize' },
-  { prefix: 'lock.', category: 'dualSize' },
-  { prefix: 'car_card_', category: 'dualSize' },
-  { prefix: 'room_card_', category: 'dualSize' },
-  { prefix: 'camera_card_', category: 'dualSize' },
-  { prefix: 'spacer_card_', category: 'dualSize' },
-];
+// prefix match → category  (checked in order). Automation entities are
+// handled separately below since their resizability also depends on `type`.
+const CARD_SPAN_RULES = RESIZABLE_PREFIXES.map((prefix) => ({
+  prefix,
+  category: EXPANSIVE_SIZE_PREFIXES.includes(prefix) ? 'expansive' : 'compact',
+}));
 
 export const getCardGridSpan = (
   cardId,
@@ -61,7 +52,8 @@ export const getCardGridSpan = (
   // Automations have their own logic based on type sub-setting
   if (cardId.startsWith('automation.')) {
     if (['sensor', 'entity', 'toggle'].includes(settings.type)) {
-      return settings.size === 'small' ? 1 : 2;
+      const sizeSetting = settings?.size;
+      return SPAN_TABLE.compact[sizeSetting] ?? SPAN_TABLE.compact.default;
     }
     return 1;
   }
@@ -69,7 +61,7 @@ export const getCardGridSpan = (
   // Exact-match for legacy 'car' id
   if (cardId === 'car') {
     const sizeSetting = settings?.size;
-    return sizeSetting === 'small' ? 1 : 2;
+    return SPAN_TABLE.compact[sizeSetting] ?? SPAN_TABLE.compact.default;
   }
 
   // Table-driven lookup for prefix-matched card types
@@ -84,10 +76,9 @@ export const getCardGridSpan = (
   // Default behaviour for all other cards
   const sizeSetting = settings?.size;
   if (sizeSetting === 'small') return 1;
-  if (cardId.startsWith('weather_temp_')) return 2;
   if (activePage === 'settings' && cardId !== 'car' && !cardId.startsWith('media_player')) return 1;
 
-  return 2;
+  return SPAN_TABLE.compact[sizeSetting] ?? SPAN_TABLE.compact.default;
 };
 
 /**

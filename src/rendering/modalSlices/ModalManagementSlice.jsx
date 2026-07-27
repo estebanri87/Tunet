@@ -91,6 +91,16 @@ export function ModalManagementSlice({
     setSelectedNordpoolId,
     nordpoolDecimals,
     setNordpoolDecimals,
+    selectedEnergyGridId,
+    setSelectedEnergyGridId,
+    selectedEnergySolarId,
+    setSelectedEnergySolarId,
+    selectedEnergyBatteryId,
+    setSelectedEnergyBatteryId,
+    selectedEnergyHomeId,
+    setSelectedEnergyHomeId,
+    energySelectionTarget,
+    setEnergySelectionTarget,
     selectedSpacerVariant,
     setSelectedSpacerVariant,
     onAddSelected,
@@ -146,6 +156,16 @@ export function ModalManagementSlice({
             setSelectedNordpoolId={setSelectedNordpoolId}
             nordpoolDecimals={nordpoolDecimals}
             setNordpoolDecimals={setNordpoolDecimals}
+            selectedEnergyGridId={selectedEnergyGridId}
+            setSelectedEnergyGridId={setSelectedEnergyGridId}
+            selectedEnergySolarId={selectedEnergySolarId}
+            setSelectedEnergySolarId={setSelectedEnergySolarId}
+            selectedEnergyBatteryId={selectedEnergyBatteryId}
+            setSelectedEnergyBatteryId={setSelectedEnergyBatteryId}
+            selectedEnergyHomeId={selectedEnergyHomeId}
+            setSelectedEnergyHomeId={setSelectedEnergyHomeId}
+            energySelectionTarget={energySelectionTarget}
+            setEnergySelectionTarget={setEnergySelectionTarget}
             selectedSpacerVariant={selectedSpacerVariant}
             setSelectedSpacerVariant={setSelectedSpacerVariant}
             onAddSelected={onAddSelected}
