@@ -264,12 +264,6 @@ export default function CoverModal({
   const isOpening = state === 'opening';
   const isClosing = state === 'closing';
   const isMoving = isOpening || isClosing;
-  // Effective direction/state after accounting for devices that report position/state
-  // inverted (100% = closed, 0% = open).
-  const effectiveOpen = invertPosition ? isClosed : isOpen;
-  const effectiveClosed = invertPosition ? isOpen : isClosed;
-  const effectiveOpening = invertPosition ? isClosing : isOpening;
-  const effectiveClosing = invertPosition ? isOpening : isClosing;
 
   const rawPosition = activeEntity.attributes?.current_position;
   const hasPosition = typeof rawPosition === 'number';
@@ -281,6 +275,17 @@ export default function CoverModal({
       ? 100 - rawTiltPosition
       : rawTiltPosition
     : rawTiltPosition;
+
+  // Effective open/closed/moving state after accounting for devices that report
+  // position/state inverted (100% = closed, 0% = open). When a numeric position is
+  // available it takes precedence (guaranteeing the label always matches the visual
+  // and the percentage), matching HA's own convention that any position > 0 counts as
+  // "open". Only fall back to swapping the raw HA state string for covers without a
+  // position attribute.
+  const effectiveOpen = hasPosition ? position > 0 : invertPosition ? isClosed : isOpen;
+  const effectiveClosed = hasPosition ? position <= 0 : invertPosition ? isOpen : isClosed;
+  const effectiveOpening = invertPosition ? isClosing : isOpening;
+  const effectiveClosing = invertPosition ? isOpening : isClosing;
 
   const supportedFeatures = activeEntity.attributes?.supported_features ?? 0;
   const supportsPosition = (supportedFeatures & 4) !== 0;

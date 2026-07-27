@@ -433,6 +433,9 @@ const CoverCard = ({
     if (isUnavailable) return translate('status.unavailable');
     if (effectiveOpening) return translate('cover.opening');
     if (effectiveClosing) return translate('cover.closing');
+    if (typeof position === 'number') {
+      return position > 0 ? translate('cover.open') : translate('cover.closed');
+    }
     const effectiveState = invertPosition
       ? state === 'open'
         ? 'closed'
