@@ -276,16 +276,14 @@ export default function CoverModal({
       : rawTiltPosition
     : rawTiltPosition;
 
-  // Effective open/closed/moving state after accounting for devices that report
-  // position/state inverted (100% = closed, 0% = open). When a numeric position is
-  // available it takes precedence (guaranteeing the label always matches the visual
-  // and the percentage), matching HA's own convention that any position > 0 counts as
-  // "open". Only fall back to swapping the raw HA state string for covers without a
-  // position attribute.
-  const effectiveOpen = hasPosition ? position > 0 : invertPosition ? isClosed : isOpen;
-  const effectiveClosed = hasPosition ? position <= 0 : invertPosition ? isOpen : isClosed;
-  const effectiveOpening = invertPosition ? isClosing : isOpening;
-  const effectiveClosing = invertPosition ? isOpening : isClosing;
+  // Status (open/closed/opening/closing) always reflects Home Assistant's raw,
+  // physical state. invertPosition/invertTilt are purely display-label
+  // preferences for the percentage NUMBER and must never affect the status text,
+  // the visual, or the actual service calls.
+  const effectiveOpen = isOpen;
+  const effectiveClosed = isClosed;
+  const effectiveOpening = isOpening;
+  const effectiveClosing = isClosing;
 
   const supportedFeatures = activeEntity.attributes?.supported_features ?? 0;
   const supportsPosition = (supportedFeatures & 4) !== 0;
@@ -301,20 +299,27 @@ export default function CoverModal({
   const Icon = coverIconName ? getIconComponent(coverIconName) || ArrowUpDown : ArrowUpDown;
   const modalTitleId = `cover-modal-title-${activeEntityId.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
-  const [localPosition, setLocalPosition] = useState(position ?? 0);
-  const [localTilt, setLocalTilt] = useState(tiltPosition ?? 0);
+  // localPosition/localTilt always operate in raw HA space (0 = closed, 100 =
+  // open) so the visual slider and drag interaction stay physically accurate.
+  // The percentage shown to the user is derived separately below via
+  // localDisplayPosition/localDisplayTilt, honoring invertPosition/invertTilt.
+  const [localPosition, setLocalPosition] = useState(rawPosition ?? 0);
+  const [localTilt, setLocalTilt] = useState(rawTiltPosition ?? 0);
   const commitTimerPos = useRef(null);
   const commitTimerTilt = useRef(null);
 
   useEffect(() => {
     if (!show) return;
-    if (typeof position === 'number') setLocalPosition(position);
-  }, [position, show]);
+    if (typeof rawPosition === 'number') setLocalPosition(rawPosition);
+  }, [rawPosition, show]);
 
   useEffect(() => {
     if (!show) return;
-    if (typeof tiltPosition === 'number') setLocalTilt(tiltPosition);
-  }, [tiltPosition, show]);
+    if (typeof rawTiltPosition === 'number') setLocalTilt(rawTiltPosition);
+  }, [rawTiltPosition, show]);
+
+  const localDisplayPosition = invertPosition ? 100 - localPosition : localPosition;
+  const localDisplayTilt = invertTilt ? 100 - localTilt : localTilt;
 
   const translate = t || ((key) => key);
 
@@ -374,11 +379,10 @@ export default function CoverModal({
       setLocalPosition(val);
       clearTimeout(commitTimerPos.current);
       commitTimerPos.current = setTimeout(() => {
-        const rawVal = invertPosition ? 100 - val : val;
-        callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: rawVal });
+        callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: val });
       }, 200);
     },
-    [callService, activeEntityId, show, entity, invertPosition]
+    [callService, activeEntityId, show, entity]
   );
 
   const handleSetTilt = useCallback(
@@ -387,14 +391,13 @@ export default function CoverModal({
       setLocalTilt(val);
       clearTimeout(commitTimerTilt.current);
       commitTimerTilt.current = setTimeout(() => {
-        const rawVal = invertTilt ? 100 - val : val;
         callService('cover', 'set_cover_tilt_position', {
           entity_id: activeEntityId,
-          tilt_position: rawVal,
+          tilt_position: val,
         });
       }, 200);
     },
-    [callService, activeEntityId, show, entity, invertTilt]
+    [callService, activeEntityId, show, entity]
   );
 
   const presets = [
@@ -486,7 +489,7 @@ export default function CoverModal({
                     className="border-l pl-2 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase italic"
                     style={{ borderColor: 'var(--glass-border)' }}
                   >
-                    {localPosition}%
+                    {localDisplayPosition}%
                   </span>
                 )}
               </div>
@@ -514,7 +517,7 @@ export default function CoverModal({
                 </span>
                 {supportsPosition && (
                   <span className="font-mono text-sm font-bold" style={{ color: accent.color }}>
-                    {localPosition}%
+                    {localDisplayPosition}%
                   </span>
                 )}
               </div>
@@ -528,7 +531,7 @@ export default function CoverModal({
                 <button
                   onClick={() =>
                     !isUnavailable &&
-                    callService('cover', invertPosition ? 'close_cover' : 'open_cover', {
+                    callService('cover', 'open_cover', {
                       entity_id: activeEntityId,
                     })
                   }
@@ -556,7 +559,7 @@ export default function CoverModal({
                 <button
                   onClick={() =>
                     !isUnavailable &&
-                    callService('cover', invertPosition ? 'open_cover' : 'close_cover', {
+                    callService('cover', 'close_cover', {
                       entity_id: activeEntityId,
                     })
                   }
@@ -608,7 +611,7 @@ export default function CoverModal({
                       {translate('cover.tilt')}
                     </label>
                     <span className="font-mono text-sm font-bold text-[var(--text-primary)]">
-                      {localTilt}%
+                      {localDisplayTilt}%
                     </span>
                   </div>
                   <TiltVisual

@@ -248,6 +248,7 @@ const SmallCoverCard = (props) => {
     editMode,
     onOpen,
     localPos,
+    localDisplayPos,
     position,
     isMoving,
     getStateLabel,
@@ -300,7 +301,7 @@ const SmallCoverCard = (props) => {
           </p>
           <div className="flex items-baseline gap-1">
             <span className="text-lg leading-none font-medium text-[var(--text-primary)]">
-              {typeof position === 'number' ? `${localPos}%` : getStateLabel()}
+              {typeof position === 'number' ? `${localDisplayPos}%` : getStateLabel()}
             </span>
           </div>
         </div>
@@ -358,10 +359,11 @@ const CoverCard = ({
   const isOpening = state === 'opening';
   const isClosing = state === 'closing';
   const isMoving = isOpening || isClosing;
-  // Effective direction after accounting for devices that report position/state inverted
-  // (100% = closed, 0% = open).
-  const effectiveOpening = invertPosition ? isClosing : isOpening;
-  const effectiveClosing = invertPosition ? isOpening : isClosing;
+  // invertPosition only relabels the displayed percentage number for devices whose
+  // owner prefers reading "100% = closed"; it must never affect the real
+  // opening/closing motion state, which always reflects Home Assistant's raw state.
+  const effectiveOpening = isOpening;
+  const effectiveClosing = isClosing;
 
   // Features
   const supportedFeatures = activeEntity.attributes?.supported_features ?? 0;
@@ -376,18 +378,27 @@ const CoverCard = ({
 
   const translate = t || ((key) => key);
 
-  // Position Logic
+  // Position Logic. `position` is the DISPLAY value only (used for percentage text
+  // labels) – invertPosition purely relabels the number shown to the user. The
+  // physical slider visual/drag direction and `localPos` always operate in raw HA
+  // position space (0 = closed, 100 = open) so they stay visually correct and match
+  // what's actually sent to Home Assistant.
   const rawPosition = activeEntity.attributes?.current_position;
   const position =
     typeof rawPosition === 'number' ? (invertPosition ? 100 - rawPosition : rawPosition) : rawPosition;
-  const [localPos, setLocalPos] = useState(position ?? 0);
+  const [localPos, setLocalPos] = useState(rawPosition ?? 0);
   const isDraggingRef = useRef(false);
 
   useEffect(() => {
-    if (!isDraggingRef.current && typeof position === 'number') {
-      setLocalPos(position);
+    if (!isDraggingRef.current && typeof rawPosition === 'number') {
+      setLocalPos(rawPosition);
     }
-  }, [position]);
+  }, [rawPosition]);
+
+  // Percentage shown to the user for the slider handle/number, honoring the
+  // display-only invertPosition preference.
+  const localDisplayPos =
+    typeof localPos === 'number' ? (invertPosition ? 100 - localPos : localPos) : localPos;
 
   // Colors
   const getAccent = () => {
@@ -403,15 +414,11 @@ const CoverCard = ({
   const handleOpenCover = () =>
     !isUnavailable &&
     activeEntityId &&
-    callService('cover', invertPosition ? 'close_cover' : 'open_cover', {
-      entity_id: activeEntityId,
-    });
+    callService('cover', 'open_cover', { entity_id: activeEntityId });
   const handleCloseCover = () =>
     !isUnavailable &&
     activeEntityId &&
-    callService('cover', invertPosition ? 'open_cover' : 'close_cover', {
-      entity_id: activeEntityId,
-    });
+    callService('cover', 'close_cover', { entity_id: activeEntityId });
   const handleStopCover = () =>
     !isUnavailable &&
     activeEntityId &&
@@ -420,8 +427,7 @@ const CoverCard = ({
   const handlePositionCommit = (val) => {
     setLocalPos(val);
     if (!activeEntityId) return;
-    const rawVal = invertPosition ? 100 - val : val;
-    callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: rawVal });
+    callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: val });
   };
 
   const handleToggleMode = (e) => {
@@ -433,19 +439,14 @@ const CoverCard = ({
     if (isUnavailable) return translate('status.unavailable');
     if (effectiveOpening) return translate('cover.opening');
     if (effectiveClosing) return translate('cover.closing');
-    if (typeof position === 'number') {
-      return position > 0 ? translate('cover.open') : translate('cover.closed');
+    // Always derived from the raw HA position/state, never from the display-only
+    // inverted number, so the status text always matches physical reality.
+    if (typeof rawPosition === 'number') {
+      return rawPosition > 0 ? translate('cover.open') : translate('cover.closed');
     }
-    const effectiveState = invertPosition
-      ? state === 'open'
-        ? 'closed'
-        : state === 'closed'
-          ? 'open'
-          : state
-      : state;
-    if (effectiveState === 'open') return translate('cover.open');
-    if (effectiveState === 'closed') return translate('cover.closed');
-    return effectiveState;
+    if (state === 'open') return translate('cover.open');
+    if (state === 'closed') return translate('cover.closed');
+    return state;
   };
 
   const commonProps = {
@@ -457,6 +458,7 @@ const CoverCard = ({
     onOpen,
     name,
     localPos,
+    localDisplayPos,
     position,
     isMoving,
     isOpening,
@@ -514,7 +516,7 @@ const CoverCard = ({
             {typeof position === 'number' ? (
               <>
                 <span className={`${isDenseMobile ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-[var(--text-primary)] tabular-nums`}>
-                  {localPos}
+                  {localDisplayPos}
                 </span>
                 <span className={`${isDenseMobile ? 'text-lg' : 'text-xl'} leading-none font-light text-[var(--text-secondary)]`}>
                   %
