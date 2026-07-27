@@ -352,11 +352,16 @@ const CoverCard = ({
 
   const isSmall = settings?.size === 'small';
   const isDenseMobile = isMobile && !isSmall;
+  const invertPosition = settings?.invertPosition === true;
   const state = activeEntity.state;
   const isUnavailable = state === 'unavailable' || state === 'unknown' || !state;
   const isOpening = state === 'opening';
   const isClosing = state === 'closing';
   const isMoving = isOpening || isClosing;
+  // Effective direction after accounting for devices that report position/state inverted
+  // (100% = closed, 0% = open).
+  const effectiveOpening = invertPosition ? isClosing : isOpening;
+  const effectiveClosing = invertPosition ? isOpening : isClosing;
 
   // Features
   const supportedFeatures = activeEntity.attributes?.supported_features ?? 0;
@@ -372,7 +377,9 @@ const CoverCard = ({
   const translate = t || ((key) => key);
 
   // Position Logic
-  const position = activeEntity.attributes?.current_position;
+  const rawPosition = activeEntity.attributes?.current_position;
+  const position =
+    typeof rawPosition === 'number' ? (invertPosition ? 100 - rawPosition : rawPosition) : rawPosition;
   const [localPos, setLocalPos] = useState(position ?? 0);
   const isDraggingRef = useRef(false);
 
@@ -396,11 +403,15 @@ const CoverCard = ({
   const handleOpenCover = () =>
     !isUnavailable &&
     activeEntityId &&
-    callService('cover', 'open_cover', { entity_id: activeEntityId });
+    callService('cover', invertPosition ? 'close_cover' : 'open_cover', {
+      entity_id: activeEntityId,
+    });
   const handleCloseCover = () =>
     !isUnavailable &&
     activeEntityId &&
-    callService('cover', 'close_cover', { entity_id: activeEntityId });
+    callService('cover', invertPosition ? 'open_cover' : 'close_cover', {
+      entity_id: activeEntityId,
+    });
   const handleStopCover = () =>
     !isUnavailable &&
     activeEntityId &&
@@ -409,7 +420,8 @@ const CoverCard = ({
   const handlePositionCommit = (val) => {
     setLocalPos(val);
     if (!activeEntityId) return;
-    callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: val });
+    const rawVal = invertPosition ? 100 - val : val;
+    callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: rawVal });
   };
 
   const handleToggleMode = (e) => {
@@ -419,11 +431,18 @@ const CoverCard = ({
 
   const getStateLabel = () => {
     if (isUnavailable) return translate('status.unavailable');
-    if (isOpening) return translate('cover.opening');
-    if (isClosing) return translate('cover.closing');
-    if (state === 'open') return translate('cover.open');
-    if (state === 'closed') return translate('cover.closed');
-    return state;
+    if (effectiveOpening) return translate('cover.opening');
+    if (effectiveClosing) return translate('cover.closing');
+    const effectiveState = invertPosition
+      ? state === 'open'
+        ? 'closed'
+        : state === 'closed'
+          ? 'open'
+          : state
+      : state;
+    if (effectiveState === 'open') return translate('cover.open');
+    if (effectiveState === 'closed') return translate('cover.closed');
+    return effectiveState;
   };
 
   const commonProps = {
@@ -511,7 +530,9 @@ const CoverCard = ({
 
           {isMoving && (
             <div className={`${isDenseMobile ? 'mt-0.5 text-[9px]' : 'mt-1 text-[10px]'} animate-pulse font-bold tracking-widest text-[var(--text-primary)] uppercase`}>
-              {isOpening ? `${translate('cover.opening')}...` : `${translate('cover.closing')}...`}
+              {effectiveOpening
+                ? `${translate('cover.opening')}...`
+                : `${translate('cover.closing')}...`}
             </div>
           )}
         </div>

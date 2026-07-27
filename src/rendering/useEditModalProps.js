@@ -116,6 +116,7 @@ export function useEditModalProps({
       isEditWeatherTemp,
       isEditFan,
       isEditAlarm,
+      isEditCover,
       editSettingsKey,
       editSettings,
     };

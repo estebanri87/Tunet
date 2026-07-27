@@ -248,10 +248,14 @@ export default function CoverModal({
   entity,
   callService,
   customIcons,
+  settings,
   t,
 }) {
   const activeEntityId = entityId || '';
   const activeEntity = entity || { state: 'unknown', attributes: {} };
+
+  const invertPosition = settings?.invertPosition === true;
+  const invertTilt = settings?.invertTilt === true;
 
   const state = activeEntity.state;
   const isUnavailable = state === 'unavailable' || state === 'unknown' || !state;
@@ -260,11 +264,23 @@ export default function CoverModal({
   const isOpening = state === 'opening';
   const isClosing = state === 'closing';
   const isMoving = isOpening || isClosing;
+  // Effective direction/state after accounting for devices that report position/state
+  // inverted (100% = closed, 0% = open).
+  const effectiveOpen = invertPosition ? isClosed : isOpen;
+  const effectiveClosed = invertPosition ? isOpen : isClosed;
+  const effectiveOpening = invertPosition ? isClosing : isOpening;
+  const effectiveClosing = invertPosition ? isOpening : isClosing;
 
-  const position = activeEntity.attributes?.current_position;
-  const hasPosition = typeof position === 'number';
-  const tiltPosition = activeEntity.attributes?.current_tilt_position;
-  const hasTilt = typeof tiltPosition === 'number';
+  const rawPosition = activeEntity.attributes?.current_position;
+  const hasPosition = typeof rawPosition === 'number';
+  const position = hasPosition ? (invertPosition ? 100 - rawPosition : rawPosition) : rawPosition;
+  const rawTiltPosition = activeEntity.attributes?.current_tilt_position;
+  const hasTilt = typeof rawTiltPosition === 'number';
+  const tiltPosition = hasTilt
+    ? invertTilt
+      ? 100 - rawTiltPosition
+      : rawTiltPosition
+    : rawTiltPosition;
 
   const supportedFeatures = activeEntity.attributes?.supported_features ?? 0;
   const supportsPosition = (supportedFeatures & 4) !== 0;
@@ -314,7 +330,7 @@ export default function CoverModal({
         slat: 'rgba(59,130,246,0.3)',
         slatBorder: 'rgba(59,130,246,0.15)',
       };
-    if (isOpen)
+    if (effectiveOpen)
       return {
         color: '#34d399',
         bg: 'rgba(16,185,129,0.1)',
@@ -334,10 +350,10 @@ export default function CoverModal({
 
   const getStateLabel = () => {
     if (isUnavailable) return translate('status.unavailable');
-    if (isOpening) return translate('cover.opening');
-    if (isClosing) return translate('cover.closing');
-    if (isOpen) return translate('cover.open');
-    if (isClosed) return translate('cover.closed');
+    if (effectiveOpening) return translate('cover.opening');
+    if (effectiveClosing) return translate('cover.closing');
+    if (effectiveOpen) return translate('cover.open');
+    if (effectiveClosed) return translate('cover.closed');
     return state;
   };
 
@@ -353,10 +369,11 @@ export default function CoverModal({
       setLocalPosition(val);
       clearTimeout(commitTimerPos.current);
       commitTimerPos.current = setTimeout(() => {
-        callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: val });
+        const rawVal = invertPosition ? 100 - val : val;
+        callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: rawVal });
       }, 200);
     },
-    [callService, activeEntityId, show, entity]
+    [callService, activeEntityId, show, entity, invertPosition]
   );
 
   const handleSetTilt = useCallback(
@@ -365,13 +382,14 @@ export default function CoverModal({
       setLocalTilt(val);
       clearTimeout(commitTimerTilt.current);
       commitTimerTilt.current = setTimeout(() => {
+        const rawVal = invertTilt ? 100 - val : val;
         callService('cover', 'set_cover_tilt_position', {
           entity_id: activeEntityId,
-          tilt_position: val,
+          tilt_position: rawVal,
         });
       }, 200);
     },
-    [callService, activeEntityId, show, entity]
+    [callService, activeEntityId, show, entity, invertTilt]
   );
 
   const presets = [
@@ -447,8 +465,8 @@ export default function CoverModal({
                   <div
                     className="h-1.5 w-1.5 rounded-full"
                     style={{
-                      backgroundColor: isUnavailable ? '#ef4444' : isOpen ? '#34d399' : '#64748b',
-                      boxShadow: isOpen ? '0 0 6px rgba(52,211,153,0.5)' : 'none',
+                      backgroundColor: isUnavailable ? '#ef4444' : effectiveOpen ? '#34d399' : '#64748b',
+                      boxShadow: effectiveOpen ? '0 0 6px rgba(52,211,153,0.5)' : 'none',
                     }}
                   />
                 )}
@@ -505,10 +523,12 @@ export default function CoverModal({
                 <button
                   onClick={() =>
                     !isUnavailable &&
-                    callService('cover', 'open_cover', { entity_id: activeEntityId })
+                    callService('cover', invertPosition ? 'close_cover' : 'open_cover', {
+                      entity_id: activeEntityId,
+                    })
                   }
                   disabled={isUnavailable}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${isOpen ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${effectiveOpen ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`}
                 >
                   <ChevronUp className="h-3.5 w-3.5" />
                   <span>{translate('cover.open')}</span>
@@ -531,10 +551,12 @@ export default function CoverModal({
                 <button
                   onClick={() =>
                     !isUnavailable &&
-                    callService('cover', 'close_cover', { entity_id: activeEntityId })
+                    callService('cover', invertPosition ? 'open_cover' : 'close_cover', {
+                      entity_id: activeEntityId,
+                    })
                   }
                   disabled={isUnavailable}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${isClosed ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${effectiveClosed ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`}
                 >
                   <ChevronDown className="h-3.5 w-3.5" />
                   <span>{translate('cover.closed')}</span>

@@ -363,6 +363,7 @@ export function ModalEntitySlice({ core, modals, cardConfig, entityHelpers, reso
                 entity={coverEntity}
                 callService={callService}
                 customIcons={customIcons}
+                settings={coverSettings}
                 t={t}
               />
             </ModalSuspense>
