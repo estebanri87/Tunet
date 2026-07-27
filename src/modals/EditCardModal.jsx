@@ -2367,6 +2367,8 @@ export default function EditCardModal({
                       ? /^\s*-?\d+(\.\d+)?\s*$/.test(state)
                       : !isNaN(parseFloat(state));
                   const canGraph = isNumeric && domain !== 'input_number';
+                  const isTrashPickupState =
+                    typeof state === 'string' && /^\s*-?\d+\s*,\s*.+$/.test(state);
                   const variant = editSettings.sensorVariant || 'default';
                   const needsMinMax = ['gauge', 'donut', 'bar'].includes(variant) && isNumeric;
                   const colorThresholdDefaults = [
@@ -2411,7 +2413,7 @@ export default function EditCardModal({
 
                   return (
                     <div className="popup-surface space-y-4 rounded-2xl p-4">
-                      {canGraph && (
+                      {(canGraph || isTrashPickupState) && (
                         <div className="space-y-2">
                           <label className="text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
                             {t('sensor.variant') || 'Card style'}
@@ -2419,10 +2421,22 @@ export default function EditCardModal({
                           <div className="flex flex-wrap gap-2">
                             {[
                               { key: 'default', label: t('sensor.variantDefault') || 'Default' },
-                              { key: 'number', label: t('sensor.variantNumber') || 'Number' },
-                              { key: 'gauge', label: t('sensor.variantGauge') || 'Gauge' },
-                              { key: 'bar', label: t('sensor.variantBar') || 'Bar' },
-                              { key: 'donut', label: t('sensor.variantDonut') || 'Donut' },
+                              ...(canGraph
+                                ? [
+                                    { key: 'number', label: t('sensor.variantNumber') || 'Number' },
+                                    { key: 'gauge', label: t('sensor.variantGauge') || 'Gauge' },
+                                    { key: 'bar', label: t('sensor.variantBar') || 'Bar' },
+                                    { key: 'donut', label: t('sensor.variantDonut') || 'Donut' },
+                                  ]
+                                : []),
+                              ...(isTrashPickupState
+                                ? [
+                                    {
+                                      key: 'trashPickup',
+                                      label: t('sensor.variantTrashPickup') || 'Trash pickup',
+                                    },
+                                  ]
+                                : []),
                             ].map((v) => (
                               <button
                                 key={v.key}

@@ -39,6 +39,7 @@ Practical guide to what each card is best for, what you can configure, and commo
 
 - Entity selection (`sensor.*`, `binary_sensor.*`, plus supported helper domains).
 - Visual variant support (for numeric sensors): line/graph and gauge-like variants.
+- **Trash pickup** variant: for sensors whose state is a `days,wasteType` pair (e.g. `1,Restmüll`), shows a big countdown number next to a "day(s) until pickup" label and the waste type underneath. Available in the edit dialog's "Card style" picker whenever the entity's current state matches that format.
 - Optional range/threshold settings (where relevant).
 - Optional icon/value display tuning.
 

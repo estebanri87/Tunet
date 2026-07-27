@@ -427,6 +427,58 @@ const SensorCard = memo(
     // Early return AFTER all hooks to respect Rules of Hooks
     if (!entity) return null;
 
+    // "Trash pickup" variant: entity state is a "days,wasteType" pair (e.g. "1,Restmüll")
+    // and is rendered as a big countdown number next to a short description.
+    if (variant === 'trashPickup') {
+      const trashMatch = typeof state === 'string' ? state.match(/^\s*(-?\d+)\s*,\s*(.*)$/) : null;
+      const trashDays = trashMatch ? parseInt(trashMatch[1], 10) : NaN;
+      const wasteType = trashMatch ? trashMatch[2].trim() : '';
+      const hasValidDays = Number.isFinite(trashDays);
+      const countdownLabel = !hasValidDays
+        ? translate('sensor.trashPickup.unknown')
+        : trashDays <= 0
+          ? translate('sensor.trashPickup.today')
+          : trashDays === 1
+            ? translate('sensor.trashPickup.daySingular')
+            : translate('sensor.trashPickup.daysPlural');
+
+      return (
+        <div
+          ref={cardRef}
+          {...dragProps}
+          data-haptic={editMode ? undefined : 'card'}
+          onClick={(e) => {
+            if (!editMode) onOpen?.(e);
+          }}
+          className={`touch-feedback group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isSmall ? 'justify-center gap-1.5 p-4' : 'justify-center gap-2 p-5'} ${!editMode ? 'cursor-pointer' : 'cursor-move'}`}
+          style={{ ...cardStyle, containerType: 'inline-size' }}
+        >
+          {controls}
+          <div className="flex min-w-0 items-center gap-3">
+            {hasValidDays && (
+              <span
+                className={`flex-shrink-0 font-black leading-none text-[var(--text-primary)] ${isSmall ? 'text-4xl' : 'text-6xl'}`}
+              >
+                {trashDays}
+              </span>
+            )}
+            <span
+              className={`min-w-0 leading-tight font-bold whitespace-pre-line text-[var(--text-primary)] ${isSmall ? 'text-xs' : 'text-lg'}`}
+            >
+              {countdownLabel}
+            </span>
+          </div>
+          {wasteType && (
+            <p
+              className={`truncate font-medium text-[var(--text-secondary)] ${isSmall ? 'text-[10px]' : 'text-sm'}`}
+            >
+              {wasteType}
+            </p>
+          )}
+        </div>
+      );
+    }
+
     // Determine controls based on domain
     const isToggleDomain =
       domain === 'input_boolean' || domain === 'switch' || domain === 'automation';

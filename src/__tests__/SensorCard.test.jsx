@@ -193,4 +193,83 @@ describe('SensorCard', () => {
     expect(onControl).toHaveBeenCalledWith('select_option', 'Boost');
     expect(onOpen).not.toHaveBeenCalled();
   });
+
+  it('renders the trash pickup countdown variant for "days,type" states', () => {
+    render(
+      <SensorCard
+        {...baseProps({
+          settings: { size: 'large', sensorVariant: 'trashPickup' },
+          entity: {
+            entity_id: 'sensor.nachste_abholung',
+            state: '1,Restmüll',
+            attributes: { friendly_name: 'Nächste Abholung' },
+          },
+          name: 'Nächste Abholung',
+          t: (key) =>
+            ({
+              'sensor.trashPickup.daySingular': 'Tag bis\nMüllabholung',
+              'sensor.trashPickup.daysPlural': 'Tage bis\nMüllabholung',
+              'sensor.trashPickup.today': 'Abholung\nheute',
+              'sensor.trashPickup.unknown': 'Unbekannter Zeitpunkt für die\nMüllabholung',
+            })[key] || key,
+        })}
+      />
+    );
+
+    expect(screen.getByText('1')).not.toBeNull();
+    expect(screen.getByText('Tag bis Müllabholung')).not.toBeNull();
+    expect(screen.getByText('Restmüll')).not.toBeNull();
+  });
+
+  it('shows the plural countdown label for trash pickup states with more than one day', () => {
+    render(
+      <SensorCard
+        {...baseProps({
+          settings: { size: 'large', sensorVariant: 'trashPickup' },
+          entity: {
+            entity_id: 'sensor.nachste_abholung',
+            state: '3,Bioabfall',
+            attributes: { friendly_name: 'Nächste Abholung' },
+          },
+          name: 'Nächste Abholung',
+          t: (key) =>
+            ({
+              'sensor.trashPickup.daySingular': 'Tag bis\nMüllabholung',
+              'sensor.trashPickup.daysPlural': 'Tage bis\nMüllabholung',
+              'sensor.trashPickup.today': 'Abholung\nheute',
+              'sensor.trashPickup.unknown': 'Unbekannter Zeitpunkt für die\nMüllabholung',
+            })[key] || key,
+        })}
+      />
+    );
+
+    expect(screen.getByText('3')).not.toBeNull();
+    expect(screen.getByText('Tage bis Müllabholung')).not.toBeNull();
+    expect(screen.getByText('Bioabfall')).not.toBeNull();
+  });
+
+  it('falls back to the unknown label for trash pickup states that cannot be parsed', () => {
+    render(
+      <SensorCard
+        {...baseProps({
+          settings: { size: 'large', sensorVariant: 'trashPickup' },
+          entity: {
+            entity_id: 'sensor.nachste_abholung',
+            state: 'unavailable',
+            attributes: { friendly_name: 'Nächste Abholung' },
+          },
+          name: 'Nächste Abholung',
+          t: (key) =>
+            ({
+              'sensor.trashPickup.daySingular': 'Tag bis\nMüllabholung',
+              'sensor.trashPickup.daysPlural': 'Tage bis\nMüllabholung',
+              'sensor.trashPickup.today': 'Abholung\nheute',
+              'sensor.trashPickup.unknown': 'Unbekannter Zeitpunkt für die\nMüllabholung',
+            })[key] || key,
+        })}
+      />
+    );
+
+    expect(screen.getByText('Unbekannter Zeitpunkt für die Müllabholung')).not.toBeNull();
+  });
 });
