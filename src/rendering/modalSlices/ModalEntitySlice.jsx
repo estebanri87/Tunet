@@ -288,6 +288,8 @@ export function ModalEntitySlice({ core, modals, cardConfig, entityHelpers, reso
                 conn={conn}
                 weatherEntity={weatherEntity}
                 tempEntity={tempEntity}
+                entities={entities}
+                settings={settings}
                 language={language}
                 t={t}
               />

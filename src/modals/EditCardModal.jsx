@@ -9,6 +9,7 @@ import { buildCarAnchorOptions } from './editCard/carAnchorOptions';
 import { RoomSettingsSection } from './editCard/RoomSettingsSection';
 import { CoverSettingsSection } from './editCard/CoverSettingsSection';
 import { EnergyFlowSettingsSection } from './editCard/EnergyFlowSettingsSection';
+import { WeatherItemsSection } from './editCard/WeatherItemsSection';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
 import {
   convertValueByKind,
@@ -1276,6 +1277,76 @@ export default function EditCardModal({
 
               {isEditWeatherTemp && editSettingsKey && (
                 <div className="space-y-4">
+                  <div className="space-y-3 border-b border-[var(--glass-border)] pb-4">
+                    <WeatherItemsSection
+                      t={t}
+                      entities={entities}
+                      editSettings={editSettings}
+                      editSettingsKey={editSettingsKey}
+                      saveCardSetting={saveCardSetting}
+                      settingKey="cardItems"
+                      title={t('weatherTemp.cardItems')}
+                      hint={t('weatherTemp.cardItemsHint')}
+                    />
+                    <WeatherItemsSection
+                      t={t}
+                      entities={entities}
+                      editSettings={editSettings}
+                      editSettingsKey={editSettingsKey}
+                      saveCardSetting={saveCardSetting}
+                      settingKey="detailItems"
+                      title={t('weatherTemp.detailItems')}
+                      hint={t('weatherTemp.detailItemsHint')}
+                    />
+
+                    {/* Rain animation source: the animation itself is unchanged,
+                        only what triggers it becomes configurable. */}
+                    <div className="space-y-2">
+                      <SearchableSelect
+                        label={t('weatherTemp.rainEntity')}
+                        value={editSettings.rainEntityId}
+                        options={Object.keys(entities || {})
+                          .filter((id) => {
+                            const domain = id.split('.')[0];
+                            return ['sensor', 'binary_sensor', 'input_number', 'number'].includes(
+                              domain
+                            );
+                          })
+                          .sort()}
+                        onChange={(value) =>
+                          saveCardSetting(editSettingsKey, 'rainEntityId', value)
+                        }
+                        placeholder={t('dropdown.noneSelected')}
+                        entities={entities}
+                        t={t}
+                        maxOptions={150}
+                      />
+                      <p className="ml-1 text-[11px] text-[var(--text-muted)] opacity-70">
+                        {t('weatherTemp.rainEntityHint')}
+                      </p>
+                      {editSettings.rainEntityId && (
+                        <div>
+                          <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                            {t('weatherTemp.rainThreshold')}
+                          </label>
+                          <input
+                            type="number"
+                            value={editSettings.rainThreshold ?? ''}
+                            placeholder="0"
+                            onChange={(e) =>
+                              saveCardSetting(
+                                editSettingsKey,
+                                'rainThreshold',
+                                e.target.value === '' ? null : Number(e.target.value)
+                              )
+                            }
+                            className="popup-surface mt-1 w-28 rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
                       {t('weatherTemp.subtitle') || 'Subtitle'}
@@ -1491,6 +1562,39 @@ export default function EditCardModal({
                     >
                       +
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Edge dividers draw a thin rule in the gap beside the card. A
+                  standalone vertical divider card cannot be thin, because grid
+                  columns are all the same width. */}
+              {editSettingsKey && !isEditSpacer && (
+                <div className="space-y-2 pt-2">
+                  <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
+                    {t('editCard.edgeDivider')}
+                  </label>
+                  <p className="ml-1 text-[11px] text-[var(--text-muted)] opacity-70">
+                    {t('editCard.edgeDividerHint')}
+                  </p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {['none', 'left', 'right', 'both'].map((option) => {
+                      const current = editSettings.edgeDivider || 'none';
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => saveCardSetting(editSettingsKey, 'edgeDivider', option)}
+                          className={`rounded-xl border py-2.5 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                            current === option
+                              ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                              : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {t(`editCard.edgeDivider.${option}`)}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

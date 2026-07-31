@@ -316,6 +316,12 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
             cardHeight = forcedSpan * rowPx + Math.max(0, forcedSpan - 1) * gapPx;
           }
 
+          // Edge dividers sit centred in the gap next to the card, so they take
+          // no grid space of their own.
+          const edgeDivider = settings.edgeDivider || 'none';
+          const gapHPx = isMobile ? 8 : gridGapH;
+          const dividerOffset = -Math.max(2, Math.round(gapHPx / 2));
+
           return (
             <div
               key={id}
@@ -329,6 +335,20 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
                 height: `${cardHeight}px`,
               }}
             >
+              {(edgeDivider === 'left' || edgeDivider === 'both') && (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-2 bottom-2 w-px bg-[var(--text-muted)] opacity-30"
+                  style={{ left: `${dividerOffset}px` }}
+                />
+              )}
+              {(edgeDivider === 'right' || edgeDivider === 'both') && (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-2 bottom-2 w-px bg-[var(--text-muted)] opacity-30"
+                  style={{ right: `${dividerOffset}px` }}
+                />
+              )}
               {heading && !isSpacerCard && (
                 <div className="absolute -top-4 left-2 text-[10px] font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase">
                   {heading}

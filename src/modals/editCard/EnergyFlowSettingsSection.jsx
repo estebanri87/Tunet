@@ -5,19 +5,48 @@ import IconPicker from '../../components/ui/IconPicker';
 import { getIconComponent } from '../../icons';
 import {
   DEFAULT_ENERGY_COLOR_THRESHOLDS,
+  ENERGY_COLOR_SWATCHES,
   MAX_ENERGY_HEADER_ITEMS,
   MAX_ENERGY_ITEMS,
+  MAX_THRESHOLD_STEPS,
+  MIN_THRESHOLD_STEPS,
   createEnergyItemId,
   normalizeEnergyItems,
   normalizeEnergyThresholds,
   resolveItemThresholds,
+  resolveThresholdColor,
 } from '../../components/cards/energyItems';
 
-const THRESHOLD_COLORS = [
-  { key: 'red', label: 'ROT', dot: 'var(--color-red-500)' },
-  { key: 'amber', label: 'GELB', dot: 'var(--color-amber-400)' },
-  { key: 'green', label: 'GRÜN', dot: 'var(--color-green-400)' },
-];
+/* Colour swatches plus a native picker, so any colour is reachable. */
+const ColorChooser = ({ value, onChange }) => (
+  <div className="flex flex-wrap items-center gap-1.5">
+    {ENERGY_COLOR_SWATCHES.map((swatch) => {
+      const isSelected = resolveThresholdColor(value).toLowerCase() === swatch;
+      return (
+        <button
+          key={swatch}
+          onClick={() => onChange(swatch)}
+          aria-label={swatch}
+          className={`h-6 w-6 rounded-full border-2 transition-all ${isSelected ? 'scale-110 border-[var(--text-primary)]' : 'border-transparent'}`}
+          style={{ backgroundColor: swatch }}
+        />
+      );
+    })}
+    <label
+      className="relative h-6 w-6 cursor-pointer overflow-hidden rounded-full border border-[var(--glass-border)]"
+      style={{
+        background: 'conic-gradient(#ef4444, #facc15, #22c55e, #38bdf8, #a855f7, #ef4444)',
+      }}
+    >
+      <input
+        type="color"
+        value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#22c55e'}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 cursor-pointer opacity-0"
+      />
+    </label>
+  </div>
+);
 
 const SectionLabel = ({ title, hint }) => (
   <div className="px-1">
@@ -31,10 +60,19 @@ const SectionLabel = ({ title, hint }) => (
 );
 
 /**
- * Three-step colour scale. Every readout carries its own, because the value
- * range that counts as "good" differs per sensor.
+ * Colour scale of one to six steps. Every readout carries its own, because
+ * the value range that counts as "good" differs per sensor.
  */
-const ThresholdEditor = ({ enabled, thresholds, onToggle, onChange, onReset, t }) => (
+const ThresholdEditor = ({
+  enabled,
+  thresholds,
+  onToggle,
+  onChange,
+  onReset,
+  onAdd,
+  onRemove,
+  t,
+}) => (
   <div className="space-y-3 rounded-xl bg-[var(--glass-bg)] p-3">
     <div className="flex items-center justify-between gap-3">
       <div>
@@ -57,10 +95,13 @@ const ThresholdEditor = ({ enabled, thresholds, onToggle, onChange, onReset, t }
 
     {enabled &&
       thresholds.map((step, index) => (
-        <div key={index} className="space-y-2">
-          <div className="flex items-center gap-3">
+        <div key={index} className="space-y-2 border-t border-[var(--glass-border)] pt-2">
+          <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
               {`${t('energyFlow.thresholdStep')} ${index + 1}`}
+            </span>
+            <span className="text-[10px] text-[var(--text-muted)] opacity-70">
+              {t('energyFlow.thresholdUpTo')}
             </span>
             <input
               type="number"
@@ -68,33 +109,38 @@ const ThresholdEditor = ({ enabled, thresholds, onToggle, onChange, onReset, t }
               onChange={(e) => onChange(index, { limit: Number(e.target.value) })}
               className="popup-surface ml-auto w-20 rounded-lg px-2 py-1.5 text-sm text-[var(--text-primary)] outline-none"
             />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {THRESHOLD_COLORS.map((color) => (
+            {thresholds.length > MIN_THRESHOLD_STEPS && (
               <button
-                key={color.key}
-                onClick={() => onChange(index, { color: color.key })}
-                className={`flex items-center justify-center gap-1.5 rounded-lg border py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all ${
-                  step.color === color.key
-                    ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
-                    : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)]'
-                }`}
+                onClick={() => onRemove(index)}
+                aria-label={t('energyFlow.removeThresholdStep')}
+                className="rounded-lg p-1.5 text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
               >
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color.dot }} />
-                {color.label}
+                <Trash2 className="h-3.5 w-3.5" />
               </button>
-            ))}
+            )}
           </div>
+          <ColorChooser value={step.color} onChange={(color) => onChange(index, { color })} />
         </div>
       ))}
 
     {enabled && (
-      <button
-        onClick={onReset}
-        className="w-full rounded-lg px-2 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase transition-colors hover:text-[var(--text-primary)]"
-      >
-        {t('energyFlow.resetThresholds')}
-      </button>
+      <div className="flex gap-2 border-t border-[var(--glass-border)] pt-2">
+        {thresholds.length < MAX_THRESHOLD_STEPS && (
+          <button
+            onClick={onAdd}
+            className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[var(--glass-bg-hover)] px-2 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-primary)] uppercase transition-colors"
+          >
+            <Plus className="h-3 w-3" />
+            {t('energyFlow.addThresholdStep')}
+          </button>
+        )}
+        <button
+          onClick={onReset}
+          className="flex-1 rounded-lg px-2 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase transition-colors hover:text-[var(--text-primary)]"
+        >
+          {t('energyFlow.resetThresholds')}
+        </button>
+      </div>
     )}
   </div>
 );
@@ -255,6 +301,18 @@ const EnergyItemEditor = ({
                 ),
               })
             }
+            onAdd={() =>
+              onUpdate({
+                colorThresholds: [
+                  ...steps,
+                  {
+                    limit: Math.min(100, (steps[steps.length - 1]?.limit ?? 0) + 20),
+                    color: ENERGY_COLOR_SWATCHES[steps.length % ENERGY_COLOR_SWATCHES.length],
+                  },
+                ],
+              })
+            }
+            onRemove={(index) => onUpdate({ colorThresholds: steps.filter((_, i) => i !== index) })}
             onReset={() => onUpdate({ colorThresholds: DEFAULT_ENERGY_COLOR_THRESHOLDS })}
           />
         </>

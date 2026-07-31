@@ -10,21 +10,21 @@ import {
 } from './energyItems';
 
 /* -- Compact layout: icon ring with value and free label ---------------- */
-const EnergyItemRing = ({ item, entity, color, dense }) => {
+const EnergyItemRing = ({ item, entity, color, dense, size: ringSize }) => {
   const value = getEntityNumericValue(entity);
   const ratio = getEnergyItemRatio(value, item);
   const { text, unit } = formatEnergyValue(entity, item.decimals);
   const isIdle = value === null;
   const ItemIcon = item.icon ? getIconComponent(item.icon) : null;
 
-  const size = dense ? 56 : 68;
+  const size = ringSize;
   const stroke = 3;
   const radius = size / 2 - stroke;
   const circumference = 2 * Math.PI * radius;
 
   return (
-    <div className="flex min-w-0 flex-col items-center gap-1.5">
-      <div className="relative" style={{ width: size, height: size }}>
+    <div className="flex min-w-0 flex-col items-center gap-1">
+      <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
           <circle
             cx={size / 2}
@@ -66,8 +66,9 @@ const EnergyItemRing = ({ item, entity, color, dense }) => {
         {unit && <span className="text-[10px] text-[var(--text-secondary)]">{unit}</span>}
       </div>
       <span
-        className={`${dense ? 'text-[9px]' : 'text-[10px]'} max-w-full truncate text-center`}
+        className={`${dense ? 'text-[9px]' : 'text-[10px]'} max-w-full truncate text-center leading-tight`}
         style={{ color: 'var(--text-secondary)' }}
+        title={item.label || entity?.attributes?.friendly_name || item.entityId}
       >
         {item.label || entity?.attributes?.friendly_name || item.entityId}
       </span>
@@ -210,6 +211,9 @@ const EnergyFlowCard = memo(
     if (settings?.layout === 'compact') {
       const headerItems = getRenderableEnergyItems(settings?.headerItems, entities).slice(0, 2);
       const items = getRenderableEnergyItems(settings?.items, entities);
+      // The card height is fixed by the grid, so the rings shrink as readouts
+      // are added; otherwise the label below them gets clipped off.
+      const ringSize = isDenseMobile || items.length > 5 ? 44 : items.length > 3 ? 52 : 60;
 
       return (
         <div
@@ -219,7 +223,7 @@ const EnergyFlowCard = memo(
             e.stopPropagation();
             if (!editMode && onOpen) onOpen();
           }}
-          className={`glass-texture touch-feedback group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isDenseMobile ? 'gap-4 p-5' : 'gap-6 p-7'} ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'}`}
+          className={`glass-texture touch-feedback group relative flex h-full flex-col overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isDenseMobile ? 'gap-3 p-4' : 'gap-4 p-5'} ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'}`}
           style={cardStyle}
         >
           {controls}
@@ -254,7 +258,7 @@ const EnergyFlowCard = memo(
           )}
 
           {items.length > 0 ? (
-            <div className="relative z-10 flex flex-1 flex-wrap items-center justify-around gap-x-3 gap-y-4">
+            <div className="relative z-10 flex min-h-0 flex-1 flex-wrap items-center justify-around gap-x-3 gap-y-3">
               {items.map((item) => {
                 const itemEntity = entities[item.entityId];
                 return (
@@ -263,6 +267,7 @@ const EnergyFlowCard = memo(
                     item={item}
                     entity={itemEntity}
                     dense={isDenseMobile}
+                    size={ringSize}
                     color={getEnergyItemColor(getEntityNumericValue(itemEntity), item, settings)}
                   />
                 );

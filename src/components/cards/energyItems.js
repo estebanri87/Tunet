@@ -10,75 +10,79 @@
  * consumed energy for the day.
  */
 
+import {
+  createCustomItemId,
+  formatItemValue,
+  getEntityNumericValue,
+  getRenderableCustomItems,
+  normalizeCustomItems,
+} from './customItems';
+
+// Re-exported under the names the energy card already uses.
+export const createEnergyItemId = createCustomItemId;
+export const normalizeEnergyItems = normalizeCustomItems;
+export const getRenderableEnergyItems = getRenderableCustomItems;
+export const formatEnergyValue = formatItemValue;
+export { getEntityNumericValue };
+
 export const MAX_ENERGY_ITEMS = 8;
 export const MAX_ENERGY_HEADER_ITEMS = 2;
 
+/** Named colours kept for configurations written before free colours. */
 export const ENERGY_THRESHOLD_COLOR_MAP = {
   red: 'var(--color-red-500)',
   amber: 'var(--color-amber-400)',
   green: 'var(--color-green-400)',
 };
 
-export const DEFAULT_ENERGY_COLOR_THRESHOLDS = [
-  { limit: 20, color: 'red' },
-  { limit: 60, color: 'amber' },
-  { limit: 100, color: 'green' },
+export const MIN_THRESHOLD_STEPS = 1;
+export const MAX_THRESHOLD_STEPS = 6;
+
+/** Suggested colours offered as swatches; any other value is allowed too. */
+export const ENERGY_COLOR_SWATCHES = [
+  '#ef4444',
+  '#f97316',
+  '#facc15',
+  '#22c55e',
+  '#14b8a6',
+  '#38bdf8',
+  '#6366f1',
+  '#a855f7',
+  '#ec4899',
+  '#94a3b8',
 ];
 
-export const createEnergyItemId = () =>
-  `item-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+export const DEFAULT_ENERGY_COLOR_THRESHOLDS = [
+  { limit: 20, color: '#ef4444' },
+  { limit: 60, color: '#facc15' },
+  { limit: 100, color: '#22c55e' },
+];
 
-const isFilledObject = (item) => item && typeof item === 'object';
+/** Resolves a stored colour, which is either a legacy name or a CSS colour. */
+export const resolveThresholdColor = (color) =>
+  ENERGY_THRESHOLD_COLOR_MAP[color] || color || 'var(--accent-color)';
 
-export const normalizeEnergyItems = (items) =>
-  (Array.isArray(items) ? items : []).filter(isFilledObject);
-
-/** Items ready to render: they need an entity that currently exists. */
-export const getRenderableEnergyItems = (items, entities) =>
-  normalizeEnergyItems(items).filter((item) => item.entityId && entities?.[item.entityId]);
-
-/** Numeric state of an entity, or null when it is not a number. */
-export const getEntityNumericValue = (entity) => {
-  const raw = entity?.state;
-  if (raw === undefined || raw === null || raw === 'unavailable' || raw === 'unknown') return null;
-  const value = parseFloat(raw);
-  return Number.isFinite(value) ? value : null;
-};
-
-/**
- * Value plus unit as shown on the card. Falls back to the raw state for
- * non-numeric sensors so text states stay readable.
- */
-export const formatEnergyValue = (entity, decimals) => {
-  const value = getEntityNumericValue(entity);
-  const unit = entity?.attributes?.unit_of_measurement || '';
-  if (value === null) {
-    const raw = entity?.state;
-    if (raw === undefined || raw === null || raw === 'unavailable' || raw === 'unknown') {
-      return { text: '---', unit: '' };
-    }
-    return { text: String(raw), unit: '' };
-  }
-  const digits = Number.isFinite(Number(decimals)) ? Math.max(0, Math.min(3, Number(decimals))) : 1;
-  return { text: value.toFixed(digits), unit };
-};
-
+/** One to six steps, sorted by limit; anything unusable falls back to the defaults. */
 export const normalizeEnergyThresholds = (thresholds) => {
   const source =
-    Array.isArray(thresholds) && thresholds.length === 3
-      ? thresholds
+    Array.isArray(thresholds) && thresholds.length > 0
+      ? thresholds.slice(0, MAX_THRESHOLD_STEPS)
       : DEFAULT_ENERGY_COLOR_THRESHOLDS;
-  return source
+  const cleaned = source
+    .filter((item) => item && typeof item === 'object')
     .map((item, index) => {
-      const parsedLimit = parseFloat(item?.limit);
+      const parsedLimit = parseFloat(item.limit);
+      const fallback =
+        DEFAULT_ENERGY_COLOR_THRESHOLDS[
+          Math.min(index, DEFAULT_ENERGY_COLOR_THRESHOLDS.length - 1)
+        ];
       return {
-        limit: Number.isFinite(parsedLimit)
-          ? parsedLimit
-          : DEFAULT_ENERGY_COLOR_THRESHOLDS[index].limit,
-        color: item?.color || DEFAULT_ENERGY_COLOR_THRESHOLDS[index].color,
+        limit: Number.isFinite(parsedLimit) ? parsedLimit : fallback.limit,
+        color: item.color || fallback.color,
       };
     })
     .sort((a, b) => a.limit - b.limit);
+  return cleaned.length ? cleaned : DEFAULT_ENERGY_COLOR_THRESHOLDS;
 };
 
 /** Where the value sits between the item's min and max, as 0..1. */
@@ -112,6 +116,5 @@ export const getEnergyItemColor = (value, item, cardSettings) => {
   const percent = getEnergyItemRatio(value, item) * 100;
   const steps = normalizeEnergyThresholds(thresholds);
   const matched = steps.find((step) => percent <= step.limit);
-  const color = matched?.color || steps[steps.length - 1]?.color;
-  return ENERGY_THRESHOLD_COLOR_MAP[color] || 'var(--accent-color)';
+  return resolveThresholdColor(matched?.color || steps[steps.length - 1]?.color);
 };
