@@ -10,6 +10,7 @@ import {
   getToggleServiceCall,
   isToggleRowActive,
   normalizePresets,
+  resolveShowTilt,
 } from './editCard/coverRowTypes';
 
 const EMPTY_ENTITIES = {};
@@ -21,6 +22,7 @@ const FEATURE_SET_POSITION = 4;
 const FEATURE_STOP = 8;
 const FEATURE_OPEN_TILT = 16;
 const FEATURE_CLOSE_TILT = 32;
+const FEATURE_STOP_TILT = 64;
 const FEATURE_SET_TILT_POSITION = 128;
 
 // Step used for the slat arrows when the device only supports set_cover_tilt_position.
@@ -281,9 +283,14 @@ export default function CoverModal({
   const supportsStop = (supportedFeatures & FEATURE_STOP) !== 0;
   const supportsTiltPosition = (supportedFeatures & FEATURE_SET_TILT_POSITION) !== 0;
   const supportsTiltButtons = (supportedFeatures & (FEATURE_OPEN_TILT | FEATURE_CLOSE_TILT)) !== 0;
-  // Slat arrows are offered whenever tilt can be driven at all: either through
-  // the dedicated open/close tilt services or by stepping the tilt position.
-  const supportsTilt = supportsTiltButtons || supportsTiltPosition;
+  const supportsStopTilt = (supportedFeatures & FEATURE_STOP_TILT) !== 0;
+  // Detecting real slats from the feature bits alone does not work: roller
+  // shutters exist that advertise OPEN_TILT/CLOSE_TILT/STOP_TILT (127) without
+  // having slats at all. Devices with actual slats report a tilt position,
+  // either as the SET_TILT_POSITION feature or as a current_tilt_position
+  // attribute, so that is what the detection keys on. Cards may override it.
+  const detectedTilt = supportsTiltPosition || hasTilt;
+  const supportsTilt = resolveShowTilt(settings?.tiltMode, detectedTilt);
 
   const deviceClass = activeEntity.attributes?.device_class || 'cover';
   const name = activeEntity.attributes?.friendly_name || activeEntityId;
@@ -601,6 +608,9 @@ export default function CoverModal({
             <div className="relative z-10 my-2 flex min-h-[180px] flex-1 items-center justify-center gap-3 md:my-4 md:min-h-[200px] md:gap-5">
               {/* Height (position) */}
               <div className="flex shrink-0 flex-col items-center gap-2">
+                <span className="mb-1 text-[9px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                  {translate('cover.position')}
+                </span>
                 {supportsOpenClose && (
                   <ControlButton
                     onClick={() => handleCoverCommand('open_cover')}
@@ -630,9 +640,14 @@ export default function CoverModal({
                     <ChevronDown className="h-5 w-5" />
                   </ControlButton>
                 )}
-                <span className="mt-1 text-[9px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
-                  {translate('cover.position')}
-                </span>
+                {hasPosition && (
+                  <span
+                    className="mt-1 font-mono text-xs font-bold"
+                    style={{ color: accent.color }}
+                  >
+                    {localDisplayPosition}%
+                  </span>
+                )}
               </div>
 
               {/* Visual blind */}
@@ -664,6 +679,9 @@ export default function CoverModal({
               {/* Slats (tilt) */}
               {supportsTilt && (
                 <div className="flex shrink-0 flex-col items-center gap-2">
+                  <span className="mb-1 text-[9px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                    {translate('cover.tilt')}
+                  </span>
                   <ControlButton
                     onClick={() => handleTiltStep(1)}
                     disabled={isUnavailable}
@@ -671,6 +689,15 @@ export default function CoverModal({
                   >
                     <ChevronUp className="h-5 w-5" />
                   </ControlButton>
+                  {supportsStopTilt && (
+                    <ControlButton
+                      onClick={() => handleCoverCommand('stop_cover_tilt')}
+                      disabled={isUnavailable}
+                      label={translate('cover.aria.tiltStop')}
+                    >
+                      <div className="h-3 w-3 rounded-sm bg-current" />
+                    </ControlButton>
+                  )}
                   <ControlButton
                     onClick={() => handleTiltStep(-1)}
                     disabled={isUnavailable}
@@ -678,11 +705,11 @@ export default function CoverModal({
                   >
                     <ChevronDown className="h-5 w-5" />
                   </ControlButton>
-                  <span className="mt-1 text-[9px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
-                    {translate('cover.tilt')}
-                  </span>
                   {hasTilt && (
-                    <span className="font-mono text-xs font-bold" style={{ color: accent.color }}>
+                    <span
+                      className="mt-1 font-mono text-xs font-bold"
+                      style={{ color: accent.color }}
+                    >
                       {localDisplayTilt}%
                     </span>
                   )}
@@ -728,7 +755,7 @@ export default function CoverModal({
               )}
 
               {/* Tilt presets. The tilt control itself lives next to the visual. */}
-              {supportsTiltPosition && tiltPresets.length > 0 && (
+              {supportsTilt && supportsTiltPosition && tiltPresets.length > 0 && (
                 <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
                   <div className="space-y-2 md:space-y-3">
                     <div className="flex items-end justify-between px-1">

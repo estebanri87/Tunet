@@ -52,6 +52,19 @@ export const getRenderableRows = (rows, entities, type) =>
     (row) => row.type === type && row.entityId && entities?.[row.entityId]
   );
 
+/**
+ * Whether the popup shows slat (tilt) controls. Integrations are not always
+ * honest about this — roller shutters that report OPEN_TILT/CLOSE_TILT do
+ * exist — so the automatic detection can be overridden per card.
+ */
+export const TILT_MODES = ['auto', 'always', 'never'];
+
+export const resolveShowTilt = (mode, detected) => {
+  if (mode === 'always') return true;
+  if (mode === 'never') return false;
+  return detected;
+};
+
 export const DEFAULT_POSITION_PRESETS = [0, 25, 50, 75, 100];
 export const DEFAULT_TILT_PRESETS = [0, 50, 100];
 export const MAX_PRESETS = 8;

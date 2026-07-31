@@ -8,6 +8,7 @@ import { CarMappingsSection, SearchableSelect } from './editCard/CarMappingsSect
 import { buildCarAnchorOptions } from './editCard/carAnchorOptions';
 import { RoomSettingsSection } from './editCard/RoomSettingsSection';
 import { CoverSettingsSection } from './editCard/CoverSettingsSection';
+import { EnergyFlowSettingsSection } from './editCard/EnergyFlowSettingsSection';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
 import {
   convertValueByKind,
@@ -1521,7 +1522,11 @@ export default function EditCardModal({
                                 key={v.key}
                                 onClick={() => {
                                   saveCardSetting(editSettingsKey, 'variant', v.key);
-                                  if (v.key === 'divider') {
+                                  // A vertical divider keeps its own sizing.
+                                  if (
+                                    v.key === 'divider' &&
+                                    editSettings.orientation !== 'vertical'
+                                  ) {
                                     saveCardSetting(editSettingsKey, 'colSpan', 'full');
                                     saveCardSetting(editSettingsKey, 'heightPx', 40);
                                   }
@@ -1541,6 +1546,50 @@ export default function EditCardModal({
                             ))}
                           </div>
                         </div>
+
+                        {(editSettings.variant || 'spacer') === 'divider' && (
+                          <div className="space-y-2">
+                            <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
+                              {t('spacer.orientation')}
+                            </label>
+                            <div className="flex gap-2">
+                              {[
+                                { key: 'horizontal', label: t('spacer.horizontal') },
+                                { key: 'vertical', label: t('spacer.vertical') },
+                              ].map((opt) => {
+                                const current = editSettings.orientation || 'horizontal';
+                                return (
+                                  <button
+                                    key={opt.key}
+                                    type="button"
+                                    onClick={() => {
+                                      saveCardSetting(editSettingsKey, 'orientation', opt.key);
+                                      // A vertical rule needs height rather than width.
+                                      if (opt.key === 'vertical') {
+                                        saveCardSetting(editSettingsKey, 'colSpan', 1);
+                                        saveCardSetting(editSettingsKey, 'heightPx', 200);
+                                      } else {
+                                        saveCardSetting(editSettingsKey, 'colSpan', 'full');
+                                        saveCardSetting(editSettingsKey, 'heightPx', 40);
+                                      }
+                                    }}
+                                    className={`flex-1 rounded-xl border px-4 py-2 text-xs font-bold tracking-widest uppercase transition-colors ${current === opt.key ? 'popup-surface text-[var(--text-primary)]' : 'popup-surface popup-surface-hover text-[var(--text-secondary)]'}`}
+                                    style={
+                                      current === opt.key
+                                        ? {
+                                            backgroundColor: 'var(--glass-bg-hover)',
+                                            borderColor: 'var(--glass-border)',
+                                          }
+                                        : undefined
+                                    }
+                                  >
+                                    {opt.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
 
                         <div className="space-y-2">
                           <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
@@ -3508,6 +3557,17 @@ export default function EditCardModal({
               )}
 
               {isEditEnergyFlow && (
+                <EnergyFlowSettingsSection
+                  t={t}
+                  entities={entities}
+                  editSettings={editSettings}
+                  editSettingsKey={editSettingsKey}
+                  saveCardSetting={saveCardSetting}
+                />
+              )}
+
+              {/* The flow diagram keeps its fixed grid/solar/battery/home slots. */}
+              {isEditEnergyFlow && editSettings.layout !== 'compact' && (
                 <div className="space-y-6">
                   {[
                     { key: 'gridId', label: t('energyFlow.grid') || 'Grid', required: true },

@@ -11,6 +11,8 @@ import {
   normalizeCustomRows,
   normalizePresets,
   reorderRows,
+  resolveShowTilt,
+  TILT_MODES,
 } from './coverRowTypes';
 
 // Status rows may point at any entity, so the picker list is capped.
@@ -120,8 +122,13 @@ export function CoverSettingsSection({
 }) {
   const coverEntity = entities[editSettings.coverId];
   const supportedFeatures = coverEntity?.attributes?.supported_features ?? 0;
-  // CoverEntityFeature.SET_TILT_POSITION — the only tilt bit the presets need.
-  const supportsTilt = (supportedFeatures & 128) !== 0;
+  // Mirrors CoverModal: roller shutters may advertise the tilt *services*
+  // without having slats, so detection keys on a reported tilt position
+  // (CoverEntityFeature.SET_TILT_POSITION or a current_tilt_position value).
+  const supportsTiltPosition = (supportedFeatures & 128) !== 0;
+  const detectedTilt =
+    supportsTiltPosition || typeof coverEntity?.attributes?.current_tilt_position === 'number';
+  const supportsTilt = resolveShowTilt(editSettings.tiltMode, detectedTilt);
 
   const customRows = React.useMemo(
     () => normalizeCustomRows(editSettings.customRows),
@@ -234,6 +241,42 @@ export function CoverSettingsSection({
         }
       />
 
+      {/* Tilt visibility. Roller shutters sometimes advertise tilt support they
+          do not physically have, so the automatic detection can be overridden. */}
+      <div className="popup-surface space-y-3 rounded-2xl p-4">
+        <div>
+          <span className="block text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
+            {t('cover.tiltVisibility')}
+          </span>
+          <span className="mt-1 block text-[11px] text-[var(--text-muted)] opacity-70">
+            {t('cover.tiltVisibilityHint')}
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {TILT_MODES.map((mode) => {
+            const isSelected = (editSettings.tiltMode || 'auto') === mode;
+            return (
+              <button
+                key={mode}
+                onClick={() =>
+                  editSettingsKey && saveCardSetting(editSettingsKey, 'tiltMode', mode)
+                }
+                className={`rounded-xl border py-2.5 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                  isSelected
+                    ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                    : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                {t(`cover.tiltMode.${mode}`)}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-[var(--text-muted)] opacity-70">
+          {detectedTilt ? t('cover.tiltDetected') : t('cover.tiltNotDetected')}
+        </p>
+      </div>
+
       {supportsTilt && (
         <InvertToggle
           title={t('cover.invertTilt')}
@@ -255,7 +298,7 @@ export function CoverSettingsSection({
         t={t}
       />
 
-      {supportsTilt && (
+      {supportsTilt && supportsTiltPosition && (
         <PresetEditor
           title={t('cover.tiltPresets')}
           hint={t('cover.tiltPresetsHint')}
