@@ -10,8 +10,69 @@ const RoomExplorerPage = lazy(() => import('../components/pages/RoomExplorerPage
 
 const pageFallback = <div className="page-transition min-h-[40vh]" aria-hidden="true" />;
 
+/** Width of a grid column that holds nothing but vertical dividers. */
+const DIVIDER_COLUMN_WIDTH = 44;
+
+const isVerticalDividerCard = (id, settings) =>
+  id.startsWith('spacer_card_') &&
+  settings?.variant === 'divider' &&
+  settings?.orientation === 'vertical';
+
+/**
+ * Columns are equal width by default. A column occupied exclusively by
+ * vertical dividers is collapsed to a narrow fixed width instead, so a
+ * divider costs about as little space horizontally as the horizontal variant
+ * does vertically. In edit mode every column keeps its full width, otherwise
+ * the card controls would not fit.
+ */
+const buildGridTemplateColumns = ({
+  ids,
+  gridLayout,
+  cardSettings,
+  getCardSettingsKey,
+  columns,
+  editMode,
+}) => {
+  const fallback = `repeat(${columns}, minmax(0, 1fr))`;
+  if (editMode || columns < 2) return fallback;
+
+  const occupied = new Array(columns).fill(false);
+  const dividersOnly = new Array(columns).fill(true);
+
+  ids.forEach((id) => {
+    const placement = gridLayout[id];
+    if (!placement) return;
+    const settings = cardSettings[getCardSettingsKey(id)] || cardSettings[id] || {};
+    const isDivider = isVerticalDividerCard(id, settings);
+    const start = Math.max(0, placement.col - 1);
+    const end = Math.min(start + (placement.colSpan || 1), columns);
+    for (let column = start; column < end; column += 1) {
+      occupied[column] = true;
+      if (!isDivider) dividersOnly[column] = false;
+    }
+  });
+
+  if (!occupied.some((isOccupied, column) => isOccupied && dividersOnly[column])) return fallback;
+
+  return occupied
+    .map((isOccupied, column) =>
+      isOccupied && dividersOnly[column] ? `${DIVIDER_COLUMN_WIDTH}px` : 'minmax(0, 1fr)'
+    )
+    .join(' ');
+};
+
 export default function DashboardGrid({ page, media, grid, cards, actions, t }) {
-  const { activePage, pagesConfig, pageSettings, editMode, isMediaPage, isSonosPage, isLightsPage, isBatteryPage, isRoomExplorerPage } = page;
+  const {
+    activePage,
+    pagesConfig,
+    pageSettings,
+    editMode,
+    isMediaPage,
+    isSonosPage,
+    isLightsPage,
+    isBatteryPage,
+    isRoomExplorerPage,
+  } = page;
   const {
     entities,
     conn,
@@ -23,7 +84,8 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
     callService,
     savePageSetting,
   } = media;
-  const { gridLayout, isMobile, gridGapV, gridGapH, gridColCount, isCompactCards, cardScale } = grid;
+  const { gridLayout, isMobile, gridGapV, gridGapH, gridColCount, isCompactCards, cardScale } =
+    grid;
   const { cardSettings, getCardSettingsKey, hiddenCards, isCardHiddenByLogic, renderCard } = cards;
   const { setShowAddCardModal, setConfigTab, setShowConfigModal } = actions;
 
@@ -194,7 +256,14 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
           ? '8px'
           : `calc(${gridGapV}px * var(--density-gap-scale, 1)) calc(${gridGapH}px * var(--density-gap-scale, 1))`,
         gridAutoRows: 'auto',
-        gridTemplateColumns: `repeat(${gridColCount}, minmax(0, 1fr))`,
+        gridTemplateColumns: buildGridTemplateColumns({
+          ids: pagesConfig[activePage] || [],
+          gridLayout,
+          cardSettings,
+          getCardSettingsKey,
+          columns: gridColCount,
+          editMode,
+        }),
       }}
     >
       {(pagesConfig[activePage] || [])
@@ -267,9 +336,13 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
               )}
               <div
                 className="h-full overflow-hidden"
-                style={needsScale ? {
-                  fontSize: `${scaleFactor}em`,
-                } : undefined}
+                style={
+                  needsScale
+                    ? {
+                        fontSize: `${scaleFactor}em`,
+                      }
+                    : undefined
+                }
               >
                 <CardErrorBoundary cardId={id} t={t}>
                   {cardContent}
