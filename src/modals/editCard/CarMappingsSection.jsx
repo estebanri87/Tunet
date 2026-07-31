@@ -317,7 +317,9 @@ export function CarMappingsSection({
       </button>
 
       {mappedSensors.length === 0 && (
-        <div className="py-8 text-center text-sm text-[var(--text-muted)]">{t('car.noSensorsMapped')}</div>
+        <div className="py-8 text-center text-sm text-[var(--text-muted)]">
+          {t('car.noSensorsMapped')}
+        </div>
       )}
 
       {mappedSensors.length > 0 && (
@@ -481,7 +483,9 @@ export function CarMappingsSection({
       )}
 
       {availableTypes.length === 0 && !showAddSensor && (
-        <div className="py-4 text-center text-xs text-[var(--text-muted)]">{t('car.allSensorsMapped')}</div>
+        <div className="py-4 text-center text-xs text-[var(--text-muted)]">
+          {t('car.allSensorsMapped')}
+        </div>
       )}
     </div>
   );

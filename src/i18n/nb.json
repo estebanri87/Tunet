@@ -570,6 +570,8 @@
   "cover.addPreset": "Legg til",
   "cover.aria.position": "Dekkposisjon",
   "cover.aria.tilt": "Dekkvinkeling",
+  "cover.aria.tiltDown": "Vipp lamellene ned",
+  "cover.aria.tiltUp": "Vipp lamellene opp",
   "cover.closed": "Lukket",
   "cover.closing": "Lukker",
   "cover.controls": "Kontroller",

@@ -120,7 +120,8 @@ export function CoverSettingsSection({
 }) {
   const coverEntity = entities[editSettings.coverId];
   const supportedFeatures = coverEntity?.attributes?.supported_features ?? 0;
-  const supportsTilt = (supportedFeatures & 128) !== 0 || (supportedFeatures & 256) !== 0;
+  // CoverEntityFeature.SET_TILT_POSITION — the only tilt bit the presets need.
+  const supportsTilt = (supportedFeatures & 128) !== 0;
 
   const customRows = React.useMemo(
     () => normalizeCustomRows(editSettings.customRows),

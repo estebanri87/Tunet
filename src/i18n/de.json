@@ -338,6 +338,8 @@
   "cover.addPreset": "Hinzufügen",
   "cover.aria.position": "Abdeckungsposition",
   "cover.aria.tilt": "Abdeckungsneigung",
+  "cover.aria.tiltDown": "Lamellen schließen",
+  "cover.aria.tiltUp": "Lamellen öffnen",
   "cover.closed": "Geschlossen",
   "cover.closing": "Schließt",
   "cover.controls": "Steuerung",

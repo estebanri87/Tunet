@@ -14,8 +14,27 @@ import {
 
 const EMPTY_ENTITIES = {};
 
+// Home Assistant CoverEntityFeature bits.
+const FEATURE_OPEN = 1;
+const FEATURE_CLOSE = 2;
+const FEATURE_SET_POSITION = 4;
+const FEATURE_STOP = 8;
+const FEATURE_OPEN_TILT = 16;
+const FEATURE_CLOSE_TILT = 32;
+const FEATURE_SET_TILT_POSITION = 128;
+
+// Step used for the slat arrows when the device only supports set_cover_tilt_position.
+const TILT_STEP = 10;
+
 /* -- Interactive Visual Blind ---------------------------------------- */
-const InteractiveBlind = ({ position, onPositionChange, accent, disabled, slatCount = 12, translate }) => {
+const InteractiveBlind = ({
+  position,
+  onPositionChange,
+  accent,
+  disabled,
+  slatCount = 12,
+  translate,
+}) => {
   const containerRef = useRef(null);
   const isDragging = useRef(false);
   const closedAmount = 100 - (position ?? 0);
@@ -158,99 +177,22 @@ const InteractiveBlind = ({ position, onPositionChange, accent, disabled, slatCo
   );
 };
 
-/* -- Tilt Visual ----------------------------------------------------- */
-const TiltVisual = ({ tilt, onTiltChange, accent, disabled, translate }) => {
-  const containerRef = useRef(null);
-  const isDragging = useRef(false);
-  const slatAngle = ((tilt ?? 0) / 100) * 80 - 40;
-
-  const calcTiltFromEvent = useCallback((clientX) => {
-    if (!containerRef.current) return null;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = clientX - rect.left;
-    return Math.round(Math.max(0, Math.min(100, (x / rect.width) * 100)));
-  }, []);
-
-  const handlePointerDown = useCallback(
-    (e) => {
-      if (disabled) return;
-      isDragging.current = true;
-      e.currentTarget.setPointerCapture(e.pointerId);
-      const val = calcTiltFromEvent(e.clientX);
-      if (val !== null) onTiltChange(val);
-    },
-    [disabled, calcTiltFromEvent, onTiltChange]
-  );
-
-  const handlePointerMove = useCallback(
-    (e) => {
-      if (!isDragging.current || disabled) return;
-      const val = calcTiltFromEvent(e.clientX);
-      if (val !== null) onTiltChange(val);
-    },
-    [disabled, calcTiltFromEvent, onTiltChange]
-  );
-
-  const handlePointerUp = useCallback(() => {
-    isDragging.current = false;
-  }, []);
-
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (disabled || !onTiltChange) return;
-      const current = Number.isFinite(tilt) ? tilt : 0;
-      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        onTiltChange(Math.min(100, current + 5));
-      }
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        onTiltChange(Math.max(0, current - 5));
-      }
-      if (e.key === 'Home') {
-        e.preventDefault();
-        onTiltChange(0);
-      }
-      if (e.key === 'End') {
-        e.preventDefault();
-        onTiltChange(100);
-      }
-    },
-    [disabled, onTiltChange, tilt]
-  );
-
-  return (
-    <div
-      ref={containerRef}
-      className={`relative flex h-24 w-full touch-none flex-col justify-center gap-1 overflow-hidden rounded-xl border px-3 py-2 select-none ${disabled ? 'opacity-50' : 'cursor-ew-resize'}`}
-      style={{ borderColor: accent.border, backgroundColor: 'rgba(135,206,235,0.04)' }}
-      role="slider"
-      aria-label={translate?.('cover.aria.tilt') || 'Cover tilt'}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={tilt ?? 0}
-      aria-valuetext={`${tilt ?? 0}%`}
-      tabIndex={disabled ? -1 : 0}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      onKeyDown={handleKeyDown}
-    >
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div
-          key={i}
-          className="h-2 w-full rounded-sm transition-all duration-300"
-          style={{
-            backgroundColor: accent.slat,
-            transform: `perspective(80px) rotateX(${slatAngle}deg)`,
-            borderBottom: `1px solid ${accent.slatBorder}`,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
+/* -- Square icon button used by the control columns ------------------- */
+const ControlButton = ({ onClick, disabled, label, active, children }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    aria-label={label}
+    title={label}
+    className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-200 disabled:opacity-30 md:h-12 md:w-12 ${
+      active
+        ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm'
+        : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+    }`}
+  >
+    {children}
+  </button>
+);
 
 /* -- User-defined row (toggle) --------------------------------------- */
 const CustomToggleRow = ({ label, entity, entityId, onToggle, translate }) => {
@@ -334,11 +276,14 @@ export default function CoverModal({
   const effectiveClosing = isClosing;
 
   const supportedFeatures = activeEntity.attributes?.supported_features ?? 0;
-  const supportsPosition = (supportedFeatures & 4) !== 0;
-  const supportsOpenClose = (supportedFeatures & 3) !== 0;
-  const supportsStop = (supportedFeatures & 8) !== 0;
-  const supportsTilt = (supportedFeatures & 128) !== 0;
-  const supportsTiltPosition = (supportedFeatures & 256) !== 0;
+  const supportsPosition = (supportedFeatures & FEATURE_SET_POSITION) !== 0;
+  const supportsOpenClose = (supportedFeatures & (FEATURE_OPEN | FEATURE_CLOSE)) !== 0;
+  const supportsStop = (supportedFeatures & FEATURE_STOP) !== 0;
+  const supportsTiltPosition = (supportedFeatures & FEATURE_SET_TILT_POSITION) !== 0;
+  const supportsTiltButtons = (supportedFeatures & (FEATURE_OPEN_TILT | FEATURE_CLOSE_TILT)) !== 0;
+  // Slat arrows are offered whenever tilt can be driven at all: either through
+  // the dedicated open/close tilt services or by stepping the tilt position.
+  const supportsTilt = supportsTiltButtons || supportsTiltPosition;
 
   const deviceClass = activeEntity.attributes?.device_class || 'cover';
   const name = activeEntity.attributes?.friendly_name || activeEntityId;
@@ -369,7 +314,8 @@ export default function CoverModal({
   const localDisplayPosition = invertPosition ? 100 - localPosition : localPosition;
   const localDisplayTilt = invertTilt ? 100 - localTilt : localTilt;
 
-  const translate = t || ((key) => key);
+  // Memoized so the hooks depending on it keep stable dependencies.
+  const translate = useMemo(() => t || ((key) => key), [t]);
 
   const getAccent = () => {
     if (isUnavailable)
@@ -446,6 +392,29 @@ export default function CoverModal({
       }, 200);
     },
     [callService, activeEntityId, show, entity]
+  );
+
+  const handleCoverCommand = useCallback(
+    (service) => {
+      if (isUnavailable) return;
+      callService('cover', service, { entity_id: activeEntityId });
+    },
+    [callService, activeEntityId, isUnavailable]
+  );
+
+  // Slat arrows use the dedicated tilt services when available and fall back to
+  // stepping the tilt position for devices that only expose SET_TILT_POSITION.
+  const handleTiltStep = useCallback(
+    (direction) => {
+      if (isUnavailable) return;
+      if (supportsTiltButtons) {
+        handleCoverCommand(direction > 0 ? 'open_cover_tilt' : 'close_cover_tilt');
+        return;
+      }
+      const current = Number.isFinite(localTilt) ? localTilt : 0;
+      handleSetTilt(Math.max(0, Math.min(100, current + direction * TILT_STEP)));
+    },
+    [isUnavailable, supportsTiltButtons, handleCoverCommand, localTilt, handleSetTilt]
   );
 
   // User-defined rows configured in the card editor. They may point at any
@@ -541,7 +510,7 @@ export default function CoverModal({
       titleId={modalTitleId}
       overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6"
       overlayStyle={{ backdropFilter: 'blur(20px)', backgroundColor: 'rgba(0,0,0,0.3)' }}
-      panelClassName="popup-anim relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border shadow-2xl backdrop-blur-xl md:h-auto md:min-h-[550px] md:rounded-[3rem] lg:grid lg:grid-cols-5"
+      panelClassName="popup-anim relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border shadow-2xl backdrop-blur-xl md:h-auto md:min-h-[480px] md:rounded-[3rem] lg:grid lg:grid-cols-5"
       panelStyle={{
         background: 'linear-gradient(135deg, var(--card-bg) 0%, var(--modal-bg) 100%)',
         borderColor: 'var(--glass-border)',
@@ -550,219 +519,203 @@ export default function CoverModal({
     >
       {() => (
         <>
-        {/* Close Button */}
-        <div className="absolute top-6 right-6 z-50 md:top-10 md:right-10">
-          <button onClick={onClose} className="modal-close" aria-label={translate('common.close')}>
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* LEFT PANEL: Visual blind & controls */}
-        <div
-          className="relative flex shrink-0 flex-col justify-between overflow-hidden border-b p-4 md:p-10 lg:col-span-3 lg:border-r lg:border-b-0"
-          style={{ borderColor: 'var(--glass-border)' }}
-        >
-          {/* Ambient Glow */}
-          <div
-            className="pointer-events-none absolute top-1/2 left-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-5 blur-[100px] transition-all duration-1000"
-            style={{ backgroundColor: accent.color }}
-          />
-
-          {/* Header */}
-          <div className="relative z-10 mb-4 flex shrink-0 items-center gap-4">
-            <div
-              className="rounded-2xl p-4 transition-all duration-500"
-              style={{ backgroundColor: accent.bg, color: accent.color }}
+          {/* Close Button */}
+          <div className="absolute top-6 right-6 z-50 md:top-10 md:right-10">
+            <button
+              onClick={onClose}
+              className="modal-close"
+              aria-label={translate('common.close')}
             >
-              <Icon className="h-8 w-8" />
-            </div>
-            <div className="min-w-0">
-              <h2
-                id={modalTitleId}
-                className="truncate pr-1 text-2xl leading-none font-light tracking-tight text-[var(--text-primary)] uppercase italic"
-              >
-                {name}
-              </h2>
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* LEFT PANEL: Visual blind & controls */}
+          <div
+            className="relative flex min-h-0 shrink-0 flex-col justify-between overflow-hidden border-b p-4 md:p-8 lg:col-span-3 lg:border-r lg:border-b-0"
+            style={{ borderColor: 'var(--glass-border)' }}
+          >
+            {/* Ambient Glow */}
+            <div
+              className="pointer-events-none absolute top-1/2 left-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-5 blur-[100px] transition-all duration-1000"
+              style={{ backgroundColor: accent.color }}
+            />
+
+            {/* Header */}
+            <div className="relative z-10 mb-4 flex shrink-0 items-center gap-4">
               <div
-                className="mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1"
-                style={{ backgroundColor: accent.bg, borderColor: accent.border }}
+                className="rounded-2xl p-4 transition-all duration-500"
+                style={{ backgroundColor: accent.bg, color: accent.color }}
               >
-                {isMoving && (
-                  <div
-                    className="h-1.5 w-1.5 animate-pulse rounded-full"
-                    style={{ backgroundColor: accent.color }}
-                  />
-                )}
-                {!isMoving && (
-                  <div
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{
-                      backgroundColor: isUnavailable ? '#ef4444' : effectiveOpen ? '#34d399' : '#64748b',
-                      boxShadow: effectiveOpen ? '0 0 6px rgba(52,211,153,0.5)' : 'none',
-                    }}
-                  />
-                )}
-                <span
-                  className="text-[10px] font-bold tracking-widest uppercase italic"
-                  style={{ color: accent.color }}
-                >
-                  {getStateLabel()}
-                </span>
-                {hasPosition && (
-                  <span
-                    className="border-l pl-2 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase italic"
-                    style={{ borderColor: 'var(--glass-border)' }}
-                  >
-                    {localDisplayPosition}%
-                  </span>
-                )}
+                <Icon className="h-8 w-8" />
               </div>
-            </div>
-          </div>
-
-          {/* Center: Interactive visual blind */}
-          <div className="relative z-10 my-2 flex min-h-[180px] flex-1 items-center justify-center md:my-4 md:min-h-[200px]">
-            <div className="flex h-52 w-40 flex-col items-center md:h-64 md:w-56">
-              <div className="w-full flex-1">
-                <InteractiveBlind
-                  position={localPosition}
-                  onPositionChange={supportsPosition ? handleSetPosition : undefined}
-                  accent={{ ...accent, text: accent.color }}
-                  disabled={isUnavailable || !supportsPosition}
-                  translate={translate}
-                />
-              </div>
-              <div className="mt-3 flex items-center gap-3">
-                <span
-                  className="text-[10px] font-bold tracking-widest uppercase opacity-50"
-                  style={{ color: accent.color }}
+              <div className="min-w-0">
+                <h2
+                  id={modalTitleId}
+                  className="truncate pr-1 text-2xl leading-none font-light tracking-tight text-[var(--text-primary)] uppercase italic"
                 >
-                  {getDeviceTypeLabel()}
-                </span>
-                {supportsPosition && (
-                  <span className="font-mono text-sm font-bold" style={{ color: accent.color }}>
-                    {localDisplayPosition}%
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Quick action buttons */}
-          <div className="relative z-10 mx-auto w-full max-w-sm shrink-0">
-            <div className="flex w-full rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-1">
-              {supportsOpenClose && (
-                <button
-                  onClick={() =>
-                    !isUnavailable &&
-                    callService('cover', 'open_cover', {
-                      entity_id: activeEntityId,
-                    })
-                  }
-                  disabled={isUnavailable}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${effectiveOpen ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`}
-                >
-                  <ChevronUp className="h-3.5 w-3.5" />
-                  <span>{translate('cover.open')}</span>
-                </button>
-              )}
-              {supportsStop && (
-                <button
-                  onClick={() =>
-                    !isUnavailable &&
-                    callService('cover', 'stop_cover', { entity_id: activeEntityId })
-                  }
-                  disabled={isUnavailable}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-all duration-300 hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
-                >
-                  <div className="h-3 w-3 rounded-sm bg-current" />
-                  <span>{translate('cover.stop')}</span>
-                </button>
-              )}
-              {supportsOpenClose && (
-                <button
-                  onClick={() =>
-                    !isUnavailable &&
-                    callService('cover', 'close_cover', {
-                      entity_id: activeEntityId,
-                    })
-                  }
-                  disabled={isUnavailable}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${effectiveClosed ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`}
-                >
-                  <ChevronDown className="h-3.5 w-3.5" />
-                  <span>{translate('cover.closed')}</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT PANEL: Presets, Tilt, Info */}
-        <div className="flex h-full flex-col lg:col-span-2">
-          <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4 md:space-y-8 md:p-8 lg:pt-16">
-            {/* Position Presets */}
-            {supportsPosition && presets.length > 0 && (
-              <div className="space-y-2 md:space-y-3">
-                <label className="px-1 text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase">
-                  {translate('cover.presets')}
-                </label>
+                  {name}
+                </h2>
                 <div
-                  className="grid gap-2"
-                  style={{
-                    gridTemplateColumns: `repeat(${Math.min(presets.length, 5)}, minmax(0, 1fr))`,
-                  }}
+                  className="mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1"
+                  style={{ backgroundColor: accent.bg, borderColor: accent.border }}
                 >
-                  {presets.map((preset) => (
-                    <button
-                      key={preset.value}
-                      onClick={() => !isUnavailable && handleSetPosition(preset.value)}
-                      disabled={isUnavailable}
-                      className={`rounded-xl border py-2.5 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
-                        localPosition === preset.value
-                          ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm'
-                          : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
-                      }`}
+                  {isMoving && (
+                    <div
+                      className="h-1.5 w-1.5 animate-pulse rounded-full"
+                      style={{ backgroundColor: accent.color }}
+                    />
+                  )}
+                  {!isMoving && (
+                    <div
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{
+                        backgroundColor: isUnavailable
+                          ? '#ef4444'
+                          : effectiveOpen
+                            ? '#34d399'
+                            : '#64748b',
+                        boxShadow: effectiveOpen ? '0 0 6px rgba(52,211,153,0.5)' : 'none',
+                      }}
+                    />
+                  )}
+                  <span
+                    className="text-[10px] font-bold tracking-widest uppercase italic"
+                    style={{ color: accent.color }}
+                  >
+                    {getStateLabel()}
+                  </span>
+                  {hasPosition && (
+                    <span
+                      className="border-l pl-2 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase italic"
+                      style={{ borderColor: 'var(--glass-border)' }}
                     >
-                      {preset.label}
-                    </button>
-                  ))}
+                      {localDisplayPosition}%
+                    </span>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Tilt Control */}
-            {(supportsTilt || supportsTiltPosition) && (
-              <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
-                <div className="space-y-2 md:space-y-3">
-                  <div className="flex items-end justify-between px-1">
-                    <label className="text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase">
-                      {translate('cover.tilt')}
-                    </label>
-                    <span className="font-mono text-sm font-bold text-[var(--text-primary)]">
-                      {localDisplayTilt}%
-                    </span>
-                  </div>
-                  <TiltVisual
-                    tilt={localTilt}
-                    onTiltChange={handleSetTilt}
-                    accent={{ ...accent, text: accent.color }}
+            {/* Center: height controls | visual blind | slat controls */}
+            <div className="relative z-10 my-2 flex min-h-[180px] flex-1 items-center justify-center gap-3 md:my-4 md:min-h-[200px] md:gap-5">
+              {/* Height (position) */}
+              <div className="flex shrink-0 flex-col items-center gap-2">
+                {supportsOpenClose && (
+                  <ControlButton
+                    onClick={() => handleCoverCommand('open_cover')}
                     disabled={isUnavailable}
+                    label={translate('cover.open')}
+                    active={effectiveOpen}
+                  >
+                    <ChevronUp className="h-5 w-5" />
+                  </ControlButton>
+                )}
+                {supportsStop && (
+                  <ControlButton
+                    onClick={() => handleCoverCommand('stop_cover')}
+                    disabled={isUnavailable}
+                    label={translate('cover.stop')}
+                  >
+                    <div className="h-3 w-3 rounded-sm bg-current" />
+                  </ControlButton>
+                )}
+                {supportsOpenClose && (
+                  <ControlButton
+                    onClick={() => handleCoverCommand('close_cover')}
+                    disabled={isUnavailable}
+                    label={translate('cover.closed')}
+                    active={effectiveClosed}
+                  >
+                    <ChevronDown className="h-5 w-5" />
+                  </ControlButton>
+                )}
+                <span className="mt-1 text-[9px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                  {translate('cover.position')}
+                </span>
+              </div>
+
+              {/* Visual blind */}
+              <div className="flex h-52 w-36 flex-col items-center md:h-60 md:w-48">
+                <div className="w-full flex-1">
+                  <InteractiveBlind
+                    position={localPosition}
+                    onPositionChange={supportsPosition ? handleSetPosition : undefined}
+                    accent={{ ...accent, text: accent.color }}
+                    disabled={isUnavailable || !supportsPosition}
                     translate={translate}
                   />
+                </div>
+                <div className="mt-3 flex items-center gap-3">
+                  <span
+                    className="text-[10px] font-bold tracking-widest uppercase opacity-50"
+                    style={{ color: accent.color }}
+                  >
+                    {getDeviceTypeLabel()}
+                  </span>
+                  {supportsPosition && (
+                    <span className="font-mono text-sm font-bold" style={{ color: accent.color }}>
+                      {localDisplayPosition}%
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Slats (tilt) */}
+              {supportsTilt && (
+                <div className="flex shrink-0 flex-col items-center gap-2">
+                  <ControlButton
+                    onClick={() => handleTiltStep(1)}
+                    disabled={isUnavailable}
+                    label={translate('cover.aria.tiltUp')}
+                  >
+                    <ChevronUp className="h-5 w-5" />
+                  </ControlButton>
+                  <ControlButton
+                    onClick={() => handleTiltStep(-1)}
+                    disabled={isUnavailable}
+                    label={translate('cover.aria.tiltDown')}
+                  >
+                    <ChevronDown className="h-5 w-5" />
+                  </ControlButton>
+                  <span className="mt-1 text-[9px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                    {translate('cover.tilt')}
+                  </span>
+                  {hasTilt && (
+                    <span className="font-mono text-xs font-bold" style={{ color: accent.color }}>
+                      {localDisplayTilt}%
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT PANEL: Presets, Tilt, Info.
+            min-h-0 is required: without it this grid/flex item keeps its
+            automatic minimum height, the overflow-y-auto below never engages
+            and long content is cut off at the bottom of the modal instead. */}
+          <div className="flex h-full min-h-0 flex-col lg:col-span-2">
+            <div className="custom-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto p-4 md:space-y-6 md:p-8 lg:pt-16">
+              {/* Position Presets */}
+              {supportsPosition && presets.length > 0 && (
+                <div className="space-y-2 md:space-y-3">
+                  <label className="px-1 text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase">
+                    {translate('cover.presets')}
+                  </label>
                   <div
-                    className={`mt-2 grid gap-2 ${tiltPresets.length === 0 ? 'hidden' : ''}`}
+                    className="grid gap-2"
                     style={{
-                      gridTemplateColumns: `repeat(${Math.max(Math.min(tiltPresets.length, 4), 1)}, minmax(0, 1fr))`,
+                      gridTemplateColumns: `repeat(${Math.min(presets.length, 5)}, minmax(0, 1fr))`,
                     }}
                   >
-                    {tiltPresets.map((preset) => (
+                    {presets.map((preset) => (
                       <button
                         key={preset.value}
-                        onClick={() => !isUnavailable && handleSetTilt(preset.value)}
+                        onClick={() => !isUnavailable && handleSetPosition(preset.value)}
                         disabled={isUnavailable}
-                        className={`rounded-xl border py-2 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
-                          localTilt === preset.value
+                        className={`rounded-xl border py-2.5 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                          localPosition === preset.value
                             ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm'
                             : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
                         }`}
@@ -772,106 +725,142 @@ export default function CoverModal({
                     ))}
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* User-defined toggles */}
-            {toggleRows.length > 0 && (
+              {/* Tilt presets. The tilt control itself lives next to the visual. */}
+              {supportsTiltPosition && tiltPresets.length > 0 && (
+                <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
+                  <div className="space-y-2 md:space-y-3">
+                    <div className="flex items-end justify-between px-1">
+                      <label className="text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase">
+                        {translate('cover.tilt')}
+                      </label>
+                      <span className="font-mono text-sm font-bold text-[var(--text-primary)]">
+                        {localDisplayTilt}%
+                      </span>
+                    </div>
+                    <div
+                      className="grid gap-2"
+                      style={{
+                        gridTemplateColumns: `repeat(${Math.min(tiltPresets.length, 4)}, minmax(0, 1fr))`,
+                      }}
+                    >
+                      {tiltPresets.map((preset) => (
+                        <button
+                          key={preset.value}
+                          onClick={() => !isUnavailable && handleSetTilt(preset.value)}
+                          disabled={isUnavailable}
+                          className={`rounded-xl border py-2 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                            localTilt === preset.value
+                              ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm'
+                              : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* User-defined toggles */}
+              {toggleRows.length > 0 && (
+                <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
+                  <h3 className="mb-2 pl-1 text-xs font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase md:mb-4">
+                    {translate('cover.controls')}
+                  </h3>
+                  <div className="space-y-2">
+                    {toggleRows.map((row) => (
+                      <CustomToggleRow
+                        key={row.id}
+                        label={rowLabel(row)}
+                        entity={allEntities[row.entityId]}
+                        entityId={row.entityId}
+                        onToggle={(isActive) => handleToggleRow(row.entityId, isActive)}
+                        translate={translate}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* User-defined actions (scenes, scripts, buttons) */}
+              {actionRows.length > 0 && (
+                <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
+                  <h3 className="mb-2 pl-1 text-xs font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase md:mb-4">
+                    {translate('cover.actions')}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {actionRows.map((row) => (
+                      <button
+                        key={row.id}
+                        onClick={() => handleActionRow(row.entityId)}
+                        className="rounded-xl border border-transparent bg-[var(--glass-bg)] px-3 py-2.5 text-center text-[11px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-all duration-200 hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+                      >
+                        {rowLabel(row)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Entity Info */}
               <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
                 <h3 className="mb-2 pl-1 text-xs font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase md:mb-4">
-                  {translate('cover.controls')}
+                  {translate('cover.info')}
                 </h3>
                 <div className="space-y-2">
-                  {toggleRows.map((row) => (
-                    <CustomToggleRow
-                      key={row.id}
-                      label={rowLabel(row)}
-                      entity={allEntities[row.entityId]}
-                      entityId={row.entityId}
-                      onToggle={(isActive) => handleToggleRow(row.entityId, isActive)}
-                      translate={translate}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* User-defined actions (scenes, scripts, buttons) */}
-            {actionRows.length > 0 && (
-              <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
-                <h3 className="mb-2 pl-1 text-xs font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase md:mb-4">
-                  {translate('cover.actions')}
-                </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {actionRows.map((row) => (
-                    <button
-                      key={row.id}
-                      onClick={() => handleActionRow(row.entityId)}
-                      className="rounded-xl border border-transparent bg-[var(--glass-bg)] px-3 py-2.5 text-center text-[11px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-all duration-200 hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
-                    >
-                      {rowLabel(row)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Entity Info */}
-            <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
-              <h3 className="mb-2 pl-1 text-xs font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase md:mb-4">
-                {translate('cover.info')}
-              </h3>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-xs text-[var(--text-secondary)] opacity-70">
-                    {translate('cover.state')}
-                  </span>
-                  <span className="text-xs font-bold text-[var(--text-primary)]">
-                    {getStateLabel()}
-                  </span>
-                </div>
-                {hasPosition && (
                   <div className="flex items-center justify-between px-1">
                     <span className="text-xs text-[var(--text-secondary)] opacity-70">
-                      {translate('cover.position')}
+                      {translate('cover.state')}
                     </span>
                     <span className="text-xs font-bold text-[var(--text-primary)]">
-                      {position}%
+                      {getStateLabel()}
                     </span>
                   </div>
-                )}
-                {hasTilt && (
+                  {hasPosition && (
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs text-[var(--text-secondary)] opacity-70">
+                        {translate('cover.position')}
+                      </span>
+                      <span className="text-xs font-bold text-[var(--text-primary)]">
+                        {position}%
+                      </span>
+                    </div>
+                  )}
+                  {hasTilt && (
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs text-[var(--text-secondary)] opacity-70">
+                        {translate('cover.tilt')}
+                      </span>
+                      <span className="text-xs font-bold text-[var(--text-primary)]">
+                        {tiltPosition}%
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between px-1">
                     <span className="text-xs text-[var(--text-secondary)] opacity-70">
-                      {translate('cover.tilt')}
+                      {translate('cover.deviceType')}
                     </span>
                     <span className="text-xs font-bold text-[var(--text-primary)]">
-                      {tiltPosition}%
+                      {getDeviceTypeLabel()}
                     </span>
                   </div>
-                )}
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-xs text-[var(--text-secondary)] opacity-70">
-                    {translate('cover.deviceType')}
-                  </span>
-                  <span className="text-xs font-bold text-[var(--text-primary)]">
-                    {getDeviceTypeLabel()}
-                  </span>
+                  {statusRows.map((row) => (
+                    <div key={row.id} className="flex items-center justify-between gap-3 px-1">
+                      <span className="truncate text-xs text-[var(--text-secondary)] opacity-70">
+                        {rowLabel(row)}
+                      </span>
+                      <span className="shrink-0 text-xs font-bold text-[var(--text-primary)]">
+                        {formatRowState(row.entityId)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-                {statusRows.map((row) => (
-                  <div key={row.id} className="flex items-center justify-between gap-3 px-1">
-                    <span className="truncate text-xs text-[var(--text-secondary)] opacity-70">
-                      {rowLabel(row)}
-                    </span>
-                    <span className="shrink-0 text-xs font-bold text-[var(--text-primary)]">
-                      {formatRowState(row.entityId)}
-                    </span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
-        </div>
         </>
       )}
     </AccessibleModalShell>

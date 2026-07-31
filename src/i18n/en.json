@@ -299,6 +299,8 @@
   "cover.addPreset": "Add",
   "cover.aria.position": "Cover position",
   "cover.aria.tilt": "Cover tilt",
+  "cover.aria.tiltDown": "Tilt slats down",
+  "cover.aria.tiltUp": "Tilt slats up",
   "cover.closed": "Closed",
   "cover.closing": "Closing",
   "cover.controls": "Controls",

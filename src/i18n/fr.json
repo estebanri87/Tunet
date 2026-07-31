@@ -338,6 +338,8 @@
   "cover.addPreset": "Ajouter",
   "cover.aria.position": "Position du volet",
   "cover.aria.tilt": "Inclinaison du volet",
+  "cover.aria.tiltDown": "Incliner les lames vers le bas",
+  "cover.aria.tiltUp": "Incliner les lames vers le haut",
   "cover.closed": "Fermé",
   "cover.closing": "Fermeture",
   "cover.controls": "Commandes",

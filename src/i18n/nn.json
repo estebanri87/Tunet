@@ -338,6 +338,8 @@
   "cover.addPreset": "Legg til",
   "cover.aria.position": "Gardinposisjon",
   "cover.aria.tilt": "Gardinvinkel",
+  "cover.aria.tiltDown": "Vipp lamellane ned",
+  "cover.aria.tiltUp": "Vipp lamellane opp",
   "cover.closed": "Lukka",
   "cover.closing": "Lukkar",
   "cover.controls": "Kontrollar",
