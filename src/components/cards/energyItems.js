@@ -91,11 +91,23 @@ export const getEnergyItemRatio = (value, item) => {
 };
 
 /**
+ * Effective threshold settings for one item. Each readout carries its own
+ * scale, because a value range that is "good" for one sensor says nothing
+ * about another. Items configured before the per-item scale existed fall
+ * back to the card-wide values, so their colours do not change.
+ */
+export const resolveItemThresholds = (item, cardSettings) => ({
+  useThresholds: item?.useColorThresholds ?? cardSettings?.useColorThresholds ?? true,
+  thresholds: item?.colorThresholds ?? cardSettings?.colorThresholds,
+});
+
+/**
  * Ring colour for one item. With thresholds enabled the percentage of the
  * item's range decides the step, mirroring how the sensor card colours its
  * gauge; otherwise the accent colour is used.
  */
-export const getEnergyItemColor = (value, item, { useThresholds, thresholds }) => {
+export const getEnergyItemColor = (value, item, cardSettings) => {
+  const { useThresholds, thresholds } = resolveItemThresholds(item, cardSettings);
   if (!useThresholds || value === null) return 'var(--accent-color)';
   const percent = getEnergyItemRatio(value, item) * 100;
   const steps = normalizeEnergyThresholds(thresholds);

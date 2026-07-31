@@ -10,6 +10,7 @@ import {
   createEnergyItemId,
   normalizeEnergyItems,
   normalizeEnergyThresholds,
+  resolveItemThresholds,
 } from '../../components/cards/energyItems';
 
 const THRESHOLD_COLORS = [
@@ -25,6 +26,75 @@ const SectionLabel = ({ title, hint }) => (
     </span>
     {hint && (
       <span className="mt-1 block text-[11px] text-[var(--text-muted)] opacity-70">{hint}</span>
+    )}
+  </div>
+);
+
+/**
+ * Three-step colour scale. Every readout carries its own, because the value
+ * range that counts as "good" differs per sensor.
+ */
+const ThresholdEditor = ({ enabled, thresholds, onToggle, onChange, onReset, t }) => (
+  <div className="space-y-3 rounded-xl bg-[var(--glass-bg)] p-3">
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <span className="block text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+          {t('energyFlow.colorThresholds')}
+        </span>
+        <span className="mt-1 block text-[10px] text-[var(--text-muted)] opacity-70">
+          {t('energyFlow.colorThresholdsHint')}
+        </span>
+      </div>
+      <button
+        onClick={onToggle}
+        className={`relative h-6 w-12 flex-shrink-0 rounded-full transition-colors ${enabled ? 'border border-[var(--glass-border)] bg-[var(--glass-bg-hover)]' : 'bg-[var(--glass-bg-hover)]'}`}
+      >
+        <div
+          className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--text-primary)] transition-all ${enabled ? 'left-7' : 'left-1'}`}
+        />
+      </button>
+    </div>
+
+    {enabled &&
+      thresholds.map((step, index) => (
+        <div key={index} className="space-y-2">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+              {`${t('energyFlow.thresholdStep')} ${index + 1}`}
+            </span>
+            <input
+              type="number"
+              value={step.limit}
+              onChange={(e) => onChange(index, { limit: Number(e.target.value) })}
+              className="popup-surface ml-auto w-20 rounded-lg px-2 py-1.5 text-sm text-[var(--text-primary)] outline-none"
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {THRESHOLD_COLORS.map((color) => (
+              <button
+                key={color.key}
+                onClick={() => onChange(index, { color: color.key })}
+                className={`flex items-center justify-center gap-1.5 rounded-lg border py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all ${
+                  step.color === color.key
+                    ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                    : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+                }`}
+              >
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color.dot }} />
+                {color.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+
+    {enabled && (
+      <button
+        onClick={onReset}
+        className="w-full rounded-lg px-2 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase transition-colors hover:text-[var(--text-primary)]"
+      >
+        {t('energyFlow.resetThresholds')}
+      </button>
     )}
   </div>
 );
@@ -59,9 +129,12 @@ const EnergyItemEditor = ({
   onDragStart,
   isDragging,
   showRange,
+  cardSettings,
 }) => {
   const [showIcons, setShowIcons] = React.useState(false);
   const SelectedIcon = item.icon ? getIconComponent(item.icon) : null;
+  const { useThresholds, thresholds } = resolveItemThresholds(item, cardSettings);
+  const steps = normalizeEnergyThresholds(thresholds);
 
   return (
     <div
@@ -169,6 +242,21 @@ const EnergyItemEditor = ({
               onChange={(value) => onUpdate({ decimals: value })}
             />
           </div>
+
+          <ThresholdEditor
+            enabled={useThresholds}
+            thresholds={steps}
+            t={t}
+            onToggle={() => onUpdate({ useColorThresholds: !useThresholds })}
+            onChange={(index, patch) =>
+              onUpdate({
+                colorThresholds: steps.map((step, i) =>
+                  i === index ? { ...step, ...patch } : step
+                ),
+              })
+            }
+            onReset={() => onUpdate({ colorThresholds: DEFAULT_ENERGY_COLOR_THRESHOLDS })}
+          />
         </>
       )}
     </div>
@@ -268,17 +356,6 @@ export function EnergyFlowSettingsSection({
     };
   }, [draggingId, handleDragMove]);
 
-  const thresholds = React.useMemo(
-    () => normalizeEnergyThresholds(editSettings.colorThresholds),
-    [editSettings.colorThresholds]
-  );
-  const useThresholds = editSettings.useColorThresholds !== false;
-
-  const updateThreshold = (index, patch) => {
-    const next = thresholds.map((step, i) => (i === index ? { ...step, ...patch } : step));
-    persist('colorThresholds', next);
-  };
-
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -353,6 +430,7 @@ export function EnergyFlowSettingsSection({
                   entityOptions={sensorOptions}
                   t={t}
                   showRange
+                  cardSettings={editSettings}
                   isDragging={draggingId === item.id}
                   onDragStart={() => setDraggingId(item.id)}
                   onUpdate={(patch) => updateList('items', items, item.id, patch)}
@@ -367,68 +445,6 @@ export function EnergyFlowSettingsSection({
               >
                 <Plus className="h-4 w-4" />
                 {t('energyFlow.addItem')}
-              </button>
-            )}
-          </div>
-
-          <div className="space-y-3 border-t border-[var(--glass-border)] pt-4">
-            <div className="flex items-center justify-between gap-4">
-              <SectionLabel
-                title={t('energyFlow.colorThresholds')}
-                hint={t('energyFlow.colorThresholdsHint')}
-              />
-              <button
-                onClick={() => persist('useColorThresholds', !useThresholds)}
-                className={`relative h-6 w-12 flex-shrink-0 rounded-full transition-colors ${useThresholds ? 'border border-[var(--glass-border)] bg-[var(--glass-bg-hover)]' : 'bg-[var(--glass-bg-hover)]'}`}
-              >
-                <div
-                  className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--text-primary)] transition-all ${useThresholds ? 'left-7' : 'left-1'}`}
-                />
-              </button>
-            </div>
-
-            {useThresholds &&
-              thresholds.map((step, index) => (
-                <div key={index} className="popup-surface space-y-3 rounded-2xl p-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
-                      {`${t('energyFlow.thresholdStep')} ${index + 1}`}
-                    </span>
-                    <input
-                      type="number"
-                      value={step.limit}
-                      onChange={(e) => updateThreshold(index, { limit: Number(e.target.value) })}
-                      className="popup-surface ml-auto w-24 rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none"
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {THRESHOLD_COLORS.map((color) => (
-                      <button
-                        key={color.key}
-                        onClick={() => updateThreshold(index, { color: color.key })}
-                        className={`flex items-center justify-center gap-2 rounded-xl border py-2 text-[11px] font-bold tracking-wider uppercase transition-all ${
-                          step.color === color.key
-                            ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
-                            : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)]'
-                        }`}
-                      >
-                        <span
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: color.dot }}
-                        />
-                        {color.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-            {useThresholds && (
-              <button
-                onClick={() => persist('colorThresholds', DEFAULT_ENERGY_COLOR_THRESHOLDS)}
-                className="w-full rounded-xl px-3 py-2 text-[11px] font-bold tracking-widest text-[var(--text-muted)] uppercase transition-colors hover:text-[var(--text-primary)]"
-              >
-                {t('energyFlow.resetThresholds')}
               </button>
             )}
           </div>

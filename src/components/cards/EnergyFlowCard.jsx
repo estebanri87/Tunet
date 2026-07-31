@@ -210,10 +210,6 @@ const EnergyFlowCard = memo(
     if (settings?.layout === 'compact') {
       const headerItems = getRenderableEnergyItems(settings?.headerItems, entities).slice(0, 2);
       const items = getRenderableEnergyItems(settings?.items, entities);
-      const thresholdOptions = {
-        useThresholds: settings?.useColorThresholds !== false,
-        thresholds: settings?.colorThresholds,
-      };
 
       return (
         <div
@@ -267,11 +263,7 @@ const EnergyFlowCard = memo(
                     item={item}
                     entity={itemEntity}
                     dense={isDenseMobile}
-                    color={getEnergyItemColor(
-                      getEntityNumericValue(itemEntity),
-                      item,
-                      thresholdOptions
-                    )}
+                    color={getEnergyItemColor(getEntityNumericValue(itemEntity), item, settings)}
                   />
                 );
               })}
