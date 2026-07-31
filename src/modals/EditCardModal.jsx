@@ -7,6 +7,7 @@ import { getRelatedEntityIds } from '../services/haClient';
 import { CarMappingsSection, SearchableSelect } from './editCard/CarMappingsSection';
 import { buildCarAnchorOptions } from './editCard/carAnchorOptions';
 import { RoomSettingsSection } from './editCard/RoomSettingsSection';
+import { CoverSettingsSection } from './editCard/CoverSettingsSection';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
 import {
   convertValueByKind,
@@ -3568,72 +3569,15 @@ export default function EditCardModal({
                 </div>
               )}
 
-              {isEditCover &&
-                (() => {
-                  const editCoverEntity = entities[editSettings.coverId];
-                  const coverSupportedFeatures = editCoverEntity?.attributes?.supported_features ?? 0;
-                  const coverSupportsTilt =
-                    (coverSupportedFeatures & 128) !== 0 || (coverSupportedFeatures & 256) !== 0;
-                  return (
-                    <div className="space-y-4">
-                      <div className="popup-surface flex items-center justify-between gap-4 rounded-2xl p-4">
-                        <div>
-                          <span className="block text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
-                            {t('cover.invertPosition') || 'Invert position'}
-                          </span>
-                          <span className="mt-1 block text-[11px] text-[var(--text-muted)] opacity-70">
-                            {t('cover.invertPositionHint') ||
-                              '100% means closed and 0% means open for this device.'}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() =>
-                            editSettingsKey &&
-                            saveCardSetting(
-                              editSettingsKey,
-                              'invertPosition',
-                              !(editSettings.invertPosition === true)
-                            )
-                          }
-                          className={`relative h-6 w-12 flex-shrink-0 rounded-full transition-colors ${editSettings.invertPosition === true ? 'border border-[var(--glass-border)] bg-[var(--glass-bg-hover)]' : 'bg-[var(--glass-bg-hover)]'}`}
-                        >
-                          <div
-                            className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--text-primary)] transition-all ${editSettings.invertPosition === true ? 'left-7' : 'left-1'}`}
-                          />
-                        </button>
-                      </div>
-
-                      {coverSupportsTilt && (
-                        <div className="popup-surface flex items-center justify-between gap-4 rounded-2xl p-4">
-                          <div>
-                            <span className="block text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
-                              {t('cover.invertTilt') || 'Invert tilt'}
-                            </span>
-                            <span className="mt-1 block text-[11px] text-[var(--text-muted)] opacity-70">
-                              {t('cover.invertTiltHint') ||
-                                'Enable if the tilt/slat position is also reported inverted.'}
-                            </span>
-                          </div>
-                          <button
-                            onClick={() =>
-                              editSettingsKey &&
-                              saveCardSetting(
-                                editSettingsKey,
-                                'invertTilt',
-                                !(editSettings.invertTilt === true)
-                              )
-                            }
-                            className={`relative h-6 w-12 flex-shrink-0 rounded-full transition-colors ${editSettings.invertTilt === true ? 'border border-[var(--glass-border)] bg-[var(--glass-bg-hover)]' : 'bg-[var(--glass-bg-hover)]'}`}
-                          >
-                            <div
-                              className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--text-primary)] transition-all ${editSettings.invertTilt === true ? 'left-7' : 'left-1'}`}
-                            />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
+              {isEditCover && (
+                <CoverSettingsSection
+                  t={t}
+                  entities={entities}
+                  editSettings={editSettings}
+                  editSettingsKey={editSettingsKey}
+                  saveCardSetting={saveCardSetting}
+                />
+              )}
             </div>
 
             <div className="mt-5 flex justify-end border-t border-[var(--glass-border)] pt-5">

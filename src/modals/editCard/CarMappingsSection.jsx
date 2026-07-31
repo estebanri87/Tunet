@@ -1,7 +1,16 @@
 import React from 'react';
 import { Plus, RefreshCw, X } from 'lucide-react';
 
-export function SearchableSelect({ label, value, options, onChange, placeholder, entities, t }) {
+export function SearchableSelect({
+  label,
+  value,
+  options,
+  onChange,
+  placeholder,
+  entities,
+  t,
+  maxOptions,
+}) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
   const dropdownRef = React.useRef(null);
@@ -17,11 +26,15 @@ export function SearchableSelect({ label, value, options, onChange, placeholder,
   }, []);
 
   const getLabel = (id) => entities[id]?.attributes?.friendly_name || id;
-  const filtered = options.filter((id) => {
+  const matching = options.filter((id) => {
     if (!query) return true;
     const q = query.toLowerCase();
     return id.toLowerCase().includes(q) || getLabel(id).toLowerCase().includes(q);
   });
+  // Unrestricted option lists can hold every entity of the installation, so the
+  // rendered list is capped and the user is told to narrow the search instead.
+  const filtered = maxOptions ? matching.slice(0, maxOptions) : matching;
+  const truncatedCount = matching.length - filtered.length;
   const display = value ? getLabel(value) : placeholder || t('dropdown.noneSelected');
 
   return (
@@ -82,6 +95,11 @@ export function SearchableSelect({ label, value, options, onChange, placeholder,
                 </span>
               </button>
             ))}
+            {truncatedCount > 0 && (
+              <div className="px-4 py-3 text-[10px] text-[var(--text-muted)]">
+                {t('form.refineSearch')}
+              </div>
+            )}
           </div>
         </div>
       )}
