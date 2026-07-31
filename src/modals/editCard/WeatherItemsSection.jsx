@@ -7,6 +7,15 @@ import { createCustomItemId, normalizeCustomItems } from '../../components/cards
 
 const MAX_WEATHER_ITEMS = 8;
 const MAX_ENTITY_OPTIONS = 150;
+const GRAPH_COLORS = ['#38bdf8', '#22c55e', '#a855f7', '#f97316', '#ec4899', '#94a3b8'];
+
+/** On/off sensors show free text instead of a number, so no decimals apply. */
+const isBinaryEntity = (entityId, entities) => {
+  if (!entityId) return false;
+  if (entityId.startsWith('binary_sensor.')) return true;
+  const state = entities?.[entityId]?.state;
+  return state === 'on' || state === 'off';
+};
 
 /** One readout: free label, any sensor, own icon. Display only. */
 const WeatherItemEditor = ({
@@ -19,9 +28,11 @@ const WeatherItemEditor = ({
   onRemove,
   onDragStart,
   isDragging,
+  allowGraph,
 }) => {
   const [showIcons, setShowIcons] = React.useState(false);
   const SelectedIcon = item.icon ? getIconComponent(item.icon) : null;
+  const isBinary = isBinaryEntity(item.entityId, entities);
 
   return (
     <div
@@ -105,20 +116,103 @@ const WeatherItemEditor = ({
         )}
       </div>
 
-      <div>
-        <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
-          {t('weatherTemp.itemDecimals')}
-        </label>
-        <input
-          type="number"
-          value={item.decimals ?? ''}
-          placeholder="1"
-          onChange={(e) =>
-            onUpdate({ decimals: e.target.value === '' ? null : Number(e.target.value) })
-          }
-          className="popup-surface mt-1 w-24 rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none"
-        />
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+            {t('weatherTemp.itemDecimals')}
+          </label>
+          <input
+            type="number"
+            value={item.decimals ?? ''}
+            placeholder="1"
+            onChange={(e) =>
+              onUpdate({ decimals: e.target.value === '' ? null : Number(e.target.value) })
+            }
+            className="popup-surface mt-1 w-24 rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none"
+          />
+        </div>
       </div>
+
+      {/* Own wording for on/off sensors, e.g. "Aktiv" / "Nicht aktiv". */}
+      {isBinary && (
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+              {t('weatherTemp.itemOnText')}
+            </label>
+            <input
+              type="text"
+              value={item.onText || ''}
+              placeholder="on"
+              onChange={(e) => onUpdate({ onText: e.target.value })}
+              className="popup-surface mt-1 w-full rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+              {t('weatherTemp.itemOffText')}
+            </label>
+            <input
+              type="text"
+              value={item.offText || ''}
+              placeholder="off"
+              onChange={(e) => onUpdate({ offText: e.target.value })}
+              className="popup-surface mt-1 w-full rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Numeric readouts can be drawn as a second curve on the card graph. */}
+      {allowGraph && !isBinary && (
+        <div className="space-y-2 rounded-xl bg-[var(--glass-bg)] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <span className="block text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                {t('weatherTemp.itemShowGraph')}
+              </span>
+              <span className="mt-1 block text-[10px] text-[var(--text-muted)] opacity-70">
+                {t('weatherTemp.itemShowGraphHint')}
+              </span>
+            </div>
+            <button
+              onClick={() => onUpdate({ showGraph: !item.showGraph })}
+              className={`relative h-6 w-12 flex-shrink-0 rounded-full transition-colors ${item.showGraph ? 'border border-[var(--glass-border)] bg-[var(--glass-bg-hover)]' : 'bg-[var(--glass-bg-hover)]'}`}
+            >
+              <div
+                className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--text-primary)] transition-all ${item.showGraph ? 'left-7' : 'left-1'}`}
+              />
+            </button>
+          </div>
+          {item.showGraph && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {GRAPH_COLORS.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => onUpdate({ graphColor: color })}
+                  aria-label={color}
+                  className={`h-6 w-6 rounded-full border-2 transition-all ${(item.graphColor || '#38bdf8') === color ? 'scale-110 border-[var(--text-primary)]' : 'border-transparent'}`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+              <label
+                className="relative h-6 w-6 cursor-pointer overflow-hidden rounded-full border border-[var(--glass-border)]"
+                style={{
+                  background:
+                    'conic-gradient(#ef4444, #facc15, #22c55e, #38bdf8, #a855f7, #ef4444)',
+                }}
+              >
+                <input
+                  type="color"
+                  value={item.graphColor || '#38bdf8'}
+                  onChange={(e) => onUpdate({ graphColor: e.target.value })}
+                  className="absolute inset-0 cursor-pointer opacity-0"
+                />
+              </label>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -229,6 +323,7 @@ export function WeatherItemsSection({
             entityOptions={sensorOptions}
             t={t}
             isDragging={draggingId === item.id}
+            allowGraph={settingKey === 'cardItems'}
             onDragStart={() => setDraggingId(item.id)}
             onUpdate={(patch) =>
               persist(items.map((entry) => (entry.id === item.id ? { ...entry, ...patch } : entry)))

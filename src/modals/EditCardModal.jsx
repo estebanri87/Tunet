@@ -834,6 +834,14 @@ export default function EditCardModal({
   }, [pagesConfig, pageSettings]);
 
   const maxColSpan = gridColumns || 4;
+  // An on/off rain sensor is read directly, so it needs no threshold.
+  const isBinaryRainSensor = (() => {
+    const rainEntityId = editSettings?.rainEntityId;
+    if (!rainEntityId) return false;
+    if (rainEntityId.startsWith('binary_sensor.')) return true;
+    const rainState = entities?.[rainEntityId]?.state;
+    return rainState === 'on' || rainState === 'off';
+  })();
   const effectiveUnitMode = getEffectiveUnitMode(unitsMode, haConfig);
   const tempDisplayUnit = getDisplayUnitForKind('temperature', effectiveUnitMode);
   const graphLimitRange =
@@ -1324,7 +1332,9 @@ export default function EditCardModal({
                       <p className="ml-1 text-[11px] text-[var(--text-muted)] opacity-70">
                         {t('weatherTemp.rainEntityHint')}
                       </p>
-                      {editSettings.rainEntityId && (
+                      {/* A threshold only makes sense for numeric sensors; an
+                          on/off sensor is read directly. */}
+                      {editSettings.rainEntityId && !isBinaryRainSensor && (
                         <div>
                           <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
                             {t('weatherTemp.rainThreshold')}

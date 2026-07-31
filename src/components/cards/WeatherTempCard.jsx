@@ -19,7 +19,7 @@ import {
 /* -- One user-defined readout on the card ---------------------------- */
 const WeatherCardItem = ({ item, entities, compact }) => {
   const entity = entities[item.entityId];
-  const { text, unit } = formatItemValue(entity, item.decimals);
+  const { text, unit } = formatItemValue(entity, item);
   const ItemIcon = item.icon ? getIconComponent(item.icon) : null;
 
   return (
@@ -169,6 +169,12 @@ const WeatherTempCard = memo(
       }));
     }
 
+    // A readout can be drawn as a second curve, e.g. the indoor temperature.
+    const graphItem = cardItems.find((item) => item.showGraph);
+    const graphEntity = graphItem ? entities[graphItem.entityId] : null;
+    const secondaryHistoryRaw = graphItem ? tempHistoryById?.[graphItem.entityId] || [] : [];
+    const secondaryCurrentTemp = graphEntity ? parseFloat(graphEntity.state) : NaN;
+
     const historyForDisplay = Array.isArray(history)
       ? history.map((entry) => {
           const raw = parseFloat(entry?.state);
@@ -181,6 +187,31 @@ const WeatherTempCard = memo(
           return Number.isFinite(converted) ? { ...entry, state: converted } : entry;
         })
       : [];
+
+    // The second curve is converted with its own source unit, which is the
+    // sensor's own; the main curve uses the weather entity's.
+    const secondaryHistoryForDisplay = secondaryHistoryRaw.map((entry) => {
+      const raw = parseFloat(entry?.state);
+      if (!Number.isFinite(raw)) return entry;
+      const converted = convertValueByKind(raw, {
+        kind: 'temperature',
+        fromUnit: graphEntity?.attributes?.unit_of_measurement || sourceTempUnit,
+        unitMode: effectiveUnitMode,
+      });
+      return Number.isFinite(converted) ? { ...entry, state: converted } : entry;
+    });
+
+    const secondaryGraphProps = graphItem
+      ? {
+          secondaryHistory: secondaryHistoryForDisplay,
+          secondaryCurrentTemp: convertValueByKind(secondaryCurrentTemp, {
+            kind: 'temperature',
+            fromUnit: graphEntity?.attributes?.unit_of_measurement || sourceTempUnit,
+            unitMode: effectiveUnitMode,
+          }),
+          secondaryColor: graphItem.graphColor || '#38bdf8',
+        }
+      : {};
 
     if (isSmall) {
       return (
@@ -203,6 +234,7 @@ const WeatherTempCard = memo(
               currentTemp={displayTempValue}
               historyHours={graphHistoryHours}
               colorLimits={graphColorLimits}
+              {...secondaryGraphProps}
             />
           </div>
           <div className="relative z-10 flex min-w-0 flex-1 items-center gap-4">
@@ -283,6 +315,7 @@ const WeatherTempCard = memo(
             currentTemp={displayTempValue}
             historyHours={graphHistoryHours}
             colorLimits={graphColorLimits}
+            {...secondaryGraphProps}
           />
         </div>
       </div>

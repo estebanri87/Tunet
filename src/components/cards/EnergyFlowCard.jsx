@@ -13,7 +13,7 @@ import {
 const EnergyItemRing = ({ item, entity, color, dense, size: ringSize }) => {
   const value = getEntityNumericValue(entity);
   const ratio = getEnergyItemRatio(value, item);
-  const { text, unit } = formatEnergyValue(entity, item.decimals);
+  const { text, unit } = formatEnergyValue(entity, item);
   const isIdle = value === null;
   const ItemIcon = item.icon ? getIconComponent(item.icon) : null;
 
@@ -232,7 +232,7 @@ const EnergyFlowCard = memo(
             <div className="relative z-10 flex items-start justify-between gap-4">
               {headerItems.map((headerItem, index) => {
                 const headerEntity = entities[headerItem.entityId];
-                const { text, unit } = formatEnergyValue(headerEntity, headerItem.decimals);
+                const { text, unit } = formatEnergyValue(headerEntity, headerItem);
                 return (
                   <div
                     key={headerItem.id}

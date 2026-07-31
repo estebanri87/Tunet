@@ -41,11 +41,39 @@ const smoothData = (data, windowSize = 3) => {
   });
 };
 
+/** History entries to sorted, smoothed points within the visible window. */
+const buildSeries = (history, currentTemp, historyHours) => {
+  if (!history || history.length === 0) return [];
+
+  const historyAgo = new Date(Date.now() - historyHours * 60 * 60 * 1000);
+
+  let points = history
+    .map((d) => ({ time: new Date(d.last_updated), temp: parseFloat(d.state) }))
+    .filter((p) => !isNaN(p.temp) && p.time >= historyAgo)
+    .sort((a, b) => a.time - b.time);
+
+  if (currentTemp !== undefined && !isNaN(currentTemp)) {
+    const now = new Date();
+    const hasClosePoint = points.some((p) => Math.abs(p.time.getTime() - now.getTime()) < 60000);
+    if (!hasClosePoint) {
+      points.push({ time: now, temp: parseFloat(currentTemp) });
+      points.sort((a, b) => a.time - b.time);
+    }
+  }
+
+  if (points.length > 40) points = points.filter((_, i) => i % 2 === 0);
+
+  return smoothData(points, 3);
+};
+
 export default function WeatherGraph({
   history,
   currentTemp,
   historyHours = 12,
   colorLimits = [0, 10, 20, 28],
+  secondaryHistory,
+  secondaryCurrentTemp,
+  secondaryColor = '#38bdf8',
 }) {
   const gradientIdBase = useId().replace(/:/g, '');
   const width = 800;
@@ -54,45 +82,16 @@ export default function WeatherGraph({
   const currentDotOuterRadius = 8;
   const verticalPadding = Math.max(10, Math.ceil(currentDotOuterRadius + lineStrokeWidth / 2));
 
-  const data = useMemo(() => {
-    if (!history || history.length === 0) return [];
+  const data = useMemo(
+    () => buildSeries(history, currentTemp, historyHours),
+    [history, currentTemp, historyHours]
+  );
 
-    const historyAgo = new Date(Date.now() - historyHours * 60 * 60 * 1000);
-
-    // Process history
-    let points = history
-      .map((d) => ({
-        time: new Date(d.last_updated),
-        temp: parseFloat(d.state),
-      }))
-      .filter((p) => !isNaN(p.temp) && p.time >= historyAgo)
-      .sort((a, b) => a.time - b.time);
-
-    // Add current time point
-    if (currentTemp !== undefined && !isNaN(currentTemp)) {
-      const now = new Date();
-
-      // Check if we already have a point very close to now (within 1 minute)
-      const hasClosePoint = points.some((p) => Math.abs(p.time.getTime() - now.getTime()) < 60000);
-
-      if (!hasClosePoint) {
-        points.push({
-          time: now,
-          temp: parseFloat(currentTemp),
-        });
-        // Re-sort to place current temp correctly (e.g. between history and forecast)
-        points.sort((a, b) => a.time - b.time);
-      }
-    }
-
-    // Downsample: if there are many points, take every other to reduce noise
-    if (points.length > 40) {
-      points = points.filter((_, i) => i % 2 === 0);
-    }
-
-    // Use moving average to smooth the curve
-    return smoothData(points, 3);
-  }, [history, currentTemp, historyHours]);
+  // Optional second curve, e.g. an indoor temperature next to the outdoor one.
+  const secondaryData = useMemo(
+    () => buildSeries(secondaryHistory, secondaryCurrentTemp, historyHours),
+    [secondaryHistory, secondaryCurrentTemp, historyHours]
+  );
 
   // Ensure we always have data to plot, even if just dummy data to show the grid
   const plotData =
@@ -105,8 +104,11 @@ export default function WeatherGraph({
           ]
         : data;
 
-  const minTemp = Math.min(...plotData.map((d) => d.temp));
-  const maxTemp = Math.max(...plotData.map((d) => d.temp));
+  // Both curves share one scale, so they stay comparable and the second one
+  // is not clipped when it runs outside the first one's range.
+  const scaleTemps = [...plotData, ...secondaryData].map((d) => d.temp);
+  const minTemp = Math.min(...scaleTemps);
+  const maxTemp = Math.max(...scaleTemps);
 
   // Add dynamic padding based on data interval
   const baseRange = maxTemp - minTemp || 1;
@@ -129,6 +131,9 @@ export default function WeatherGraph({
   // Generate points and smooth path
   const points = plotData.map((p) => [getX(p.time), getY(p.temp)]);
   const smoothPath = getSvgPath(points);
+
+  const secondaryPoints = secondaryData.map((p) => [getX(p.time), getY(p.temp)]);
+  const secondaryPath = secondaryPoints.length > 1 ? getSvgPath(secondaryPoints) : null;
 
   // Generate fill area
   // Extend way below height to cover rounded corners fully
@@ -232,6 +237,29 @@ export default function WeatherGraph({
           strokeLinejoin="round"
           opacity="0.95"
         />
+
+        {/* Second curve: plain colour, thinner, no fill, so it reads as an overlay */}
+        {secondaryPath && (
+          <>
+            <path
+              d={secondaryPath}
+              fill="none"
+              stroke={secondaryColor}
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.9"
+            />
+            <circle
+              cx={secondaryPoints[secondaryPoints.length - 1][0]}
+              cy={secondaryPoints[secondaryPoints.length - 1][1]}
+              r="5"
+              fill="var(--card-bg)"
+              stroke={secondaryColor}
+              strokeWidth="3"
+            />
+          </>
+        )}
 
         {/* Dot for current temperature */}
         {!isNaN(currentTemp) && (

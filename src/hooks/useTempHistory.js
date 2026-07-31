@@ -17,12 +17,16 @@ export default function useTempHistory(conn, cardSettings) {
     if (!conn) return;
     let cancelled = false;
     const timeoutIds = [];
-    const tempIds = Object.keys(cardSettings)
-      .filter((key) => key.includes('::weather_temp_'))
-      .map((key) => cardSettings[key]?.tempId)
-      .filter(Boolean);
+    const weatherKeys = Object.keys(cardSettings).filter((key) => key.includes('::weather_temp_'));
+    const tempIds = weatherKeys.map((key) => cardSettings[key]?.tempId).filter(Boolean);
+    // Card readouts marked as a graph need their history fetched as well.
+    const graphIds = weatherKeys.flatMap((key) =>
+      (Array.isArray(cardSettings[key]?.cardItems) ? cardSettings[key].cardItems : [])
+        .filter((item) => item?.showGraph && item?.entityId)
+        .map((item) => item.entityId)
+    );
 
-    const uniqueIds = Array.from(new Set(tempIds));
+    const uniqueIds = Array.from(new Set([...tempIds, ...graphIds]));
 
     const fetchHistoryFor = async (tempId) => {
       const end = new Date();

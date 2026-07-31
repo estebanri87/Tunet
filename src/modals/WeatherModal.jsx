@@ -192,7 +192,7 @@ export default function WeatherModal({
   // many weather entities leave most of those attributes empty.
   const customDetails = getRenderableCustomItems(settings?.detailItems, entities).map((item) => {
     const itemEntity = entities[item.entityId];
-    const { text, unit } = formatItemValue(itemEntity, item.decimals);
+    const { text, unit } = formatItemValue(itemEntity, item);
     return {
       key: item.id,
       label: getItemLabel(item, entities),

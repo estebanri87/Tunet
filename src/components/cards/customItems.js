@@ -27,14 +27,23 @@ export const getEntityNumericValue = (entity) => {
 };
 
 /**
- * Value plus unit as shown on a card. Falls back to the raw state for
- * non-numeric sensors so text states stay readable.
+ * Value plus unit as shown on a card.
+ *
+ * @param {any} entity
+ * @param {{decimals?: any, onText?: string, offText?: string}} [options]
+ *   `onText`/`offText` replace the raw on/off state of a binary sensor with
+ *   the user's own wording, e.g. "Aktiv" / "Nicht aktiv".
  */
-export const formatItemValue = (entity, decimals) => {
+export const formatItemValue = (entity, options = {}) => {
+  const { decimals, onText, offText } = options;
+  const raw = entity?.state;
+
+  if (raw === 'on' && onText?.trim()) return { text: onText.trim(), unit: '' };
+  if (raw === 'off' && offText?.trim()) return { text: offText.trim(), unit: '' };
+
   const value = getEntityNumericValue(entity);
   const unit = entity?.attributes?.unit_of_measurement || '';
   if (value === null) {
-    const raw = entity?.state;
     if (raw === undefined || raw === null || raw === 'unavailable' || raw === 'unknown') {
       return { text: '---', unit: '' };
     }
