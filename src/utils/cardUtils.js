@@ -55,6 +55,7 @@ const SPECIAL_CARD_PREFIXES = [
   'camera_card_',
   'alarm_card_',
   'spacer_card_',
+  'status_card_',
   'energy_flow_',
 ];
 

@@ -43,6 +43,7 @@ export const RESIZABLE_PREFIXES = [
   'room_card_',
   'camera_card_',
   'spacer_card_',
+  'status_card_',
   'cover_card_',
   'alarm_card_',
   'fan.',

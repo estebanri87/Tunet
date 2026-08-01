@@ -72,13 +72,18 @@ const StatusCard = memo(
 
         <div className="custom-scrollbar relative z-10 min-h-0 flex-1 overflow-y-auto">
           {hasActive ? (
-            <div className="space-y-1">
+            <div className="flex flex-wrap gap-2">
               {active.map(({ id, entity }) => (
-                <div
+                <span
                   key={id}
-                  className="flex items-center justify-between gap-2 rounded-lg bg-[var(--glass-bg)] px-2.5 py-1.5"
+                  className="flex items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-1.5"
+                  title={getEntityDisplayName(id, entity)}
                 >
-                  <span className="truncate text-xs text-[var(--text-primary)]">
+                  <span
+                    className="h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: accent.color }}
+                  />
+                  <span className="truncate text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
                     {getEntityDisplayName(id, entity)}
                   </span>
                   {settings.showState !== false && (
@@ -86,7 +91,7 @@ const StatusCard = memo(
                       {entity.state}
                     </span>
                   )}
-                </div>
+                </span>
               ))}
             </div>
           ) : (
