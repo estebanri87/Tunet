@@ -9,7 +9,6 @@ import { buildCarAnchorOptions } from './editCard/carAnchorOptions';
 import { RoomSettingsSection } from './editCard/RoomSettingsSection';
 import { CoverSettingsSection } from './editCard/CoverSettingsSection';
 import { CustomRowsSection } from './editCard/CustomRowsSection';
-import { StatusCardSection } from './editCard/StatusCardSection';
 import { EnergyFlowSettingsSection } from './editCard/EnergyFlowSettingsSection';
 import { WeatherItemsSection } from './editCard/WeatherItemsSection';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
@@ -759,7 +758,6 @@ export default function EditCardModal({
   isEditVacuum,
   isEditCover,
   canEditCustomRows,
-  isEditStatusCard,
   editSettingsKey,
   editSettings,
   isEditWeatherTemp,
@@ -3746,16 +3744,6 @@ export default function EditCardModal({
                     </div>
                   ))}
                 </div>
-              )}
-
-              {isEditStatusCard && editSettingsKey && (
-                <StatusCardSection
-                  t={t}
-                  entities={entities}
-                  editSettings={editSettings}
-                  editSettingsKey={editSettingsKey}
-                  saveCardSetting={saveCardSetting}
-                />
               )}
 
               {canEditCustomRows && editSettingsKey && (

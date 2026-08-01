@@ -121,32 +121,44 @@ export default function StatusGroupPillModal({
           <div className="custom-scrollbar -mx-1 mt-5 min-h-0 flex-1 overflow-y-auto px-1">
             {items.length > 0 ? (
               <div className="space-y-2">
-                {items.map(({ id, entity }) => (
-                  <div
-                    key={id}
-                    className="popup-surface flex items-center justify-between gap-3 rounded-2xl px-3.5 py-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-[var(--text-primary)]">
-                        {getEntityName(id, entity)}
-                      </p>
-                      <p className="truncate text-xs text-[var(--text-muted)]">{id}</p>
+                {items.map((item) => {
+                  const { id, entity } = item;
+                  // A custom entry brings its own name, wording and icon.
+                  const EntryIcon = item.icon ? getIconComponent(item.icon) : null;
+                  return (
+                    <div
+                      key={id}
+                      className="popup-surface flex items-center justify-between gap-3 rounded-2xl px-3.5 py-3"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        {EntryIcon && (
+                          <EntryIcon className="h-4 w-4 shrink-0 text-[var(--text-secondary)]" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-[var(--text-primary)]">
+                            {item.label || getEntityName(id, entity)}
+                          </p>
+                          <p className="truncate text-xs text-[var(--text-muted)]">
+                            {item.entityId || id}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="rounded-full bg-[var(--glass-bg)] px-2 py-1 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
+                          {item.stateText || getStateLabel({ ...entity, entity_id: id }, t)}
+                        </span>
+                        {hasAction && rowActionLabel && (
+                          <button
+                            onClick={() => runAction([id])}
+                            className="rounded-full bg-[var(--accent-bg)] px-3 py-1.5 text-[10px] font-bold text-[var(--accent-color)] transition-opacity hover:opacity-90"
+                          >
+                            {rowActionLabel}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="rounded-full bg-[var(--glass-bg)] px-2 py-1 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
-                        {getStateLabel({ ...entity, entity_id: id }, t)}
-                      </span>
-                      {hasAction && rowActionLabel && (
-                        <button
-                          onClick={() => runAction([id])}
-                          className="rounded-full bg-[var(--accent-bg)] px-3 py-1.5 text-[10px] font-bold text-[var(--accent-color)] transition-opacity hover:opacity-90"
-                        >
-                          {rowActionLabel}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="popup-surface rounded-2xl p-6 text-center text-sm text-[var(--text-muted)]">

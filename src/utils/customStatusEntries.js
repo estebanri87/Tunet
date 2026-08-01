@@ -1,10 +1,10 @@
 /**
- * Model for the status card.
+ * Freely defined status entries, used by the "custom" status pill group.
  *
  * An entry stands for one thing in the home — a window, a door, the alarm
  * panel — and can watch several entities at once:
  *
- *   { id, categoryId, label, icon, inactiveText, alwaysShow,
+ *   { id, label, icon, inactiveText, alwaysShow,
  *     sources: [{ id, entityId, activeStates, activeText, invert }],
  *     rules:   [{ id, text, icon, conditions: { [sourceId]: 'active'|'inactive'|'any' } }] }
  *
@@ -14,15 +14,12 @@
  * matching rule provides the wording. Without rules the first active source
  * wins, which keeps the single-sensor case simple.
  *
- * Entries are grouped by category — { id, name, icon, emptyText } — so one
- * card can cover windows and the alarm panel at once, each group with its own
- * heading, icon and all-clear wording.
+ * Counting entries rather than entities also makes the pill's number right:
+ * a window with two contacts is one open window, not two.
  */
 
 export const MAX_STATUS_ENTITIES = 60;
 export const MAX_STATUS_SOURCES = 4;
-export const MAX_STATUS_CATEGORIES = 8;
-export const UNGROUPED_CATEGORY_ID = '__ungrouped__';
 
 const INACTIVE_STATES = new Set(['off', 'closed', 'locked', 'unavailable', 'unknown', 'none', '']);
 
@@ -30,13 +27,6 @@ export const createStatusItemId = () =>
   `st-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
 export const createStatusSource = () => ({ id: createStatusItemId(), entityId: null });
-
-export const createStatusCategory = () => ({ id: createStatusItemId(), name: '', icon: null });
-
-export const getStatusCategories = (settings) =>
-  (Array.isArray(settings?.categories) ? settings.categories : []).filter(
-    (category) => category && typeof category === 'object'
-  );
 
 /** Sources of an entry, migrating the single-entity shape used before. */
 export const getItemSources = (item) => {
@@ -58,24 +48,13 @@ export const getItemSources = (item) => {
 };
 
 /**
- * Entries of the card. Older settings stored a plain `entityIds` list plus
- * card-wide options; those are migrated on read so existing cards keep working.
- *
- * Entries without an entity are kept — the editor needs to show a new, still
- * empty entry; the card filters them out when rendering.
+ * Entries of a pill. Entries without an entity are kept — the editor needs to
+ * show a new, still empty entry; resolving filters them out.
  */
-export const getStatusItems = (settings) => {
-  if (Array.isArray(settings?.items) && settings.items.length > 0) {
-    return settings.items.filter((item) => item && typeof item === 'object');
-  }
-  const legacyIds = Array.isArray(settings?.entityIds) ? settings.entityIds.filter(Boolean) : [];
-  return legacyIds.map((entityId) => ({
-    id: `legacy-${entityId}`,
-    entityId,
-    activeStates: settings?.activeStates || '',
-    invert: settings?.invertSelection === true,
-  }));
-};
+export const getStatusItems = (source) =>
+  (Array.isArray(source?.customEntries) ? source.customEntries : []).filter(
+    (item) => item && typeof item === 'object'
+  );
 
 /** States counted as active, lower-cased; empty means "use the defaults". */
 export const parseActiveStates = (raw) =>
@@ -141,8 +120,8 @@ export const matchesRule = (rule, sources, entities) => {
  * Entries to render: those with an active source plus the ones marked
  * `alwaysShow`, sorted by name. Each carries the text for its current state.
  */
-export const resolveStatusEntries = (settings, entities) =>
-  getStatusItems(settings)
+export const resolveStatusEntries = (pill, entities) =>
+  getStatusItems(pill)
     .map((item) => {
       const sources = getItemSources(item).filter(
         (source) => source.entityId && entities?.[source.entityId]
@@ -176,7 +155,8 @@ export const resolveStatusEntries = (settings, entities) =>
 
       return {
         id: item.id || sources[0].entityId,
-        categoryId: item.categoryId || UNGROUPED_CATEGORY_ID,
+        // The source that decided, so a popup can show and act on it.
+        entityId: (activeSource || sources[0]).entityId,
         active,
         label: item.label?.trim() || fallbackName,
         stateText,
@@ -189,38 +169,3 @@ export const resolveStatusEntries = (settings, entities) =>
     .filter(Boolean)
     .filter((entry) => entry.active || entry.alwaysShow)
     .sort((left, right) => left.label.localeCompare(right.label));
-
-/**
- * Entries arranged into their categories, ready to render.
- *
- * A category with nothing to show is dropped unless it carries an own empty
- * text — that text is how a category says "all windows closed" in its own
- * words. Entries without a category form a leading, unnamed group.
- */
-export const resolveStatusGroups = (settings, entities) => {
-  const entries = resolveStatusEntries(settings, entities);
-  const categories = getStatusCategories(settings);
-
-  const groups = [
-    { id: UNGROUPED_CATEGORY_ID, name: '', icon: null, emptyText: '' },
-    ...categories.map((category) => ({
-      id: category.id,
-      name: category.name?.trim() || '',
-      icon: category.icon || null,
-      emptyText: category.emptyText?.trim() || '',
-    })),
-  ];
-
-  const knownIds = new Set(groups.map((group) => group.id));
-
-  return groups
-    .map((group) => ({
-      ...group,
-      entries: entries.filter((entry) =>
-        group.id === UNGROUPED_CATEGORY_ID
-          ? !knownIds.has(entry.categoryId) || entry.categoryId === UNGROUPED_CATEGORY_ID
-          : entry.categoryId === group.id
-      ),
-    }))
-    .filter((group) => group.entries.length > 0 || group.emptyText);
-};

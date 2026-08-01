@@ -1,4 +1,8 @@
+import { resolveStatusEntries } from './customStatusEntries';
+
 export const STATUS_GROUP_PILL_TYPE = 'group_status';
+/** Preset id for a group the user defines entry by entry. */
+export const STATUS_GROUP_CUSTOM_PRESET = 'custom';
 export const STATUS_GROUP_SELECTION_ALL = 'all';
 export const STATUS_GROUP_SELECTION_INCLUDE = 'include';
 export const STATUS_GROUP_SELECTION_EXCLUDE = 'exclude';
@@ -105,9 +109,30 @@ export const STATUS_GROUP_PRESETS = [
   },
 ];
 
+/**
+ * The custom preset carries no matching logic of its own — its entries decide
+ * what counts. It is listed alongside the built-in ones so the editor can
+ * offer it like any other group.
+ */
+export const CUSTOM_STATUS_GROUP_PRESET = {
+  id: STATUS_GROUP_CUSTOM_PRESET,
+  labelKey: 'statusPills.groupPresetCustom',
+  fallbackLabel: 'Custom',
+  emptyLabelKey: 'statusPills.groupPresetCustomEmpty',
+  fallbackEmptyLabel: 'Nothing active',
+  icon: 'ListChecks',
+  iconBgColor: 'rgba(56, 189, 248, 0.14)',
+  iconColor: 'text-sky-300',
+  candidates: () => false,
+  matches: () => false,
+};
+
+export const isCustomStatusGroup = (presetId) => presetId === STATUS_GROUP_CUSTOM_PRESET;
+
 export const DEFAULT_STATUS_GROUP_PRESET = STATUS_GROUP_PRESETS[0].id;
 
 export function getStatusGroupPreset(presetId) {
+  if (isCustomStatusGroup(presetId)) return CUSTOM_STATUS_GROUP_PRESET;
   return STATUS_GROUP_PRESETS.find((preset) => preset.id === presetId) || STATUS_GROUP_PRESETS[0];
 }
 
@@ -145,10 +170,26 @@ export function resolveStatusGroupCandidates(presetId, entities) {
 
 export function resolveStatusGroupPill(pill, entities, t) {
   const preset = getStatusGroupPreset(pill?.groupPreset);
-  const matchedEntities = toEntityRows(entities).filter(
-    ({ id, entity }) => preset.matches(id, entity) && isAllowedBySelection(pill, id)
-  );
-  matchedEntities.sort(sortByFriendlyName);
+  const custom = isCustomStatusGroup(preset.id);
+
+  /* A custom group counts its entries, not entities: a window with separate
+     open and tilt contacts is one open window, not two. Each entry brings its
+     own wording and icon along. */
+  const matchedEntities = custom
+    ? resolveStatusEntries(pill, entities)
+        .filter((entry) => entry.active)
+        .map((entry) => ({
+          id: entry.id,
+          entity: entities[entry.entityId] || { state: entry.stateText, attributes: {} },
+          label: entry.label,
+          stateText: entry.stateText,
+          icon: entry.icon,
+        }))
+    : toEntityRows(entities)
+        .filter(({ id, entity }) => preset.matches(id, entity) && isAllowedBySelection(pill, id))
+        .sort(sortByFriendlyName);
+
+  if (!custom) matchedEntities.sort(sortByFriendlyName);
 
   const count = matchedEntities.length;
   const customLabel = typeof pill?.label === 'string' ? pill.label.trim() : '';
@@ -170,6 +211,10 @@ export function resolveStatusGroupPill(pill, entities, t) {
         statusPillSublabel: customSublabel || (count > 0 ? String(count) : emptyLabel),
         statusPillCount: count,
         statusPillPreset: preset.id,
+        // The first matching entry's icon, so the pill can change with the state.
+        statusPillStateIcon: custom
+          ? matchedEntities.find((item) => item.icon)?.icon || null
+          : null,
       },
     },
   };

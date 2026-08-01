@@ -298,13 +298,6 @@ export const handleAddSelected = (ctx) => {
       return;
     }
 
-    case 'status': {
-      const cardId = `status_card_${Date.now()}`;
-      // Entities are picked in the card editor, so the card starts empty.
-      commitSingleCard(cardId, { entityIds: [], colSpan: 1 });
-      return;
-    }
-
     case 'spacer': {
       const cardId = `spacer_card_${Date.now()}`;
       const variant = selectedSpacerVariant || 'spacer';

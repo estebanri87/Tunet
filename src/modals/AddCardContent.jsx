@@ -16,7 +16,6 @@ import {
   ListChecks,
   Lock,
   Minus,
-  AlertTriangle,
   Music,
   Speaker,
   Sprout,
@@ -1030,7 +1029,6 @@ function AddCardContent({
     'climate',
     'cover',
     'alarm',
-    'status',
     'media',
     'sonos',
     'toggle',
@@ -1243,13 +1241,6 @@ function AddCardContent({
                     isActive={addCardType === 'spacer'}
                     onSelect={setAddCardType}
                   />
-                  <TypeButton
-                    type="status"
-                    icon={AlertTriangle}
-                    label={getLabel('addCard.type.status', 'Status')}
-                    isActive={addCardType === 'status'}
-                    onSelect={setAddCardType}
-                  />
                 </div>
                 {addCardType === 'sensor' && (
                   <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
@@ -1277,12 +1268,6 @@ function AddCardContent({
                 )
               ) : addCardType === 'spacer' ? (
                 renderSpacerSection()
-              ) : addCardType === 'status' ? (
-                renderSimpleAddSection(
-                  AlertTriangle,
-                  t('addCard.statusDescription'),
-                  t('addCard.add')
-                )
               ) : addCardType === 'car' ? (
                 renderSimpleAddSection(Car, t('addCard.carDescription'), t('addCard.carCard'))
               ) : addCardType === 'nordpool' ? (

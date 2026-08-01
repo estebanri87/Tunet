@@ -28,8 +28,11 @@ import {
   PILL_ANIMATION_PRESET_OPTIONS,
   PILL_COLOR_PRESETS,
 } from '../utils/statusPillPresentation';
+import { CustomStatusEntriesEditor } from './statusPills/CustomStatusEntriesEditor';
 import {
+  CUSTOM_STATUS_GROUP_PRESET,
   DEFAULT_STATUS_GROUP_PRESET,
+  isCustomStatusGroup,
   STATUS_GROUP_PILL_TYPE,
   STATUS_GROUP_SELECTION_ALL,
   STATUS_GROUP_SELECTION_EXCLUDE,
@@ -979,11 +982,16 @@ export default function StatusPillsConfigModal({
                       name.includes(groupCandidateSearch)
                     );
                   });
-                  const groupPresetOptions = STATUS_GROUP_PRESETS.map((preset) => ({
+                  const groupPresetOptions = [
+                    ...STATUS_GROUP_PRESETS,
+                    CUSTOM_STATUS_GROUP_PRESET,
+                  ].map((preset) => ({
                     ...preset,
                     label: getStatusGroupPresetText(preset.id, t),
                     emptyLabel: getStatusGroupPresetText(preset.id, t, 'empty'),
                   }));
+                  const isCustomGroup =
+                    pill.type === STATUS_GROUP_PILL_TYPE && isCustomStatusGroup(pill.groupPreset);
                   const previewPill = { ...pill, conditionEnabled: false, visible: true };
                   const previewEntity = pill.entityId ? entities[pill.entityId] : null;
                   const getPreviewAttribute = (entityId, attributeName) =>
@@ -1259,7 +1267,7 @@ export default function StatusPillsConfigModal({
 
                           {pill.type === STATUS_GROUP_PILL_TYPE && groupPreviewData && (
                             <div className="space-y-3">
-                              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
                                 {groupPresetOptions.map((preset) => {
                                   const PresetIcon =
                                     getIconComponent(preset.icon) || getIconComponent('Activity');
@@ -1296,6 +1304,17 @@ export default function StatusPillsConfigModal({
                                 })}
                               </div>
 
+                              {isCustomGroup && (
+                                <CustomStatusEntriesEditor
+                                  pill={pill}
+                                  entities={entities}
+                                  t={t}
+                                  onChange={(customEntries) =>
+                                    updatePill(pill.id, { customEntries })
+                                  }
+                                />
+                              )}
+
                               <div className="rounded-xl border border-[var(--glass-border)]/35 bg-transparent p-3">
                                 <div className="mb-2 flex items-center justify-between gap-3">
                                   <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
@@ -1310,26 +1329,26 @@ export default function StatusPillsConfigModal({
                                 </div>
                                 {groupPreviewData.matchedEntities.length > 0 ? (
                                   <div className="custom-scrollbar max-h-40 space-y-1 overflow-y-auto">
-                                    {groupPreviewData.matchedEntities
-                                      .slice(0, 12)
-                                      .map(({ id, entity }) => (
-                                        <div
-                                          key={id}
-                                          className="flex items-center justify-between gap-2 rounded-lg bg-[var(--glass-bg)] px-2.5 py-2 text-xs"
-                                        >
-                                          <div className="min-w-0">
-                                            <p className="truncate font-bold text-[var(--text-primary)]">
-                                              {entity.attributes?.friendly_name || id}
-                                            </p>
-                                            <p className="truncate text-[10px] text-[var(--text-muted)]">
-                                              {id}
-                                            </p>
-                                          </div>
-                                          <span className="shrink-0 rounded-full bg-[var(--modal-bg)] px-2 py-0.5 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
-                                            {entity.state}
-                                          </span>
+                                    {groupPreviewData.matchedEntities.slice(0, 12).map((match) => (
+                                      <div
+                                        key={match.id}
+                                        className="flex items-center justify-between gap-2 rounded-lg bg-[var(--glass-bg)] px-2.5 py-2 text-xs"
+                                      >
+                                        <div className="min-w-0">
+                                          <p className="truncate font-bold text-[var(--text-primary)]">
+                                            {match.label ||
+                                              match.entity.attributes?.friendly_name ||
+                                              match.id}
+                                          </p>
+                                          <p className="truncate text-[10px] text-[var(--text-muted)]">
+                                            {match.entityId || match.id}
+                                          </p>
                                         </div>
-                                      ))}
+                                        <span className="shrink-0 rounded-full bg-[var(--modal-bg)] px-2 py-0.5 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
+                                          {match.stateText || match.entity.state}
+                                        </span>
+                                      </div>
+                                    ))}
                                   </div>
                                 ) : (
                                   <p className="rounded-lg bg-[var(--glass-bg)] px-3 py-2 text-xs text-[var(--text-muted)]">
@@ -1338,7 +1357,11 @@ export default function StatusPillsConfigModal({
                                 )}
                               </div>
 
-                              <div className="space-y-3 rounded-xl border border-[var(--glass-border)]/35 bg-transparent p-3">
+                              {/* Include/exclude narrows a preset's candidates;
+                                  a custom group already names its entries. */}
+                              <div
+                                className={`space-y-3 rounded-xl border border-[var(--glass-border)]/35 bg-transparent p-3 ${isCustomGroup ? 'hidden' : ''}`}
+                              >
                                 <div className="flex items-center justify-between gap-3">
                                   <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
                                     {getTranslation('statusPills.groupScope', 'Included entities')}

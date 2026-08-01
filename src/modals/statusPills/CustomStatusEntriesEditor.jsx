@@ -1,24 +1,20 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { SearchableSelect } from './CarMappingsSection';
+import { SearchableSelect } from '../editCard/CarMappingsSection';
 import IconPicker from '../../components/ui/IconPicker';
 import { getIconComponent } from '../../icons';
 import {
   MAX_STATUS_ENTITIES,
   MAX_STATUS_SOURCES,
-  MAX_STATUS_CATEGORIES,
-  UNGROUPED_CATEGORY_ID,
-  createStatusCategory,
   createStatusItemId,
   createStatusRule,
   createStatusSource,
-  getStatusCategories,
   getItemRules,
   getItemSources,
   getStatusItems,
   isSourceActive,
   matchesRule,
-} from '../../components/cards/statusCardUtils';
+} from '../../utils/customStatusEntries';
 
 const CONDITION_CHOICES = ['active', 'inactive', 'any'];
 
@@ -159,6 +155,9 @@ const SourceEditor = ({ source, index, total, entities, entityOptions, t, onUpda
             onBlur={(e) => onUpdate({ activeStates: e.target.value.trim() || null })}
             className="popup-surface mt-1 w-full rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
           />
+          <p className="mt-1 ml-1 text-[10px] text-[var(--text-muted)] opacity-70">
+            {t('statusCard.activeStatesHint')}
+          </p>
         </div>
         <TextField
           label={t('statusCard.activeText')}
@@ -253,16 +252,7 @@ const RuleEditor = ({ rule, index, sources, entities, matched, t, onUpdate, onRe
 );
 
 /** One entry: a thing in the home, watched through one or more sensors. */
-const StatusItemEditor = ({
-  item,
-  index,
-  entities,
-  entityOptions,
-  categories,
-  t,
-  onUpdate,
-  onRemove,
-}) => {
+const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, onRemove }) => {
   const sources = getItemSources(item);
   const rules = getItemRules(item);
 
@@ -305,35 +295,6 @@ const StatusItemEditor = ({
         placeholder={t('statusCard.itemLabelPlaceholder')}
         onChange={(value) => onUpdate({ label: value })}
       />
-
-      {categories.length > 0 && (
-        <div>
-          <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
-            {t('statusCard.category')}
-          </label>
-          <div className="mt-1 flex flex-wrap gap-2">
-            {[{ id: UNGROUPED_CATEGORY_ID, name: t('statusCard.noCategory') }, ...categories].map(
-              (category) => {
-                const current = item.categoryId || UNGROUPED_CATEGORY_ID;
-                const isSelected = current === category.id;
-                return (
-                  <button
-                    key={category.id}
-                    onClick={() => onUpdate({ categoryId: category.id })}
-                    className={`rounded-xl px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all ${
-                      isSelected
-                        ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
-                        : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'
-                    }`}
-                  >
-                    {category.name?.trim() || t('statusCard.unnamedCategory')}
-                  </button>
-                );
-              }
-            )}
-          </div>
-        </div>
-      )}
 
       <IconField
         label={t('statusCard.itemIcon')}
@@ -428,9 +389,14 @@ const StatusItemEditor = ({
   );
 };
 
-export function StatusCardSection({ t, entities, editSettings, editSettingsKey, saveCardSetting }) {
-  const items = React.useMemo(() => getStatusItems(editSettings), [editSettings]);
-  const categories = React.useMemo(() => getStatusCategories(editSettings), [editSettings]);
+/**
+ * Editor for the entries of a custom status group: which sensors describe one
+ * thing, which combination of their states means what, and how that reads.
+ *
+ * Kept out of StatusPillsConfigModal, which is long enough as it is.
+ */
+export function CustomStatusEntriesEditor({ pill, entities, t, onChange }) {
+  const items = React.useMemo(() => getStatusItems(pill), [pill]);
 
   const entityOptions = React.useMemo(
     () =>
@@ -442,91 +408,9 @@ export function StatusCardSection({ t, entities, editSettings, editSettingsKey, 
     [entities]
   );
 
-  const persist = (next) => {
-    if (!editSettingsKey) return;
-    saveCardSetting(editSettingsKey, 'items', next);
-  };
-
-  const persistCategories = (next) => {
-    if (!editSettingsKey) return;
-    saveCardSetting(editSettingsKey, 'categories', next);
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="space-y-3">
-        <div className="px-1">
-          <span className="block text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
-            {t('statusCard.categories')}
-          </span>
-          <span className="mt-1 block text-[11px] text-[var(--text-muted)] opacity-70">
-            {t('statusCard.categoriesHint')}
-          </span>
-        </div>
-
-        {categories.map((category, index) => (
-          <div key={category.id} className="popup-surface space-y-3 rounded-2xl p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
-                {`${t('statusCard.category')} ${index + 1}`}
-              </span>
-              <button
-                onClick={() => persistCategories(categories.filter((_, i) => i !== index))}
-                aria-label={t('statusCard.removeCategory')}
-                className="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-
-            <TextField
-              label={t('statusCard.categoryName')}
-              value={category.name}
-              placeholder={t('statusCard.categoryNamePlaceholder')}
-              onChange={(value) =>
-                persistCategories(
-                  categories.map((c, i) => (i === index ? { ...c, name: value } : c))
-                )
-              }
-            />
-
-            <IconField
-              label={t('statusCard.categoryIcon')}
-              value={category.icon}
-              t={t}
-              onChange={(icon) =>
-                persistCategories(categories.map((c, i) => (i === index ? { ...c, icon } : c)))
-              }
-            />
-
-            <TextField
-              label={t('statusCard.categoryEmptyText')}
-              value={category.emptyText}
-              placeholder={t('statusCard.categoryEmptyTextPlaceholder')}
-              onChange={(value) =>
-                persistCategories(
-                  categories.map((c, i) => (i === index ? { ...c, emptyText: value } : c))
-                )
-              }
-            />
-            <p className="ml-1 text-[10px] text-[var(--text-muted)] opacity-70">
-              {t('statusCard.categoryEmptyTextHint')}
-            </p>
-          </div>
-        ))}
-
-        {categories.length < MAX_STATUS_CATEGORIES && (
-          <button
-            onClick={() => persistCategories([...categories, createStatusCategory()])}
-            className="popup-surface popup-surface-hover flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--glass-border)] px-4 py-3 text-xs font-bold tracking-widest text-[var(--text-primary)] uppercase transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            {t('statusCard.addCategory')}
-          </button>
-        )}
-      </div>
-
-      <div className="px-1 pt-2">
+    <div className="space-y-3">
+      <div className="px-1">
         <span className="block text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
           {t('statusCard.entities')}
         </span>
@@ -548,19 +432,19 @@ export function StatusCardSection({ t, entities, editSettings, editSettingsKey, 
           index={index}
           entities={entities}
           entityOptions={entityOptions}
-          categories={categories}
           t={t}
           onUpdate={(patch) =>
-            persist(items.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)))
+            onChange(items.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)))
           }
-          onRemove={() => persist(items.filter((_, i) => i !== index))}
+          onRemove={() => onChange(items.filter((_, i) => i !== index))}
         />
       ))}
 
       {items.length < MAX_STATUS_ENTITIES && (
         <button
+          type="button"
           onClick={() =>
-            persist([...items, { id: createStatusItemId(), sources: [createStatusSource()] }])
+            onChange([...items, { id: createStatusItemId(), sources: [createStatusSource()] }])
           }
           className="popup-surface popup-surface-hover flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--glass-border)] px-4 py-3 text-xs font-bold tracking-widest text-[var(--text-primary)] uppercase transition-colors"
         >
@@ -568,44 +452,8 @@ export function StatusCardSection({ t, entities, editSettings, editSettingsKey, 
           {t('statusCard.addEntry')}
         </button>
       )}
-
-      <div className="space-y-2 border-t border-[var(--glass-border)] pt-4">
-        <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
-          {t('statusCard.emptyText')}
-        </label>
-        <input
-          type="text"
-          defaultValue={editSettings.emptyText || ''}
-          onBlur={(e) =>
-            editSettingsKey &&
-            saveCardSetting(editSettingsKey, 'emptyText', e.target.value.trim() || null)
-          }
-          placeholder={t('statusCard.allClear')}
-          className="popup-surface w-full rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
-        />
-        <p className="ml-1 text-[11px] text-[var(--text-muted)] opacity-70">
-          {t('statusCard.emptyTextHint')}
-        </p>
-      </div>
-
-      <div className="popup-surface flex items-center justify-between gap-4 rounded-2xl p-4">
-        <span className="text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
-          {t('statusCard.showState')}
-        </span>
-        <button
-          onClick={() =>
-            editSettingsKey &&
-            saveCardSetting(editSettingsKey, 'showState', editSettings.showState === false)
-          }
-          className="relative h-6 w-12 flex-shrink-0 rounded-full bg-[var(--glass-bg-hover)] transition-colors"
-        >
-          <div
-            className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--text-primary)] transition-all ${editSettings.showState !== false ? 'left-7' : 'left-1'}`}
-          />
-        </button>
-      </div>
     </div>
   );
 }
 
-export default StatusCardSection;
+export default CustomStatusEntriesEditor;

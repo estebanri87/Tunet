@@ -69,7 +69,6 @@ export function useEditModalProps({
         editId.startsWith('binary_sensor.') ||
         editId.startsWith('sensor.'));
     const isEditWeatherTemp = !!editId && editId.startsWith('weather_temp_');
-    const isEditStatusCard = !!editId && editId.startsWith('status_card_');
 
     const canEditName =
       !!editId &&
@@ -129,7 +128,6 @@ export function useEditModalProps({
       isEditAlarm,
       isEditCover,
       canEditCustomRows,
-      isEditStatusCard,
       editSettingsKey,
       editSettings,
     };

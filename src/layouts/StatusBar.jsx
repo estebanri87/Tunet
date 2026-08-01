@@ -294,7 +294,12 @@ export default function StatusBar({
                   entity={groupData.syntheticEntity}
                   pill={{
                     ...pill,
-                    icon: pill.icon || groupData.preset.icon,
+                    // A custom group's active entry may carry its own icon, so
+                    // the pill can look different for "open" and "tilted".
+                    icon:
+                      groupData.syntheticEntity.attributes.statusPillStateIcon ||
+                      pill.icon ||
+                      groupData.preset.icon,
                     iconBgColor: pill.iconBgColor || groupData.preset.iconBgColor,
                     iconColor: pill.iconColor || groupData.preset.iconColor,
                   }}
