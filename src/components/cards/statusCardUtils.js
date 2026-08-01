@@ -4,19 +4,25 @@
  * An entry stands for one thing in the home — a window, a door, the alarm
  * panel — and can watch several entities at once:
  *
- *   { id, label, inactiveText, alwaysShow,
+ *   { id, categoryId, label, icon, inactiveText, alwaysShow,
  *     sources: [{ id, entityId, activeStates, activeText, invert }],
- *     rules:   [{ id, text, conditions: { [sourceId]: 'active'|'inactive'|'any' } }] }
+ *     rules:   [{ id, text, icon, conditions: { [sourceId]: 'active'|'inactive'|'any' } }] }
  *
  * Several sources exist because one window often has separate contacts for
  * "open" and "tilted". Which combination means what is spelled out by the
  * rules: a rule matches when every one of its conditions holds, and the first
  * matching rule provides the wording. Without rules the first active source
  * wins, which keeps the single-sensor case simple.
+ *
+ * Entries are grouped by category — { id, name, icon, emptyText } — so one
+ * card can cover windows and the alarm panel at once, each group with its own
+ * heading, icon and all-clear wording.
  */
 
 export const MAX_STATUS_ENTITIES = 60;
 export const MAX_STATUS_SOURCES = 4;
+export const MAX_STATUS_CATEGORIES = 8;
+export const UNGROUPED_CATEGORY_ID = '__ungrouped__';
 
 const INACTIVE_STATES = new Set(['off', 'closed', 'locked', 'unavailable', 'unknown', 'none', '']);
 
@@ -24,6 +30,13 @@ export const createStatusItemId = () =>
   `st-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
 export const createStatusSource = () => ({ id: createStatusItemId(), entityId: null });
+
+export const createStatusCategory = () => ({ id: createStatusItemId(), name: '', icon: null });
+
+export const getStatusCategories = (settings) =>
+  (Array.isArray(settings?.categories) ? settings.categories : []).filter(
+    (category) => category && typeof category === 'object'
+  );
 
 /** Sources of an entry, migrating the single-entity shape used before. */
 export const getItemSources = (item) => {
@@ -148,23 +161,66 @@ export const resolveStatusEntries = (settings, entities) =>
       const active = !!matchedRule || !!activeSource;
 
       let stateText;
+      let stateIcon = null;
       if (matchedRule) {
         stateText = matchedRule.text?.trim() || entities[sources[0].entityId].state;
+        stateIcon = matchedRule.icon || null;
       } else if (activeSource) {
         // Falls back to the raw state so an unconfigured entry still says something.
         stateText = activeSource.activeText?.trim() || entities[activeSource.entityId].state;
+        stateIcon = activeSource.icon || null;
       } else {
         stateText = item.inactiveText?.trim() || primary?.state || '';
+        stateIcon = item.inactiveIcon || null;
       }
 
       return {
         id: item.id || sources[0].entityId,
+        categoryId: item.categoryId || UNGROUPED_CATEGORY_ID,
         active,
         label: item.label?.trim() || fallbackName,
         stateText,
+        // The state's own icon wins over the entry's, so "open" and "tilted"
+        // can look different.
+        icon: stateIcon || item.icon || null,
         alwaysShow: item.alwaysShow === true,
       };
     })
     .filter(Boolean)
     .filter((entry) => entry.active || entry.alwaysShow)
     .sort((left, right) => left.label.localeCompare(right.label));
+
+/**
+ * Entries arranged into their categories, ready to render.
+ *
+ * A category with nothing to show is dropped unless it carries an own empty
+ * text — that text is how a category says "all windows closed" in its own
+ * words. Entries without a category form a leading, unnamed group.
+ */
+export const resolveStatusGroups = (settings, entities) => {
+  const entries = resolveStatusEntries(settings, entities);
+  const categories = getStatusCategories(settings);
+
+  const groups = [
+    { id: UNGROUPED_CATEGORY_ID, name: '', icon: null, emptyText: '' },
+    ...categories.map((category) => ({
+      id: category.id,
+      name: category.name?.trim() || '',
+      icon: category.icon || null,
+      emptyText: category.emptyText?.trim() || '',
+    })),
+  ];
+
+  const knownIds = new Set(groups.map((group) => group.id));
+
+  return groups
+    .map((group) => ({
+      ...group,
+      entries: entries.filter((entry) =>
+        group.id === UNGROUPED_CATEGORY_ID
+          ? !knownIds.has(entry.categoryId) || entry.categoryId === UNGROUPED_CATEGORY_ID
+          : entry.categoryId === group.id
+      ),
+    }))
+    .filter((group) => group.entries.length > 0 || group.emptyText);
+};

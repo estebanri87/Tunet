@@ -1,12 +1,18 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { SearchableSelect } from './CarMappingsSection';
+import IconPicker from '../../components/ui/IconPicker';
+import { getIconComponent } from '../../icons';
 import {
   MAX_STATUS_ENTITIES,
   MAX_STATUS_SOURCES,
+  MAX_STATUS_CATEGORIES,
+  UNGROUPED_CATEGORY_ID,
+  createStatusCategory,
   createStatusItemId,
   createStatusRule,
   createStatusSource,
+  getStatusCategories,
   getItemRules,
   getItemSources,
   getStatusItems,
@@ -17,6 +23,43 @@ import {
 const CONDITION_CHOICES = ['active', 'inactive', 'any'];
 
 const MAX_ENTITY_OPTIONS = 150;
+
+/** Compact icon chooser used for categories, entries and states. */
+const IconField = ({ label, value, t, onChange }) => {
+  const [open, setOpen] = React.useState(false);
+  const Selected = value ? getIconComponent(value) : null;
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="popup-surface popup-surface-hover flex w-full items-center justify-between rounded-xl px-3 py-2"
+      >
+        <span className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase">
+          {Selected ? <Selected className="h-4 w-4 text-[var(--text-primary)]" /> : null}
+          {label}
+        </span>
+        <span className="truncate text-[10px] text-[var(--text-muted)]">
+          {value || t('dropdown.noneSelected')}
+        </span>
+      </button>
+      {open && (
+        <div className="mt-2">
+          <IconPicker
+            value={value}
+            onSelect={(iconName) => {
+              onChange(iconName);
+              setOpen(false);
+            }}
+            onClear={() => onChange(null)}
+            t={t}
+            maxHeightClass="max-h-56"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const TextField = ({ label, value, placeholder, onChange }) => (
   <div className="flex-1">
@@ -169,6 +212,13 @@ const RuleEditor = ({ rule, index, sources, entities, matched, t, onUpdate, onRe
       className="popup-surface w-full rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
     />
 
+    <IconField
+      label={t('statusCard.ruleIcon')}
+      value={rule.icon}
+      t={t}
+      onChange={(icon) => onUpdate({ icon })}
+    />
+
     <div className="space-y-2">
       {sources.map((source, sourceIndex) => {
         const current = rule.conditions?.[source.id] || 'any';
@@ -203,7 +253,16 @@ const RuleEditor = ({ rule, index, sources, entities, matched, t, onUpdate, onRe
 );
 
 /** One entry: a thing in the home, watched through one or more sensors. */
-const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, onRemove }) => {
+const StatusItemEditor = ({
+  item,
+  index,
+  entities,
+  entityOptions,
+  categories,
+  t,
+  onUpdate,
+  onRemove,
+}) => {
   const sources = getItemSources(item);
   const rules = getItemRules(item);
 
@@ -245,6 +304,42 @@ const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, o
         value={item.label}
         placeholder={t('statusCard.itemLabelPlaceholder')}
         onChange={(value) => onUpdate({ label: value })}
+      />
+
+      {categories.length > 0 && (
+        <div>
+          <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+            {t('statusCard.category')}
+          </label>
+          <div className="mt-1 flex flex-wrap gap-2">
+            {[{ id: UNGROUPED_CATEGORY_ID, name: t('statusCard.noCategory') }, ...categories].map(
+              (category) => {
+                const current = item.categoryId || UNGROUPED_CATEGORY_ID;
+                const isSelected = current === category.id;
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => onUpdate({ categoryId: category.id })}
+                    className={`rounded-xl px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all ${
+                      isSelected
+                        ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                        : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    {category.name?.trim() || t('statusCard.unnamedCategory')}
+                  </button>
+                );
+              }
+            )}
+          </div>
+        </div>
+      )}
+
+      <IconField
+        label={t('statusCard.itemIcon')}
+        value={item.icon}
+        t={t}
+        onChange={(icon) => onUpdate({ icon })}
       />
 
       {sources.length > 1 && rules.length === 0 && (
@@ -335,6 +430,7 @@ const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, o
 
 export function StatusCardSection({ t, entities, editSettings, editSettingsKey, saveCardSetting }) {
   const items = React.useMemo(() => getStatusItems(editSettings), [editSettings]);
+  const categories = React.useMemo(() => getStatusCategories(editSettings), [editSettings]);
 
   const entityOptions = React.useMemo(
     () =>
@@ -351,9 +447,86 @@ export function StatusCardSection({ t, entities, editSettings, editSettingsKey, 
     saveCardSetting(editSettingsKey, 'items', next);
   };
 
+  const persistCategories = (next) => {
+    if (!editSettingsKey) return;
+    saveCardSetting(editSettingsKey, 'categories', next);
+  };
+
   return (
     <div className="space-y-4">
-      <div className="px-1">
+      <div className="space-y-3">
+        <div className="px-1">
+          <span className="block text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
+            {t('statusCard.categories')}
+          </span>
+          <span className="mt-1 block text-[11px] text-[var(--text-muted)] opacity-70">
+            {t('statusCard.categoriesHint')}
+          </span>
+        </div>
+
+        {categories.map((category, index) => (
+          <div key={category.id} className="popup-surface space-y-3 rounded-2xl p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                {`${t('statusCard.category')} ${index + 1}`}
+              </span>
+              <button
+                onClick={() => persistCategories(categories.filter((_, i) => i !== index))}
+                aria-label={t('statusCard.removeCategory')}
+                className="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+
+            <TextField
+              label={t('statusCard.categoryName')}
+              value={category.name}
+              placeholder={t('statusCard.categoryNamePlaceholder')}
+              onChange={(value) =>
+                persistCategories(
+                  categories.map((c, i) => (i === index ? { ...c, name: value } : c))
+                )
+              }
+            />
+
+            <IconField
+              label={t('statusCard.categoryIcon')}
+              value={category.icon}
+              t={t}
+              onChange={(icon) =>
+                persistCategories(categories.map((c, i) => (i === index ? { ...c, icon } : c)))
+              }
+            />
+
+            <TextField
+              label={t('statusCard.categoryEmptyText')}
+              value={category.emptyText}
+              placeholder={t('statusCard.categoryEmptyTextPlaceholder')}
+              onChange={(value) =>
+                persistCategories(
+                  categories.map((c, i) => (i === index ? { ...c, emptyText: value } : c))
+                )
+              }
+            />
+            <p className="ml-1 text-[10px] text-[var(--text-muted)] opacity-70">
+              {t('statusCard.categoryEmptyTextHint')}
+            </p>
+          </div>
+        ))}
+
+        {categories.length < MAX_STATUS_CATEGORIES && (
+          <button
+            onClick={() => persistCategories([...categories, createStatusCategory()])}
+            className="popup-surface popup-surface-hover flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--glass-border)] px-4 py-3 text-xs font-bold tracking-widest text-[var(--text-primary)] uppercase transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            {t('statusCard.addCategory')}
+          </button>
+        )}
+      </div>
+
+      <div className="px-1 pt-2">
         <span className="block text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
           {t('statusCard.entities')}
         </span>
@@ -375,6 +548,7 @@ export function StatusCardSection({ t, entities, editSettings, editSettingsKey, 
           index={index}
           entities={entities}
           entityOptions={entityOptions}
+          categories={categories}
           t={t}
           onUpdate={(patch) =>
             persist(items.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)))
