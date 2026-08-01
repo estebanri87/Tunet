@@ -5,11 +5,14 @@
  * panel — and can watch several entities at once:
  *
  *   { id, label, inactiveText, alwaysShow,
- *     sources: [{ id, entityId, activeStates, activeText, invert }] }
+ *     sources: [{ id, entityId, activeStates, activeText, invert }],
+ *     rules:   [{ id, text, conditions: { [sourceId]: 'active'|'inactive'|'any' } }] }
  *
  * Several sources exist because one window often has separate contacts for
- * "open" and "tilted". The sources are checked in order and the first active
- * one provides the wording, so the more specific case belongs further up.
+ * "open" and "tilted". Which combination means what is spelled out by the
+ * rules: a rule matches when every one of its conditions holds, and the first
+ * matching rule provides the wording. Without rules the first active source
+ * wins, which keeps the single-sensor case simple.
  */
 
 export const MAX_STATUS_ENTITIES = 60;
@@ -85,6 +88,31 @@ export const isSourceActive = (source, entity) => {
   return source?.invert === true ? !active : active;
 };
 
+export const createStatusRule = () => ({ id: createStatusItemId(), text: '', conditions: {} });
+
+export const getItemRules = (item) =>
+  (Array.isArray(item?.rules) ? item.rules : []).filter((rule) => rule && typeof rule === 'object');
+
+/**
+ * A rule matches when every condition holds. Sources set to 'any' — and
+ * conditions naming a source that no longer exists — are ignored.
+ */
+export const matchesRule = (rule, sources, entities) => {
+  const conditions = rule?.conditions || {};
+  const relevant = sources.filter((source) => {
+    const expected = conditions[source.id];
+    return expected === 'active' || expected === 'inactive';
+  });
+  if (relevant.length === 0) return false;
+
+  return relevant.every((source) => {
+    const entity = entities?.[source.entityId];
+    if (!entity) return false;
+    const active = isSourceActive(source, entity);
+    return conditions[source.id] === 'active' ? active : !active;
+  });
+};
+
 /**
  * Entries to render: those with an active source plus the ones marked
  * `alwaysShow`, sorted by name. Each carries the text for its current state.
@@ -97,20 +125,32 @@ export const resolveStatusEntries = (settings, entities) =>
       );
       if (sources.length === 0) return null;
 
-      const activeSource = sources.find((source) =>
-        isSourceActive(source, entities[source.entityId])
-      );
       const primary = entities[sources[0].entityId];
       const fallbackName = primary?.attributes?.friendly_name || sources[0].entityId;
 
+      // Rules decide first; without them the first active source wins.
+      const rules = getItemRules(item);
+      const matchedRule = rules.find((rule) => matchesRule(rule, sources, entities));
+      const activeSource = rules.length
+        ? null
+        : sources.find((source) => isSourceActive(source, entities[source.entityId]));
+      const active = !!matchedRule || !!activeSource;
+
+      let stateText;
+      if (matchedRule) {
+        stateText = matchedRule.text?.trim() || entities[sources[0].entityId].state;
+      } else if (activeSource) {
+        // Falls back to the raw state so an unconfigured entry still says something.
+        stateText = activeSource.activeText?.trim() || entities[activeSource.entityId].state;
+      } else {
+        stateText = item.inactiveText?.trim() || primary?.state || '';
+      }
+
       return {
         id: item.id || sources[0].entityId,
-        active: !!activeSource,
+        active,
         label: item.label?.trim() || fallbackName,
-        // Falls back to the raw state so an unconfigured entry still says something.
-        stateText: activeSource
-          ? activeSource.activeText?.trim() || entities[activeSource.entityId].state
-          : item.inactiveText?.trim() || primary?.state || '',
+        stateText,
         alwaysShow: item.alwaysShow === true,
       };
     })

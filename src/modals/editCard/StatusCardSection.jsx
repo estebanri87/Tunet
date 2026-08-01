@@ -5,11 +5,16 @@ import {
   MAX_STATUS_ENTITIES,
   MAX_STATUS_SOURCES,
   createStatusItemId,
+  createStatusRule,
   createStatusSource,
+  getItemRules,
   getItemSources,
   getStatusItems,
   isSourceActive,
+  matchesRule,
 } from '../../components/cards/statusCardUtils';
+
+const CONDITION_CHOICES = ['active', 'inactive', 'any'];
 
 const MAX_ENTITY_OPTIONS = 150;
 
@@ -130,11 +135,80 @@ const SourceEditor = ({ source, index, total, entities, entityOptions, t, onUpda
   );
 };
 
+/**
+ * One rule: which combination of sensor states means what. Sensors left on
+ * "any" are ignored, so a rule only names the sensors it cares about.
+ */
+const RuleEditor = ({ rule, index, sources, entities, matched, t, onUpdate, onRemove }) => (
+  <div
+    className={`space-y-3 rounded-xl p-3 transition-colors ${matched ? 'bg-sky-500/10' : 'bg-[var(--glass-bg)]'}`}
+  >
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+        {`${t('statusCard.rule')} ${index + 1}`}
+      </span>
+      {matched && (
+        <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[9px] font-bold tracking-wider text-sky-300 uppercase">
+          {t('statusCard.ruleMatches')}
+        </span>
+      )}
+      <button
+        onClick={onRemove}
+        aria-label={t('statusCard.removeRule')}
+        className="ml-auto rounded-lg p-1.5 text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    </div>
+
+    <input
+      type="text"
+      defaultValue={rule.text || ''}
+      placeholder={t('statusCard.ruleTextPlaceholder')}
+      onBlur={(e) => onUpdate({ text: e.target.value })}
+      className="popup-surface w-full rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+    />
+
+    <div className="space-y-2">
+      {sources.map((source, sourceIndex) => {
+        const current = rule.conditions?.[source.id] || 'any';
+        const entity = source.entityId ? entities[source.entityId] : null;
+        return (
+          <div key={source.id} className="space-y-1">
+            <span className="ml-1 block truncate text-[10px] text-[var(--text-muted)]">
+              {`${t('statusCard.source')} ${sourceIndex + 1}: ${entity?.attributes?.friendly_name || source.entityId || '—'}`}
+            </span>
+            <div className="grid grid-cols-3 gap-1.5">
+              {CONDITION_CHOICES.map((choice) => (
+                <button
+                  key={choice}
+                  onClick={() =>
+                    onUpdate({ conditions: { ...(rule.conditions || {}), [source.id]: choice } })
+                  }
+                  className={`rounded-lg py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all ${
+                    current === choice
+                      ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                      : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+                  }`}
+                >
+                  {t(`statusCard.condition.${choice}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
 /** One entry: a thing in the home, watched through one or more sensors. */
 const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, onRemove }) => {
   const sources = getItemSources(item);
+  const rules = getItemRules(item);
 
   const updateSources = (next) => onUpdate({ sources: next, entityId: undefined });
+  const updateRules = (next) => onUpdate({ rules: next });
 
   return (
     <div className="popup-surface space-y-3 rounded-2xl p-4">
@@ -158,7 +232,7 @@ const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, o
         onChange={(value) => onUpdate({ label: value })}
       />
 
-      {sources.length > 1 && (
+      {sources.length > 1 && rules.length === 0 && (
         <p className="ml-1 text-[10px] text-[var(--text-muted)] opacity-70">
           {t('statusCard.sourceOrderHint')}
         </p>
@@ -188,6 +262,43 @@ const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, o
           <Plus className="h-3.5 w-3.5" />
           {t('statusCard.addSource')}
         </button>
+      )}
+
+      {sources.length > 1 && (
+        <div className="space-y-2 border-t border-[var(--glass-border)] pt-3">
+          <div className="px-1">
+            <span className="block text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+              {t('statusCard.rules')}
+            </span>
+            <span className="mt-1 block text-[10px] text-[var(--text-muted)] opacity-70">
+              {t('statusCard.rulesHint')}
+            </span>
+          </div>
+
+          {rules.map((rule, ruleIndex) => (
+            <RuleEditor
+              key={rule.id || ruleIndex}
+              rule={rule}
+              index={ruleIndex}
+              sources={sources}
+              entities={entities}
+              matched={matchesRule(rule, sources, entities)}
+              t={t}
+              onUpdate={(patch) =>
+                updateRules(rules.map((r, i) => (i === ruleIndex ? { ...r, ...patch } : r)))
+              }
+              onRemove={() => updateRules(rules.filter((_, i) => i !== ruleIndex))}
+            />
+          ))}
+
+          <button
+            onClick={() => updateRules([...rules, createStatusRule()])}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--glass-bg)] px-3 py-2 text-[10px] font-bold tracking-widest text-[var(--text-primary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)]"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t('statusCard.addRule')}
+          </button>
+        </div>
       )}
 
       <TextField
