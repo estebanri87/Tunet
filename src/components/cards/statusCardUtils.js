@@ -93,16 +93,27 @@ export const createStatusRule = () => ({ id: createStatusItemId(), text: '', con
 export const getItemRules = (item) =>
   (Array.isArray(item?.rules) ? item.rules : []).filter((rule) => rule && typeof rule === 'object');
 
+/** Sources a rule actually constrains; those set to 'any' do not count. */
+const getConstrainedSources = (rule, sources) =>
+  sources.filter((source) => {
+    const expected = rule?.conditions?.[source.id];
+    return expected === 'active' || expected === 'inactive';
+  });
+
+/**
+ * Whether a rule can decide anything: it must constrain at least one source
+ * that still exists. A rule left on 'any' everywhere, or one whose sources
+ * were deleted, is meaningless and must not disable the fallback below.
+ */
+export const isRuleUsable = (rule, sources) => getConstrainedSources(rule, sources).length > 0;
+
 /**
  * A rule matches when every condition holds. Sources set to 'any' — and
  * conditions naming a source that no longer exists — are ignored.
  */
 export const matchesRule = (rule, sources, entities) => {
   const conditions = rule?.conditions || {};
-  const relevant = sources.filter((source) => {
-    const expected = conditions[source.id];
-    return expected === 'active' || expected === 'inactive';
-  });
+  const relevant = getConstrainedSources(rule, sources);
   if (relevant.length === 0) return false;
 
   return relevant.every((source) => {
@@ -128,8 +139,8 @@ export const resolveStatusEntries = (settings, entities) =>
       const primary = entities[sources[0].entityId];
       const fallbackName = primary?.attributes?.friendly_name || sources[0].entityId;
 
-      // Rules decide first; without them the first active source wins.
-      const rules = getItemRules(item);
+      // Rules decide first; without usable ones the first active source wins.
+      const rules = getItemRules(item).filter((rule) => isRuleUsable(rule, sources));
       const matchedRule = rules.find((rule) => matchesRule(rule, sources, entities));
       const activeSource = rules.length
         ? null

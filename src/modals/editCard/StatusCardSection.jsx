@@ -210,6 +210,21 @@ const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, o
   const updateSources = (next) => onUpdate({ sources: next, entityId: undefined });
   const updateRules = (next) => onUpdate({ rules: next });
 
+  /* Dropping a sensor also drops its conditions, so no rule is left pointing
+     at something that no longer exists. */
+  const removeSource = (sourceIndex) => {
+    const removed = sources[sourceIndex];
+    onUpdate({
+      sources: sources.filter((_, i) => i !== sourceIndex),
+      entityId: undefined,
+      rules: rules.map((rule) => {
+        const conditions = { ...(rule.conditions || {}) };
+        delete conditions[removed?.id];
+        return { ...rule, conditions };
+      }),
+    });
+  };
+
   return (
     <div className="popup-surface space-y-3 rounded-2xl p-4">
       <div className="flex items-center justify-between">
@@ -250,7 +265,7 @@ const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, o
           onUpdate={(patch) =>
             updateSources(sources.map((s, i) => (i === sourceIndex ? { ...s, ...patch } : s)))
           }
-          onRemove={() => updateSources(sources.filter((_, i) => i !== sourceIndex))}
+          onRemove={() => removeSource(sourceIndex)}
         />
       ))}
 
