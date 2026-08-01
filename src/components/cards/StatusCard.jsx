@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { AlertTriangle, Check } from '../../icons';
 import { getIconComponent } from '../../icons';
-import { getEntityDisplayName, resolveActiveEntities } from './statusCardUtils';
+import { resolveStatusEntries } from './statusCardUtils';
 
 /**
  * StatusCard – lists only those of its entities that are currently in an
@@ -26,8 +26,9 @@ const StatusCard = memo(
     const translate = t || ((key) => key);
     const settings = cardSettings[settingsKey] || cardSettings[cardId] || {};
 
-    const active = resolveActiveEntities(settings, entities);
-    const hasActive = active.length > 0;
+    const entries = resolveStatusEntries(settings, entities);
+    const activeCount = entries.filter((entry) => entry.active).length;
+    const hasActive = activeCount > 0;
     const name = customNames[cardId] || settings.heading || translate('statusCard.title');
 
     const Icon = customIcons[cardId]
@@ -64,31 +65,33 @@ const StatusCard = memo(
             </span>
             {hasActive && (
               <span className="text-sm font-bold" style={{ color: accent.color }}>
-                {active.length}
+                {activeCount}
               </span>
             )}
           </div>
         </div>
 
         <div className="custom-scrollbar relative z-10 min-h-0 flex-1 overflow-y-auto">
-          {hasActive ? (
+          {entries.length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              {active.map(({ id, entity }) => (
+              {entries.map((entry) => (
                 <span
-                  key={id}
+                  key={entry.id}
                   className="flex items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-1.5"
-                  title={getEntityDisplayName(id, entity)}
+                  title={entry.label}
                 >
                   <span
                     className="h-1.5 w-1.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: accent.color }}
+                    style={{
+                      backgroundColor: entry.active ? accent.color : 'var(--text-muted)',
+                    }}
                   />
                   <span className="truncate text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
-                    {getEntityDisplayName(id, entity)}
+                    {entry.label}
                   </span>
                   {settings.showState !== false && (
                     <span className="shrink-0 text-[10px] tracking-wider text-[var(--text-muted)] uppercase">
-                      {entity.state}
+                      {entry.stateText}
                     </span>
                   )}
                 </span>
