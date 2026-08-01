@@ -298,14 +298,22 @@ export const handleAddSelected = (ctx) => {
       return;
     }
 
+    case 'status': {
+      const cardId = `status_card_${Date.now()}`;
+      // Entities are picked in the card editor, so the card starts empty.
+      commitSingleCard(cardId, { entityIds: [], colSpan: 1 });
+      return;
+    }
+
     case 'spacer': {
       const cardId = `spacer_card_${Date.now()}`;
       const variant = selectedSpacerVariant || 'spacer';
+      // A label needs room for its text; a divider is a thin rule.
       const initialSettings = {
         variant,
         colSpan: 'full',
-        heightPx: 40,
-        headingAlign: 'center',
+        heightPx: variant === 'label' ? 56 : 40,
+        headingAlign: variant === 'label' ? 'left' : 'center',
       };
       commitSingleCard(cardId, initialSettings);
       return;

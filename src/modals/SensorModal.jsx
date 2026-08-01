@@ -8,6 +8,7 @@ import { formatRelativeTime } from '../utils';
 import { getIconComponent } from '../icons';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
+import CustomRowsPanel, { useStatusRows } from '../components/ui/CustomRowsPanel';
 import ModernDropdown from '../components/ui/ModernDropdown';
 import {
   convertValueByKind,
@@ -60,6 +61,8 @@ export default function SensorModal({
   haUrl,
   haToken,
   callService,
+  entities,
+  settings,
   t = (key) => key,
 }) {
   const { unitsMode } = useConfig();
@@ -97,6 +100,8 @@ export default function SensorModal({
     }
     return null;
   };
+
+  const statusRows = useStatusRows(settings?.customRows, entities, t);
 
   const attrs = entity?.attributes || {};
   const state = entity?.state;
@@ -713,6 +718,35 @@ export default function SensorModal({
                       </span>
                       <span className="font-mono text-sm leading-snug font-medium break-words text-[var(--text-primary)] opacity-80">
                         {String(value)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Card-defined rows: locks, scenes, extra status lines */}
+            <CustomRowsPanel
+              rows={settings?.customRows}
+              entities={entities}
+              callService={callService}
+              translate={t}
+              className="mt-8"
+            />
+
+            {statusRows.length > 0 && (
+              <div className="mt-8">
+                <h3 className="mb-4 text-xs font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase">
+                  {t('cover.info')}
+                </h3>
+                <div className="space-y-2">
+                  {statusRows.map((row) => (
+                    <div key={row.id} className="flex items-center justify-between gap-3">
+                      <span className="truncate text-xs text-[var(--text-secondary)] opacity-70">
+                        {row.label}
+                      </span>
+                      <span className="shrink-0 text-xs font-bold text-[var(--text-primary)]">
+                        {row.value}
                       </span>
                     </div>
                   ))}

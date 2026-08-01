@@ -2,13 +2,10 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ArrowUpDown, ChevronUp, ChevronDown, X } from '../icons';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import { getIconComponent } from '../icons';
+import CustomRowsPanel, { useStatusRows } from '../components/ui/CustomRowsPanel';
 import {
   DEFAULT_POSITION_PRESETS,
   DEFAULT_TILT_PRESETS,
-  getActionServiceCall,
-  getRenderableRows,
-  getToggleServiceCall,
-  isToggleRowActive,
   normalizePresets,
   resolveShowTilt,
 } from './editCard/coverRowTypes';
@@ -195,42 +192,6 @@ const ControlButton = ({ onClick, disabled, label, active, children }) => (
     {children}
   </button>
 );
-
-/* -- User-defined row (toggle) --------------------------------------- */
-const CustomToggleRow = ({ label, entity, entityId, onToggle, translate }) => {
-  const rowState = entity?.state;
-  const rowUnavailable = rowState === 'unavailable' || rowState === 'unknown' || !rowState;
-  const isActive = !rowUnavailable && isToggleRowActive(entityId, rowState);
-
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-xl bg-[var(--glass-bg)] px-3 py-2.5">
-      <div className="min-w-0">
-        <span className="block truncate text-xs font-bold text-[var(--text-primary)]">{label}</span>
-        <span className="block text-[10px] tracking-wider text-[var(--text-muted)] uppercase">
-          {rowUnavailable
-            ? translate('status.unavailable')
-            : isActive
-              ? translate('status.on')
-              : translate('status.off')}
-        </span>
-      </div>
-      <button
-        onClick={() => !rowUnavailable && onToggle(isActive)}
-        disabled={rowUnavailable}
-        role="switch"
-        aria-checked={isActive}
-        aria-label={label}
-        className="relative h-6 w-12 flex-shrink-0 rounded-full bg-[var(--glass-bg-hover)] transition-colors disabled:opacity-40"
-        style={isActive ? { backgroundColor: 'rgba(52,211,153,0.25)' } : undefined}
-      >
-        <div
-          className={`absolute top-1 h-4 w-4 rounded-full transition-all ${isActive ? 'left-7' : 'left-1'}`}
-          style={{ backgroundColor: isActive ? '#34d399' : 'var(--text-primary)' }}
-        />
-      </button>
-    </div>
-  );
-};
 
 export default function CoverModal({
   show,
@@ -423,63 +384,12 @@ export default function CoverModal({
     },
     [isUnavailable, supportsTiltButtons, handleCoverCommand, localTilt, handleSetTilt]
   );
-
-  // User-defined rows configured in the card editor. They may point at any
-  // entity, so everything is filtered down to rows whose entity actually
-  // exists in the current state map.
+  // User-defined rows configured in the card editor. Toggles and actions are
+  // rendered by CustomRowsPanel; the status rows join the info block below.
   const allEntities = entities || EMPTY_ENTITIES;
   const customRows = settings?.customRows;
-  const toggleRows = useMemo(
-    () => getRenderableRows(customRows, allEntities, 'toggle'),
-    [customRows, allEntities]
-  );
-  const statusRows = useMemo(
-    () => getRenderableRows(customRows, allEntities, 'status'),
-    [customRows, allEntities]
-  );
-  const actionRows = useMemo(
-    () => getRenderableRows(customRows, allEntities, 'action'),
-    [customRows, allEntities]
-  );
+  const statusRows = useStatusRows(customRows, allEntities, translate);
 
-  const rowLabel = useCallback(
-    (row) =>
-      row.label?.trim() || allEntities[row.entityId]?.attributes?.friendly_name || row.entityId,
-    [allEntities]
-  );
-
-  const handleToggleRow = useCallback(
-    (rowEntityId, isActive) => {
-      const { domain, service } = getToggleServiceCall(rowEntityId, isActive);
-      callService(domain, service, { entity_id: rowEntityId });
-    },
-    [callService]
-  );
-
-  const handleActionRow = useCallback(
-    (rowEntityId) => {
-      const { domain, service } = getActionServiceCall(rowEntityId);
-      callService(domain, service, { entity_id: rowEntityId });
-    },
-    [callService]
-  );
-
-  const formatRowState = useCallback(
-    (rowEntityId) => {
-      const rowEntity = allEntities[rowEntityId];
-      const rowState = rowEntity?.state;
-      if (!rowState || rowState === 'unavailable' || rowState === 'unknown') {
-        return translate('status.unavailable');
-      }
-      if (rowState === 'on') return translate('status.on');
-      if (rowState === 'off') return translate('status.off');
-      const unit = rowEntity?.attributes?.unit_of_measurement;
-      return unit ? `${rowState} ${unit}` : rowState;
-    },
-    [allEntities, translate]
-  );
-
-  // Presets are configurable per card; 0 and 100 keep their named labels.
   const presets = useMemo(
     () =>
       normalizePresets(settings?.positionPresets, DEFAULT_POSITION_PRESETS).map((value) => ({
@@ -791,46 +701,14 @@ export default function CoverModal({
                 </div>
               )}
 
-              {/* User-defined toggles */}
-              {toggleRows.length > 0 && (
-                <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
-                  <h3 className="mb-2 pl-1 text-xs font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase md:mb-4">
-                    {translate('cover.controls')}
-                  </h3>
-                  <div className="space-y-2">
-                    {toggleRows.map((row) => (
-                      <CustomToggleRow
-                        key={row.id}
-                        label={rowLabel(row)}
-                        entity={allEntities[row.entityId]}
-                        entityId={row.entityId}
-                        onToggle={(isActive) => handleToggleRow(row.entityId, isActive)}
-                        translate={translate}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* User-defined actions (scenes, scripts, buttons) */}
-              {actionRows.length > 0 && (
-                <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
-                  <h3 className="mb-2 pl-1 text-xs font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase md:mb-4">
-                    {translate('cover.actions')}
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {actionRows.map((row) => (
-                      <button
-                        key={row.id}
-                        onClick={() => handleActionRow(row.entityId)}
-                        className="rounded-xl border border-transparent bg-[var(--glass-bg)] px-3 py-2.5 text-center text-[11px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-all duration-200 hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
-                      >
-                        {rowLabel(row)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Card-defined rows: locks, scenes, extra status lines */}
+              <CustomRowsPanel
+                rows={customRows}
+                entities={allEntities}
+                callService={callService}
+                translate={translate}
+                className="border-t border-[var(--glass-border)] pt-4 md:pt-6"
+              />
 
               {/* Entity Info */}
               <div className="border-t border-[var(--glass-border)] pt-4 md:pt-6">
@@ -877,10 +755,10 @@ export default function CoverModal({
                   {statusRows.map((row) => (
                     <div key={row.id} className="flex items-center justify-between gap-3 px-1">
                       <span className="truncate text-xs text-[var(--text-secondary)] opacity-70">
-                        {rowLabel(row)}
+                        {row.label}
                       </span>
                       <span className="shrink-0 text-xs font-bold text-[var(--text-primary)]">
-                        {formatRowState(row.entityId)}
+                        {row.value}
                       </span>
                     </div>
                   ))}

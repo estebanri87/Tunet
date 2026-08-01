@@ -71,9 +71,8 @@ export default function WeatherGraph({
   currentTemp,
   historyHours = 12,
   colorLimits = [0, 10, 20, 28],
-  secondaryHistory,
-  secondaryCurrentTemp,
-  secondaryColor = '#38bdf8',
+  /** Extra curves: [{ id, history, currentTemp, color }] */
+  extraSeries = [],
 }) {
   const gradientIdBase = useId().replace(/:/g, '');
   const width = 800;
@@ -87,10 +86,17 @@ export default function WeatherGraph({
     [history, currentTemp, historyHours]
   );
 
-  // Optional second curve, e.g. an indoor temperature next to the outdoor one.
-  const secondaryData = useMemo(
-    () => buildSeries(secondaryHistory, secondaryCurrentTemp, historyHours),
-    [secondaryHistory, secondaryCurrentTemp, historyHours]
+  // Optional further curves, e.g. an indoor temperature next to the outdoor one.
+  const extraData = useMemo(
+    () =>
+      (Array.isArray(extraSeries) ? extraSeries : [])
+        .map((series) => ({
+          id: series.id,
+          color: series.color || '#38bdf8',
+          points: buildSeries(series.history, series.currentTemp, historyHours),
+        }))
+        .filter((series) => series.points.length > 1),
+    [extraSeries, historyHours]
   );
 
   // Ensure we always have data to plot, even if just dummy data to show the grid
@@ -104,9 +110,11 @@ export default function WeatherGraph({
           ]
         : data;
 
-  // Both curves share one scale, so they stay comparable and the second one
-  // is not clipped when it runs outside the first one's range.
-  const scaleTemps = [...plotData, ...secondaryData].map((d) => d.temp);
+  // All curves share one scale, so they stay comparable and none is clipped
+  // when it runs outside the main curve's range.
+  const scaleTemps = [...plotData, ...extraData.flatMap((series) => series.points)].map(
+    (d) => d.temp
+  );
   const minTemp = Math.min(...scaleTemps);
   const maxTemp = Math.max(...scaleTemps);
 
@@ -132,8 +140,10 @@ export default function WeatherGraph({
   const points = plotData.map((p) => [getX(p.time), getY(p.temp)]);
   const smoothPath = getSvgPath(points);
 
-  const secondaryPoints = secondaryData.map((p) => [getX(p.time), getY(p.temp)]);
-  const secondaryPath = secondaryPoints.length > 1 ? getSvgPath(secondaryPoints) : null;
+  const extraPaths = extraData.map((series) => {
+    const seriesPoints = series.points.map((p) => [getX(p.time), getY(p.temp)]);
+    return { ...series, seriesPoints, path: getSvgPath(seriesPoints) };
+  });
 
   // Generate fill area
   // Extend way below height to cover rounded corners fully
@@ -238,28 +248,28 @@ export default function WeatherGraph({
           opacity="0.95"
         />
 
-        {/* Second curve: plain colour, thinner, no fill, so it reads as an overlay */}
-        {secondaryPath && (
-          <>
+        {/* Extra curves: plain colour, thinner, no fill, so they read as overlays */}
+        {extraPaths.map((series) => (
+          <g key={series.id}>
             <path
-              d={secondaryPath}
+              d={series.path}
               fill="none"
-              stroke={secondaryColor}
+              stroke={series.color}
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
               opacity="0.9"
             />
             <circle
-              cx={secondaryPoints[secondaryPoints.length - 1][0]}
-              cy={secondaryPoints[secondaryPoints.length - 1][1]}
+              cx={series.seriesPoints[series.seriesPoints.length - 1][0]}
+              cy={series.seriesPoints[series.seriesPoints.length - 1][1]}
               r="5"
               fill="var(--card-bg)"
-              stroke={secondaryColor}
+              stroke={series.color}
               strokeWidth="3"
             />
-          </>
-        )}
+          </g>
+        ))}
 
         {/* Dot for current temperature */}
         {!isNaN(currentTemp) && (

@@ -58,7 +58,18 @@ export function useEditModalProps({
       isEditLock ||
       isEditFan;
     const isEditSensor = !!editSettings?.type && editSettings.type === 'sensor';
+    // Popups that can carry user-defined rows (locks, scenes, status lines)
+    // without needing a tile of their own. Covers have theirs in their own
+    // settings section.
+    const canEditCustomRows =
+      !!editId &&
+      (isEditLight ||
+        editId.startsWith('switch.') ||
+        editId.startsWith('input_boolean.') ||
+        editId.startsWith('binary_sensor.') ||
+        editId.startsWith('sensor.'));
     const isEditWeatherTemp = !!editId && editId.startsWith('weather_temp_');
+    const isEditStatusCard = !!editId && editId.startsWith('status_card_');
 
     const canEditName =
       !!editId &&
@@ -117,6 +128,8 @@ export function useEditModalProps({
       isEditFan,
       isEditAlarm,
       isEditCover,
+      canEditCustomRows,
+      isEditStatusCard,
       editSettingsKey,
       editSettings,
     };

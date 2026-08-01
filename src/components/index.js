@@ -18,6 +18,7 @@ export { default as PersonStatus } from './cards/PersonStatus';
 export { default as RoomCard } from './cards/RoomCard';
 export { default as SensorCard } from './cards/SensorCard';
 export { default as SpacerCard } from './cards/SpacerCard';
+export { default as StatusCard } from './cards/StatusCard';
 export { default as StatusPill } from './cards/StatusPill';
 export { default as TodoCard } from './cards/TodoCard';
 export { default as VacuumCard } from './cards/VacuumCard';

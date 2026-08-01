@@ -164,6 +164,9 @@ export function ModalEntitySlice({ core, modals, cardConfig, entityHelpers, reso
             optimisticLightBrightness={optimisticLightBrightness}
             setOptimisticLightBrightness={setOptimisticLightBrightness}
             customIcons={customIcons}
+            settings={
+              cardSettings[getCardSettingsKey(showLightModal)] || cardSettings[showLightModal] || {}
+            }
             t={t}
           />
         </ModalSuspense>
@@ -464,6 +467,12 @@ export function ModalEntitySlice({ core, modals, cardConfig, entityHelpers, reso
               config.authMethod === 'oauth' ? authRef?.current?.accessToken || '' : config.token
             }
             callService={callService}
+            entities={entities}
+            settings={
+              cardSettings[getCardSettingsKey(showSensorInfoModal)] ||
+              cardSettings[showSensorInfoModal] ||
+              {}
+            }
             t={t}
           />
         </ModalSuspense>

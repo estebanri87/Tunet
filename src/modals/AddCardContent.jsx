@@ -16,6 +16,7 @@ import {
   ListChecks,
   Lock,
   Minus,
+  AlertTriangle,
   Music,
   Speaker,
   Sprout,
@@ -122,12 +123,18 @@ function RoomSection({
 
   return (
     <div className="space-y-6">
-      <p className="ml-4 text-xs font-bold text-[var(--text-muted)] uppercase">{t('addCard.selectArea')}</p>
+      <p className="ml-4 text-xs font-bold text-[var(--text-muted)] uppercase">
+        {t('addCard.selectArea')}
+      </p>
       {loading && (
-        <p className="py-4 text-center text-sm text-[var(--text-muted)]">{t('addCard.loadingAreas')}</p>
+        <p className="py-4 text-center text-sm text-[var(--text-muted)]">
+          {t('addCard.loadingAreas')}
+        </p>
       )}
       {!loading && filteredAreas.length === 0 && (
-        <p className="py-4 text-center text-sm text-[var(--text-muted)] italic">{t('addCard.noAreas')}</p>
+        <p className="py-4 text-center text-sm text-[var(--text-muted)] italic">
+          {t('addCard.noAreas')}
+        </p>
       )}
       <div className="space-y-3">
         {filteredAreas.map((area) => {
@@ -243,7 +250,10 @@ function AddCardContent({
   const entityIds = useMemo(() => Object.keys(entities), [entities]);
   const selectedEntitiesSet = useMemo(() => new Set(selectedEntities), [selectedEntities]);
 
-  const getEntityName = useCallback((id) => entities[id]?.attributes?.friendly_name || id, [entities]);
+  const getEntityName = useCallback(
+    (id) => entities[id]?.attributes?.friendly_name || id,
+    [entities]
+  );
 
   const calendarOptionsSnapshot = useMemo(() => {
     if (addCardType !== 'calendar') return [];
@@ -348,7 +358,8 @@ function AddCardContent({
 
   const filteredGenericEntityIds = useMemo(() => {
     return entityIds.filter((id) => {
-      if (addCardTargetPage === 'header') return id.startsWith('person.') && !excludedHeader.has(id);
+      if (addCardTargetPage === 'header')
+        return id.startsWith('person.') && !excludedHeader.has(id);
       if (addCardTargetPage === 'settings') return !excludedSettings.has(id);
       if (addCardType === 'lock') return id.startsWith('lock.') && !excludedOnPage.has(id);
       if (addCardType === 'vacuum') return id.startsWith('vacuum.') && !excludedOnPage.has(id);
@@ -358,12 +369,14 @@ function AddCardContent({
       if (addCardType === 'cover') return id.startsWith('cover.');
       if (addCardType === 'climate') return id.startsWith('climate.');
       if (addCardType === 'alarm') return id.startsWith('alarm_control_panel.');
-      if (addCardType === 'androidtv') return id.startsWith('media_player.') || id.startsWith('remote.');
+      if (addCardType === 'androidtv')
+        return id.startsWith('media_player.') || id.startsWith('remote.');
       if (addCardType === 'cost') return id.startsWith('sensor.') || id.startsWith('input_number.');
       if (addCardType === 'energyflow')
         return id.startsWith('sensor.') || id.startsWith('input_number.');
       if (addCardType === 'media') return id.startsWith('media_player.');
-      if (addCardType === 'sonos') return id.startsWith('media_player.') && isSonosMediaEntity(entities[id]);
+      if (addCardType === 'sonos')
+        return id.startsWith('media_player.') && isSonosMediaEntity(entities[id]);
       if (addCardType === 'sensor') {
         return (
           (id.startsWith('sensor.') ||
@@ -400,7 +413,9 @@ function AddCardContent({
       .filter((id) => {
         if (!lowerSearchTerm) return true;
         const name = getEntityName(id);
-        return id.toLowerCase().includes(lowerSearchTerm) || name.toLowerCase().includes(lowerSearchTerm);
+        return (
+          id.toLowerCase().includes(lowerSearchTerm) || name.toLowerCase().includes(lowerSearchTerm)
+        );
       })
       .sort((a, b) => getEntityName(a).localeCompare(getEntityName(b)));
 
@@ -409,40 +424,55 @@ function AddCardContent({
 
   const visibleWeatherOptions = useMemo(
     () =>
-      weatherOptionsSnapshot.filter(({ id, name }) =>
-        !lowerSearchTerm || id.toLowerCase().includes(lowerSearchTerm) || name.toLowerCase().includes(lowerSearchTerm)
+      weatherOptionsSnapshot.filter(
+        ({ id, name }) =>
+          !lowerSearchTerm ||
+          id.toLowerCase().includes(lowerSearchTerm) ||
+          name.toLowerCase().includes(lowerSearchTerm)
       ),
     [weatherOptionsSnapshot, lowerSearchTerm]
   );
 
   const visibleTempOptions = useMemo(
     () =>
-      tempOptionsSnapshot.filter(({ id, name }) =>
-        !lowerSearchTerm || id.toLowerCase().includes(lowerSearchTerm) || name.toLowerCase().includes(lowerSearchTerm)
+      tempOptionsSnapshot.filter(
+        ({ id, name }) =>
+          !lowerSearchTerm ||
+          id.toLowerCase().includes(lowerSearchTerm) ||
+          name.toLowerCase().includes(lowerSearchTerm)
       ),
     [tempOptionsSnapshot, lowerSearchTerm]
   );
 
   const visibleAndroidTVMediaOptions = useMemo(
     () =>
-      androidTVMediaOptionsSnapshot.filter(({ id, name }) =>
-        !lowerSearchTerm || id.toLowerCase().includes(lowerSearchTerm) || name.toLowerCase().includes(lowerSearchTerm)
+      androidTVMediaOptionsSnapshot.filter(
+        ({ id, name }) =>
+          !lowerSearchTerm ||
+          id.toLowerCase().includes(lowerSearchTerm) ||
+          name.toLowerCase().includes(lowerSearchTerm)
       ),
     [androidTVMediaOptionsSnapshot, lowerSearchTerm]
   );
 
   const visibleAndroidTVRemoteOptions = useMemo(
     () =>
-      androidTVRemoteOptionsSnapshot.filter(({ id, name }) =>
-        !lowerSearchTerm || id.toLowerCase().includes(lowerSearchTerm) || name.toLowerCase().includes(lowerSearchTerm)
+      androidTVRemoteOptionsSnapshot.filter(
+        ({ id, name }) =>
+          !lowerSearchTerm ||
+          id.toLowerCase().includes(lowerSearchTerm) ||
+          name.toLowerCase().includes(lowerSearchTerm)
       ),
     [androidTVRemoteOptionsSnapshot, lowerSearchTerm]
   );
 
   const visibleNordpoolOptions = useMemo(
     () =>
-      nordpoolOptionsSnapshot.filter(({ id, name }) =>
-        !lowerSearchTerm || id.toLowerCase().includes(lowerSearchTerm) || name.toLowerCase().includes(lowerSearchTerm)
+      nordpoolOptionsSnapshot.filter(
+        ({ id, name }) =>
+          !lowerSearchTerm ||
+          id.toLowerCase().includes(lowerSearchTerm) ||
+          name.toLowerCase().includes(lowerSearchTerm)
       ),
     [nordpoolOptionsSnapshot, lowerSearchTerm]
   );
@@ -687,6 +717,7 @@ function AddCardContent({
           {[
             { key: 'spacer', label: t('addCard.spacer.spacer') || 'Spacer' },
             { key: 'divider', label: t('addCard.spacer.divider') || 'Divider' },
+            { key: 'label', label: t('addCard.spacer.label') },
           ].map((variant) => (
             <button
               key={variant.key}
@@ -865,7 +896,8 @@ function AddCardContent({
                   key={key}
                   className={`rounded-full border px-3 py-1 ${id ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]' : 'border-[var(--glass-border)] text-[var(--text-muted)]'}`}
                 >
-                  {label}: {id ? entities[id]?.attributes?.friendly_name || id : t('common.missing')}
+                  {label}:{' '}
+                  {id ? entities[id]?.attributes?.friendly_name || id : t('common.missing')}
                 </span>
               ))}
             </div>
@@ -998,6 +1030,7 @@ function AddCardContent({
     'climate',
     'cover',
     'alarm',
+    'status',
     'media',
     'sonos',
     'toggle',
@@ -1021,298 +1054,311 @@ function AddCardContent({
     >
       {(resolvedTitleId) => (
         <>
-        <button
-          onClick={onClose}
-          className="modal-close absolute top-4 right-4 md:top-6 md:right-6"
-          aria-label={t('common.close') || 'Close'}
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <h3
-          id={resolvedTitleId}
-          className="mb-5 text-center text-xl font-light tracking-widest text-[var(--text-primary)] uppercase italic"
-        >
-          {t('modal.addCard.title')}
-        </h3>
-
-        <div className="custom-scrollbar flex-1 overflow-y-auto pr-2">
-          {addCardTargetPage !== 'header' && (
-            <div className="relative mb-4">
-              <Search className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
-              <input
-                type="text"
-                data-autofocus
-                placeholder={t('addCard.search')}
-                className="w-full rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] py-2.5 pr-4 pl-11 text-sm text-[var(--text-primary)] transition-colors outline-none focus:border-[var(--glass-border)]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          )}
-
-          {addCardTargetPage !== 'header' && addCardTargetPage !== 'settings' && (
-            <div className="mb-5">
-              <p className="mb-2 ml-4 text-xs font-bold text-[var(--text-muted)] uppercase">
-                {t('addCard.cardType')}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <TypeButton
-                  type="sensor"
-                  icon={Sparkles}
-                  label={t('addCard.type.sensor')}
-                  isActive={addCardType === 'sensor'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="light"
-                  icon={Lightbulb}
-                  label={t('addCard.type.light')}
-                  isActive={addCardType === 'light'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="lock"
-                  icon={Lock}
-                  label={getLabel('addCard.type.lock', 'Lock')}
-                  isActive={addCardType === 'lock'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="vacuum"
-                  icon={Bot}
-                  label={t('addCard.type.vacuum')}
-                  isActive={addCardType === 'vacuum'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="mower"
-                  icon={Sprout}
-                  label={t('addCard.type.mower')}
-                  isActive={addCardType === 'mower'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="fan"
-                  icon={Fan}
-                  label={t('addCard.type.fan')}
-                  isActive={addCardType === 'fan'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="camera"
-                  icon={Camera}
-                  label={`${getLabel('addCard.type.camera', 'Camera')}${betaSuffix}`}
-                  isActive={addCardType === 'camera'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="climate"
-                  icon={Thermometer}
-                  label={t('addCard.type.climate')}
-                  isActive={addCardType === 'climate'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="cover"
-                  icon={ArrowUpDown}
-                  label={getLabel('addCard.type.cover', 'Cover')}
-                  isActive={addCardType === 'cover'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="alarm"
-                  icon={Shield}
-                  label={getLabel('addCard.type.alarm', 'Alarm')}
-                  isActive={addCardType === 'alarm'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="car"
-                  icon={Car}
-                  label={t('addCard.type.car')}
-                  isActive={addCardType === 'car'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="androidtv"
-                  icon={Gamepad2}
-                  label={t('addCard.type.androidtv')}
-                  isActive={addCardType === 'androidtv'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="cost"
-                  icon={Coins}
-                  label={t('addCard.type.cost')}
-                  isActive={addCardType === 'cost'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="energyflow"
-                  icon={ArrowLeftRight}
-                  label={t('addCard.type.energyflow')}
-                  isActive={addCardType === 'energyflow'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="media"
-                  icon={Music}
-                  label={t('addCard.type.media')}
-                  isActive={addCardType === 'media'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="sonos"
-                  icon={Speaker}
-                  label={t('addCard.type.sonos')}
-                  isActive={addCardType === 'sonos'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="weather"
-                  icon={CloudSun}
-                  label={t('addCard.type.weather')}
-                  isActive={addCardType === 'weather'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="calendar"
-                  icon={Calendar}
-                  label={getLabel('addCard.type.calendar', 'Calendar')}
-                  isActive={addCardType === 'calendar'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="todo"
-                  icon={ListChecks}
-                  label={getLabel('addCard.type.todo', 'Todo')}
-                  isActive={addCardType === 'todo'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="nordpool"
-                  icon={Zap}
-                  label={t('addCard.type.nordpool')}
-                  isActive={addCardType === 'nordpool'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="room"
-                  icon={Home}
-                  label={getLabel('addCard.type.room', 'Room')}
-                  isActive={addCardType === 'room'}
-                  onSelect={setAddCardType}
-                />
-                <TypeButton
-                  type="spacer"
-                  icon={Minus}
-                  label={getLabel('addCard.type.spacer', 'Spacer')}
-                  isActive={addCardType === 'spacer'}
-                  onSelect={setAddCardType}
-                />
-              </div>
-              {addCardType === 'sensor' && (
-                <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
-                  {t('addCard.sensorIncludes') !== 'addCard.sensorIncludes'
-                    ? t('addCard.sensorIncludes')
-                    : 'Includes binary sensors, sensors, switches, automations, scripts and more.'}
-                </p>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-6">
-            {addCardType === 'weather' ? (
-              renderWeatherSection()
-            ) : addCardType === 'androidtv' ? (
-              renderAndroidTVSection()
-            ) : addCardType === 'calendar' ? (
-              renderCalendarSection()
-            ) : addCardType === 'todo' ? (
-              renderSimpleAddSection(
-                ListChecks,
-                t('addCard.todoDescription') ||
-                  'Add a to-do card. You can select which list to use after adding.',
-                t('addCard.add')
-              )
-            ) : addCardType === 'spacer' ? (
-              renderSpacerSection()
-            ) : addCardType === 'car' ? (
-              renderSimpleAddSection(Car, t('addCard.carDescription'), t('addCard.carCard'))
-            ) : addCardType === 'nordpool' ? (
-              renderNordpoolSection()
-            ) : addCardType === 'room' ? (
-              <RoomSection
-                conn={conn}
-                searchTerm={searchTerm}
-                t={t}
-                selectedAreas={selectedRoomAreas}
-                setSelectedAreas={setSelectedRoomAreas}
-                selectedAreaEntitiesById={selectedRoomEntitiesById}
-                setSelectedAreaEntitiesById={setSelectedRoomEntitiesById}
-              />
-            ) : (
-              renderGenericEntityList()
-            )}
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-col gap-3 border-t border-[var(--glass-border)] pt-6">
-          {usesMultiSelectWithCalendar && selectedEntities.length > 0 && (
-            <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
-              <Plus className="h-5 w-5" />{' '}
-              {addCardType === 'media'
-                ? `${t('addCard.add')} ${selectedEntities.length} ${t('addCard.players')}`
-                : addCardType === 'sonos'
-                  ? `${t('addCard.add')} ${selectedEntities.length} ${t('addCard.players')}`
-                : addCardType === 'calendar'
-                  ? `${t('addCard.add')} ${t('addCard.type.calendar') || 'Calendar'} ${t('addCard.cards')}`
-                  : addCardType === 'camera'
-                    ? `${t('addCard.add')} ${selectedEntities.length} ${t('addCard.cameraCard') || 'camera cards'}`
-                    : `${t('addCard.add')} ${selectedEntities.length} ${t('addCard.cards')}`}
-            </button>
-          )}
-          {addCardType === 'cost' && selectedCostTodayId && selectedCostMonthId && (
-            <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
-              <Plus className="h-5 w-5" /> {t('addCard.costCard')}
-            </button>
-          )}
-          {addCardType === 'energyflow' && selectedEnergyGridId && selectedEnergyHomeId && (
-            <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
-              <Plus className="h-5 w-5" /> {t('addCard.energyFlowCard')}
-            </button>
-          )}
-          {addCardType === 'weather' && selectedWeatherId && (
-            <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
-              <Plus className="h-5 w-5" /> {t('addCard.weatherCard')}
-            </button>
-          )}
-          {addCardType === 'nordpool' && selectedNordpoolId && (
-            <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
-              <Plus className="h-5 w-5" /> {t('addCard.nordpoolCard')}
-            </button>
-          )}
-          {addCardType === 'androidtv' && selectedAndroidTVMediaId && (
-            <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
-              <Plus className="h-5 w-5" /> {t('addCard.add')}
-            </button>
-          )}
-          {addCardType === 'room' && selectedRoomAreas.length > 0 && (
-            <button
-              onClick={() => onAddRoom && onAddRoom(selectedRoomAreas, selectedRoomEntitiesById)}
-              className={PRIMARY_ADD_BUTTON}
-            >
-              <Plus className="h-5 w-5" />{' '}
-              {`${t('addCard.add')} ${selectedRoomAreas.length} ${t('addCard.cards')}`}
-            </button>
-          )}
           <button
             onClick={onClose}
-            className="popup-surface popup-surface-hover w-full rounded-2xl py-3 font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors"
+            className="modal-close absolute top-4 right-4 md:top-6 md:right-6"
+            aria-label={t('common.close') || 'Close'}
           >
-            OK
+            <X className="h-4 w-4" />
           </button>
-        </div>
+          <h3
+            id={resolvedTitleId}
+            className="mb-5 text-center text-xl font-light tracking-widest text-[var(--text-primary)] uppercase italic"
+          >
+            {t('modal.addCard.title')}
+          </h3>
+
+          <div className="custom-scrollbar flex-1 overflow-y-auto pr-2">
+            {addCardTargetPage !== 'header' && (
+              <div className="relative mb-4">
+                <Search className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+                <input
+                  type="text"
+                  data-autofocus
+                  placeholder={t('addCard.search')}
+                  className="w-full rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] py-2.5 pr-4 pl-11 text-sm text-[var(--text-primary)] transition-colors outline-none focus:border-[var(--glass-border)]"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            )}
+
+            {addCardTargetPage !== 'header' && addCardTargetPage !== 'settings' && (
+              <div className="mb-5">
+                <p className="mb-2 ml-4 text-xs font-bold text-[var(--text-muted)] uppercase">
+                  {t('addCard.cardType')}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <TypeButton
+                    type="sensor"
+                    icon={Sparkles}
+                    label={t('addCard.type.sensor')}
+                    isActive={addCardType === 'sensor'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="light"
+                    icon={Lightbulb}
+                    label={t('addCard.type.light')}
+                    isActive={addCardType === 'light'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="lock"
+                    icon={Lock}
+                    label={getLabel('addCard.type.lock', 'Lock')}
+                    isActive={addCardType === 'lock'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="vacuum"
+                    icon={Bot}
+                    label={t('addCard.type.vacuum')}
+                    isActive={addCardType === 'vacuum'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="mower"
+                    icon={Sprout}
+                    label={t('addCard.type.mower')}
+                    isActive={addCardType === 'mower'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="fan"
+                    icon={Fan}
+                    label={t('addCard.type.fan')}
+                    isActive={addCardType === 'fan'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="camera"
+                    icon={Camera}
+                    label={`${getLabel('addCard.type.camera', 'Camera')}${betaSuffix}`}
+                    isActive={addCardType === 'camera'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="climate"
+                    icon={Thermometer}
+                    label={t('addCard.type.climate')}
+                    isActive={addCardType === 'climate'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="cover"
+                    icon={ArrowUpDown}
+                    label={getLabel('addCard.type.cover', 'Cover')}
+                    isActive={addCardType === 'cover'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="alarm"
+                    icon={Shield}
+                    label={getLabel('addCard.type.alarm', 'Alarm')}
+                    isActive={addCardType === 'alarm'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="car"
+                    icon={Car}
+                    label={t('addCard.type.car')}
+                    isActive={addCardType === 'car'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="androidtv"
+                    icon={Gamepad2}
+                    label={t('addCard.type.androidtv')}
+                    isActive={addCardType === 'androidtv'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="cost"
+                    icon={Coins}
+                    label={t('addCard.type.cost')}
+                    isActive={addCardType === 'cost'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="energyflow"
+                    icon={ArrowLeftRight}
+                    label={t('addCard.type.energyflow')}
+                    isActive={addCardType === 'energyflow'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="media"
+                    icon={Music}
+                    label={t('addCard.type.media')}
+                    isActive={addCardType === 'media'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="sonos"
+                    icon={Speaker}
+                    label={t('addCard.type.sonos')}
+                    isActive={addCardType === 'sonos'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="weather"
+                    icon={CloudSun}
+                    label={t('addCard.type.weather')}
+                    isActive={addCardType === 'weather'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="calendar"
+                    icon={Calendar}
+                    label={getLabel('addCard.type.calendar', 'Calendar')}
+                    isActive={addCardType === 'calendar'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="todo"
+                    icon={ListChecks}
+                    label={getLabel('addCard.type.todo', 'Todo')}
+                    isActive={addCardType === 'todo'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="nordpool"
+                    icon={Zap}
+                    label={t('addCard.type.nordpool')}
+                    isActive={addCardType === 'nordpool'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="room"
+                    icon={Home}
+                    label={getLabel('addCard.type.room', 'Room')}
+                    isActive={addCardType === 'room'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="spacer"
+                    icon={Minus}
+                    label={getLabel('addCard.type.spacer', 'Spacer')}
+                    isActive={addCardType === 'spacer'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="status"
+                    icon={AlertTriangle}
+                    label={getLabel('addCard.type.status', 'Status')}
+                    isActive={addCardType === 'status'}
+                    onSelect={setAddCardType}
+                  />
+                </div>
+                {addCardType === 'sensor' && (
+                  <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
+                    {t('addCard.sensorIncludes') !== 'addCard.sensorIncludes'
+                      ? t('addCard.sensorIncludes')
+                      : 'Includes binary sensors, sensors, switches, automations, scripts and more.'}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-6">
+              {addCardType === 'weather' ? (
+                renderWeatherSection()
+              ) : addCardType === 'androidtv' ? (
+                renderAndroidTVSection()
+              ) : addCardType === 'calendar' ? (
+                renderCalendarSection()
+              ) : addCardType === 'todo' ? (
+                renderSimpleAddSection(
+                  ListChecks,
+                  t('addCard.todoDescription') ||
+                    'Add a to-do card. You can select which list to use after adding.',
+                  t('addCard.add')
+                )
+              ) : addCardType === 'spacer' ? (
+                renderSpacerSection()
+              ) : addCardType === 'status' ? (
+                renderSimpleAddSection(
+                  AlertTriangle,
+                  t('addCard.statusDescription'),
+                  t('addCard.add')
+                )
+              ) : addCardType === 'car' ? (
+                renderSimpleAddSection(Car, t('addCard.carDescription'), t('addCard.carCard'))
+              ) : addCardType === 'nordpool' ? (
+                renderNordpoolSection()
+              ) : addCardType === 'room' ? (
+                <RoomSection
+                  conn={conn}
+                  searchTerm={searchTerm}
+                  t={t}
+                  selectedAreas={selectedRoomAreas}
+                  setSelectedAreas={setSelectedRoomAreas}
+                  selectedAreaEntitiesById={selectedRoomEntitiesById}
+                  setSelectedAreaEntitiesById={setSelectedRoomEntitiesById}
+                />
+              ) : (
+                renderGenericEntityList()
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 border-t border-[var(--glass-border)] pt-6">
+            {usesMultiSelectWithCalendar && selectedEntities.length > 0 && (
+              <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
+                <Plus className="h-5 w-5" />{' '}
+                {addCardType === 'media'
+                  ? `${t('addCard.add')} ${selectedEntities.length} ${t('addCard.players')}`
+                  : addCardType === 'sonos'
+                    ? `${t('addCard.add')} ${selectedEntities.length} ${t('addCard.players')}`
+                    : addCardType === 'calendar'
+                      ? `${t('addCard.add')} ${t('addCard.type.calendar') || 'Calendar'} ${t('addCard.cards')}`
+                      : addCardType === 'camera'
+                        ? `${t('addCard.add')} ${selectedEntities.length} ${t('addCard.cameraCard') || 'camera cards'}`
+                        : `${t('addCard.add')} ${selectedEntities.length} ${t('addCard.cards')}`}
+              </button>
+            )}
+            {addCardType === 'cost' && selectedCostTodayId && selectedCostMonthId && (
+              <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
+                <Plus className="h-5 w-5" /> {t('addCard.costCard')}
+              </button>
+            )}
+            {addCardType === 'energyflow' && selectedEnergyGridId && selectedEnergyHomeId && (
+              <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
+                <Plus className="h-5 w-5" /> {t('addCard.energyFlowCard')}
+              </button>
+            )}
+            {addCardType === 'weather' && selectedWeatherId && (
+              <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
+                <Plus className="h-5 w-5" /> {t('addCard.weatherCard')}
+              </button>
+            )}
+            {addCardType === 'nordpool' && selectedNordpoolId && (
+              <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
+                <Plus className="h-5 w-5" /> {t('addCard.nordpoolCard')}
+              </button>
+            )}
+            {addCardType === 'androidtv' && selectedAndroidTVMediaId && (
+              <button onClick={onAddSelected} className={PRIMARY_ADD_BUTTON}>
+                <Plus className="h-5 w-5" /> {t('addCard.add')}
+              </button>
+            )}
+            {addCardType === 'room' && selectedRoomAreas.length > 0 && (
+              <button
+                onClick={() => onAddRoom && onAddRoom(selectedRoomAreas, selectedRoomEntitiesById)}
+                className={PRIMARY_ADD_BUTTON}
+              >
+                <Plus className="h-5 w-5" />{' '}
+                {`${t('addCard.add')} ${selectedRoomAreas.length} ${t('addCard.cards')}`}
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="popup-surface popup-surface-hover w-full rounded-2xl py-3 font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors"
+            >
+              OK
+            </button>
+          </div>
         </>
       )}
     </AccessibleModalShell>
@@ -1341,4 +1387,3 @@ function areAddCardPropsEqual(prev, next) {
 }
 
 export default React.memo(AddCardContent, areAddCardPropsEqual);
-

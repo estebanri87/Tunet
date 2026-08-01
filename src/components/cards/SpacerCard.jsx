@@ -6,6 +6,7 @@ import { memo } from 'react';
  * Variants:
  *   'spacer'  – transparent empty block (visual gap)
  *   'divider' – line separator, horizontal or vertical
+ *   'label'   – heading text alone, to title a group of cards
  *
  * For a vertical divider the heading alignment maps onto the vertical axis:
  * 'left' puts the text at the top, 'right' at the bottom.
@@ -44,6 +45,25 @@ const SpacerCard = ({
       }
     >
       {controls}
+
+      {variant === 'label' && (
+        <div
+          className={`flex h-full w-full items-center px-2 ${
+            headingAlign === 'left'
+              ? 'justify-start'
+              : headingAlign === 'right'
+                ? 'justify-end'
+                : 'justify-center'
+          }`}
+        >
+          <span
+            className="truncate text-sm font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase"
+            style={settings.labelSize ? { fontSize: `${settings.labelSize}px` } : undefined}
+          >
+            {heading}
+          </span>
+        </div>
+      )}
 
       {variant === 'divider' && isVertical && (
         <div className="flex h-full items-center justify-center py-2">
