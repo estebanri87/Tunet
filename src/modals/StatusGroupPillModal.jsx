@@ -138,9 +138,13 @@ export default function StatusGroupPillModal({
                           <p className="truncate text-sm font-bold text-[var(--text-primary)]">
                             {item.label || getEntityName(id, entity)}
                           </p>
-                          <p className="truncate text-xs text-[var(--text-muted)]">
-                            {item.entityId || id}
-                          </p>
+                          {/* An own label already names the thing; the entity
+                              id below would only be noise. */}
+                          {!item.label && (
+                            <p className="truncate text-xs text-[var(--text-muted)]">
+                              {item.entityId || id}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">

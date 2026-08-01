@@ -180,6 +180,9 @@ export function resolveStatusGroupPill(pill, entities, t) {
         .filter((entry) => entry.active)
         .map((entry) => ({
           id: entry.id,
+          // The deciding entity, so a popup can name and act on it rather than
+          // falling back to the internal entry id.
+          entityId: entry.entityId,
           entity: entities[entry.entityId] || { state: entry.stateText, attributes: {} },
           label: entry.label,
           stateText: entry.stateText,
