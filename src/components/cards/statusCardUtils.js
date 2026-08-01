@@ -1,30 +1,56 @@
 /**
  * Model for the status card.
  *
- * Each watched entity is its own entry:
- *   { id, entityId, label, activeStates, invert, activeText, inactiveText, alwaysShow }
+ * An entry stands for one thing in the home — a window, a door, the alarm
+ * panel — and can watch several entities at once:
  *
- * Whether an entry is "active" and what it then reads is decided per entry,
- * because a window, a lock and an alarm panel each report different states and
- * deserve different wording. `alwaysShow` keeps an entry visible in its
- * inactive state too, e.g. to display an alarm panel's status permanently.
+ *   { id, label, inactiveText, alwaysShow,
+ *     sources: [{ id, entityId, activeStates, activeText, invert }] }
+ *
+ * Several sources exist because one window often has separate contacts for
+ * "open" and "tilted". The sources are checked in order and the first active
+ * one provides the wording, so the more specific case belongs further up.
  */
 
 export const MAX_STATUS_ENTITIES = 60;
+export const MAX_STATUS_SOURCES = 4;
 
 const INACTIVE_STATES = new Set(['off', 'closed', 'locked', 'unavailable', 'unknown', 'none', '']);
 
 export const createStatusItemId = () =>
   `st-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
+export const createStatusSource = () => ({ id: createStatusItemId(), entityId: null });
+
+/** Sources of an entry, migrating the single-entity shape used before. */
+export const getItemSources = (item) => {
+  if (Array.isArray(item?.sources) && item.sources.length > 0) {
+    return item.sources.filter((source) => source && typeof source === 'object');
+  }
+  if (item?.entityId) {
+    return [
+      {
+        id: `${item.id || item.entityId}-src`,
+        entityId: item.entityId,
+        activeStates: item.activeStates,
+        activeText: item.activeText,
+        invert: item.invert,
+      },
+    ];
+  }
+  return [createStatusSource()];
+};
+
 /**
- * Entries of the card. Settings written before entries existed stored a plain
- * `entityIds` list plus card-wide options; those are migrated on read so an
- * existing card keeps working.
+ * Entries of the card. Older settings stored a plain `entityIds` list plus
+ * card-wide options; those are migrated on read so existing cards keep working.
+ *
+ * Entries without an entity are kept — the editor needs to show a new, still
+ * empty entry; the card filters them out when rendering.
  */
 export const getStatusItems = (settings) => {
   if (Array.isArray(settings?.items) && settings.items.length > 0) {
-    return settings.items.filter((item) => item && typeof item === 'object' && item.entityId);
+    return settings.items.filter((item) => item && typeof item === 'object');
   }
   const legacyIds = Array.isArray(settings?.entityIds) ? settings.entityIds.filter(Boolean) : [];
   return legacyIds.map((entityId) => ({
@@ -52,31 +78,39 @@ export const isEntityActive = (entity, activeStates) => {
   return !INACTIVE_STATES.has(state);
 };
 
-/** Whether one entry counts as active, honouring its own invert flag. */
-export const isItemActive = (item, entity) => {
-  const active = isEntityActive(entity, parseActiveStates(item?.activeStates));
-  return item?.invert === true ? !active : active;
+/** Whether one source counts as active, honouring its own invert flag. */
+export const isSourceActive = (source, entity) => {
+  if (!entity) return false;
+  const active = isEntityActive(entity, parseActiveStates(source?.activeStates));
+  return source?.invert === true ? !active : active;
 };
 
 /**
- * Entries to render: the active ones plus those marked `alwaysShow`, sorted by
- * name. Each carries the text to display for its current state.
+ * Entries to render: those with an active source plus the ones marked
+ * `alwaysShow`, sorted by name. Each carries the text for its current state.
  */
 export const resolveStatusEntries = (settings, entities) =>
   getStatusItems(settings)
     .map((item) => {
-      const entity = entities?.[item.entityId];
-      if (!entity) return null;
-      const active = isItemActive(item, entity);
-      const ownText = active ? item.activeText : item.inactiveText;
+      const sources = getItemSources(item).filter(
+        (source) => source.entityId && entities?.[source.entityId]
+      );
+      if (sources.length === 0) return null;
+
+      const activeSource = sources.find((source) =>
+        isSourceActive(source, entities[source.entityId])
+      );
+      const primary = entities[sources[0].entityId];
+      const fallbackName = primary?.attributes?.friendly_name || sources[0].entityId;
+
       return {
-        id: item.id || item.entityId,
-        entityId: item.entityId,
-        entity,
-        active,
-        label: item.label?.trim() || entity.attributes?.friendly_name || item.entityId,
+        id: item.id || sources[0].entityId,
+        active: !!activeSource,
+        label: item.label?.trim() || fallbackName,
         // Falls back to the raw state so an unconfigured entry still says something.
-        stateText: ownText?.trim() || entity.state,
+        stateText: activeSource
+          ? activeSource.activeText?.trim() || entities[activeSource.entityId].state
+          : item.inactiveText?.trim() || primary?.state || '',
         alwaysShow: item.alwaysShow === true,
       };
     })

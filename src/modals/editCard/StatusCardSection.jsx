@@ -3,9 +3,12 @@ import { Plus, Trash2 } from 'lucide-react';
 import { SearchableSelect } from './CarMappingsSection';
 import {
   MAX_STATUS_ENTITIES,
+  MAX_STATUS_SOURCES,
   createStatusItemId,
+  createStatusSource,
+  getItemSources,
   getStatusItems,
-  isItemActive,
+  isSourceActive,
 } from '../../components/cards/statusCardUtils';
 
 const MAX_ENTITY_OPTIONS = 150;
@@ -46,10 +49,92 @@ const Toggle = ({ title, hint, checked, onToggle }) => (
   </div>
 );
 
-/** One watched entity with its own rules and wording. */
+/** One sensor of an entry: which entity, when it counts, what it then reads. */
+const SourceEditor = ({ source, index, total, entities, entityOptions, t, onUpdate, onRemove }) => {
+  const entity = source.entityId ? entities[source.entityId] : null;
+  const active = isSourceActive(source, entity);
+
+  return (
+    <div className="space-y-3 rounded-xl bg-[var(--glass-bg)] p-3">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+          {`${t('statusCard.source')} ${index + 1}`}
+        </span>
+        {total > 1 && (
+          <button
+            onClick={onRemove}
+            aria-label={t('statusCard.removeSource')}
+            className="rounded-lg p-1.5 text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
+      <SearchableSelect
+        label={t('statusCard.entity')}
+        value={source.entityId}
+        options={entityOptions}
+        onChange={(value) => onUpdate({ entityId: value })}
+        placeholder={t('dropdown.noneSelected')}
+        entities={entities}
+        t={t}
+        maxOptions={MAX_ENTITY_OPTIONS}
+      />
+
+      {/* The live state, so the exact wording for the field below is visible. */}
+      {entity && (
+        <div className="flex items-center justify-between gap-3 rounded-lg bg-[var(--glass-bg-hover)] px-3 py-2">
+          <span className="text-[10px] tracking-widest text-[var(--text-muted)] uppercase">
+            {t('statusCard.currentState')}
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="font-mono text-xs text-[var(--text-primary)]">{entity.state}</span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase ${active ? 'bg-sky-500/20 text-sky-300' : 'bg-[var(--glass-bg)] text-[var(--text-muted)]'}`}
+            >
+              {active ? t('statusCard.stateActive') : t('statusCard.stateInactive')}
+            </span>
+          </span>
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+            {t('statusCard.activeStates')}
+          </label>
+          <input
+            type="text"
+            defaultValue={source.activeStates || ''}
+            placeholder={entity ? entity.state : 'on, open'}
+            onBlur={(e) => onUpdate({ activeStates: e.target.value.trim() || null })}
+            className="popup-surface mt-1 w-full rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+          />
+        </div>
+        <TextField
+          label={t('statusCard.activeText')}
+          value={source.activeText}
+          placeholder={t('statusCard.activeTextPlaceholder')}
+          onChange={(value) => onUpdate({ activeText: value })}
+        />
+      </div>
+
+      <Toggle
+        title={t('statusCard.invert')}
+        hint={t('statusCard.invertHint')}
+        checked={source.invert === true}
+        onToggle={() => onUpdate({ invert: !(source.invert === true) })}
+      />
+    </div>
+  );
+};
+
+/** One entry: a thing in the home, watched through one or more sensors. */
 const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, onRemove }) => {
-  const entity = item.entityId ? entities[item.entityId] : null;
-  const active = entity ? isItemActive(item, entity) : false;
+  const sources = getItemSources(item);
+
+  const updateSources = (next) => onUpdate({ sources: next, entityId: undefined });
 
   return (
     <div className="popup-surface space-y-3 rounded-2xl p-4">
@@ -66,77 +151,50 @@ const StatusItemEditor = ({ item, index, entities, entityOptions, t, onUpdate, o
         </button>
       </div>
 
-      <SearchableSelect
-        label={t('statusCard.entity')}
-        value={item.entityId}
-        options={entityOptions}
-        onChange={(value) => onUpdate({ entityId: value })}
-        placeholder={t('dropdown.noneSelected')}
-        entities={entities}
-        t={t}
-        maxOptions={MAX_ENTITY_OPTIONS}
-      />
-
-      {/* The live state, so the exact wording for the field below is visible. */}
-      {entity && (
-        <div className="flex items-center justify-between gap-3 rounded-xl bg-[var(--glass-bg)] px-3 py-2">
-          <span className="text-[10px] tracking-widest text-[var(--text-muted)] uppercase">
-            {t('statusCard.currentState')}
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="font-mono text-xs text-[var(--text-primary)]">{entity.state}</span>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase ${active ? 'bg-sky-500/20 text-sky-300' : 'bg-[var(--glass-bg-hover)] text-[var(--text-muted)]'}`}
-            >
-              {active ? t('statusCard.stateActive') : t('statusCard.stateInactive')}
-            </span>
-          </span>
-        </div>
-      )}
-
       <TextField
         label={t('statusCard.itemLabel')}
         value={item.label}
-        placeholder={entity?.attributes?.friendly_name || item.entityId || ''}
+        placeholder={t('statusCard.itemLabelPlaceholder')}
         onChange={(value) => onUpdate({ label: value })}
       />
 
-      <div>
-        <label className="ml-1 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
-          {t('statusCard.activeStates')}
-        </label>
-        <input
-          type="text"
-          defaultValue={item.activeStates || ''}
-          placeholder={entity ? entity.state : 'on, open'}
-          onBlur={(e) => onUpdate({ activeStates: e.target.value.trim() || null })}
-          className="popup-surface mt-1 w-full rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
-        />
-        <p className="mt-1 ml-1 text-[10px] text-[var(--text-muted)] opacity-70">
-          {t('statusCard.activeStatesHint')}
+      {sources.length > 1 && (
+        <p className="ml-1 text-[10px] text-[var(--text-muted)] opacity-70">
+          {t('statusCard.sourceOrderHint')}
         </p>
-      </div>
+      )}
 
-      <div className="flex gap-3">
-        <TextField
-          label={t('statusCard.activeText')}
-          value={item.activeText}
-          placeholder={t('statusCard.activeTextPlaceholder')}
-          onChange={(value) => onUpdate({ activeText: value })}
+      {sources.map((source, sourceIndex) => (
+        <SourceEditor
+          key={source.id || sourceIndex}
+          source={source}
+          index={sourceIndex}
+          total={sources.length}
+          entities={entities}
+          entityOptions={entityOptions}
+          t={t}
+          onUpdate={(patch) =>
+            updateSources(sources.map((s, i) => (i === sourceIndex ? { ...s, ...patch } : s)))
+          }
+          onRemove={() => updateSources(sources.filter((_, i) => i !== sourceIndex))}
         />
-        <TextField
-          label={t('statusCard.inactiveText')}
-          value={item.inactiveText}
-          placeholder={t('statusCard.inactiveTextPlaceholder')}
-          onChange={(value) => onUpdate({ inactiveText: value })}
-        />
-      </div>
+      ))}
 
-      <Toggle
-        title={t('statusCard.invert')}
-        hint={t('statusCard.invertHint')}
-        checked={item.invert === true}
-        onToggle={() => onUpdate({ invert: !(item.invert === true) })}
+      {sources.length < MAX_STATUS_SOURCES && (
+        <button
+          onClick={() => updateSources([...sources, createStatusSource()])}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--glass-bg)] px-3 py-2 text-[10px] font-bold tracking-widest text-[var(--text-primary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)]"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          {t('statusCard.addSource')}
+        </button>
+      )}
+
+      <TextField
+        label={t('statusCard.inactiveText')}
+        value={item.inactiveText}
+        placeholder={t('statusCard.inactiveTextPlaceholder')}
+        onChange={(value) => onUpdate({ inactiveText: value })}
       />
 
       <Toggle
@@ -186,7 +244,7 @@ export function StatusCardSection({ t, entities, editSettings, editSettingsKey, 
 
       {items.map((item, index) => (
         <StatusItemEditor
-          key={item.id || item.entityId || index}
+          key={item.id || index}
           item={item}
           index={index}
           entities={entities}
@@ -201,7 +259,9 @@ export function StatusCardSection({ t, entities, editSettings, editSettingsKey, 
 
       {items.length < MAX_STATUS_ENTITIES && (
         <button
-          onClick={() => persist([...items, { id: createStatusItemId(), entityId: null }])}
+          onClick={() =>
+            persist([...items, { id: createStatusItemId(), sources: [createStatusSource()] }])
+          }
           className="popup-surface popup-surface-hover flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--glass-border)] px-4 py-3 text-xs font-bold tracking-widest text-[var(--text-primary)] uppercase transition-colors"
         >
           <Plus className="h-4 w-4" />
