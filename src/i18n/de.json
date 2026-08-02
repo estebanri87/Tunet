@@ -1644,6 +1644,7 @@
   "solarSystem.grid": "Netz",
   "solarSystem.gridImport": "Bezug",
   "solarSystem.gridExport": "Einspeisung",
+  "solarSystem.house": "Haus",
   "solarSystem.healthState": "Status",
   "solarSystem.healthAlarm": "Alarm",
   "solarSystem.healthFault": "Fehler",

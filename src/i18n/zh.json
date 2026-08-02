@@ -1545,6 +1545,7 @@
   "solarSystem.grid": "电网",
   "solarSystem.gridImport": "购电",
   "solarSystem.gridExport": "馈电",
+  "solarSystem.house": "住宅",
   "solarSystem.healthState": "状态",
   "solarSystem.healthAlarm": "报警",
   "solarSystem.healthFault": "故障",

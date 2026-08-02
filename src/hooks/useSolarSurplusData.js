@@ -16,6 +16,8 @@ export const SURPLUS_ENTITY_IDS = {
   mainPvPower: 'sensor.technikraum_wechselrichter_gw12k_et_20_pv_power',
   bkwPvPower: 'sensor.bkw_garage_pv_power',
   gridPower: 'sensor.smart_meter_aktuelle_gesamtwirkleistung',
+  mainBatteryPower: 'sensor.technikraum_wechselrichter_gw12k_et_20_battery_power',
+  mainBatteryMode: 'sensor.technikraum_wechselrichter_gw12k_et_20_battery_mode',
   houseLoadForecast: 'sensor.technikraum_wechselrichter_gw12k_et_20_hauslast_mittel_24h_lastprognose',
   irradianceForecast: 'sensor.neckargemuend_kleing_sonneneinstrahlung',
 };
@@ -52,6 +54,17 @@ export default function useSolarSurplusData(entities) {
     // Grid convention: positive = import (Bezug), negative = export (Einspeisung).
     const gridPower = getNumericState(entities?.[SURPLUS_ENTITY_IDS.gridPower]);
     const availableSurplusW = gridPower !== null ? Math.max(0, -gridPower) : 0;
+
+    // Real-time house load, purely for display: PV + battery discharge - battery
+    // charge + grid import all balance out to whatever the house itself is
+    // using. Direction comes from the mode enum, not the power sensor's sign
+    // (GoodWe's own sign convention for battery_power proved ambiguous).
+    const batteryMode = entities?.[SURPLUS_ENTITY_IDS.mainBatteryMode]?.state ?? null;
+    const batteryPowerAbs = Math.abs(getNumericState(entities?.[SURPLUS_ENTITY_IDS.mainBatteryPower]) ?? 0);
+    const batteryDischargeW = batteryMode === 'Discharge' ? batteryPowerAbs : 0;
+    const batteryChargeW = batteryMode === 'Charge' ? batteryPowerAbs : 0;
+    const houseLoadW =
+      gridPower !== null ? Math.max(0, totalPv + gridPower + batteryDischargeW - batteryChargeW) : null;
 
     const houseLoadForecastW = getNumericState(entities?.[SURPLUS_ENTITY_IDS.houseLoadForecast]) ?? 0;
 
@@ -103,6 +116,7 @@ export default function useSolarSurplusData(entities) {
       bkwPv,
       gridPower,
       availableSurplusW,
+      houseLoadW,
       houseLoadForecastW,
       forecastNextHourAvgW,
       classify,

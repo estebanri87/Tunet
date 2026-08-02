@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Donut } from '../charts/SensorGauge';
 import { Sun, Battery, Zap, getIconComponent } from '../../icons';
-import { getNumericState } from '../../hooks/useSolarSurplusData';
+import useSolarSurplusData, { getNumericState } from '../../hooks/useSolarSurplusData';
 
 const formatWatts = (value) => {
   if (value === null || value === undefined) return '--';
@@ -40,6 +40,7 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
   t,
 }) {
   const translate = t || ((key) => key);
+  const surplus = useSolarSurplusData(entities);
   const {
     pvPowerId,
     batteryPowerId,
@@ -173,6 +174,9 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
                 : null
             }
           />
+        )}
+        {gridPowerId && (
+          <Stat label={translate('solarSystem.house')} value={formatWatts(surplus.houseLoadW)} />
         )}
         {todayProductionId && (
           <Stat label={translate('solarSystem.today')} value={formatKwh(todayProduction)} />

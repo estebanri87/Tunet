@@ -1644,6 +1644,7 @@
   "solarSystem.grid": "Nät",
   "solarSystem.gridImport": "Import",
   "solarSystem.gridExport": "Export",
+  "solarSystem.house": "Hus",
   "solarSystem.healthState": "Status",
   "solarSystem.healthAlarm": "Larm",
   "solarSystem.healthFault": "Fel",
