@@ -35,6 +35,10 @@ const REMOVABLE_PREFIXES = [
   'spacer_card_',
   'energy_flow_',
   'fan.',
+  'solar_system_card_',
+  'solar_forecast_card_',
+  'water_heater_card_',
+  'solar_appliance_card_',
 ];
 
 /** Prefixes for "special" composite cards that don't map 1:1 to an entity. */
@@ -56,6 +60,10 @@ const SPECIAL_CARD_PREFIXES = [
   'alarm_card_',
   'spacer_card_',
   'energy_flow_',
+  'solar_system_card_',
+  'solar_forecast_card_',
+  'water_heater_card_',
+  'solar_appliance_card_',
 ];
 
 /**
