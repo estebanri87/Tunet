@@ -206,12 +206,43 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
           </div>
         </div>
 
-        <span
-          className="shrink-0 rounded-full border px-3 py-1 text-[10px] font-bold tracking-widest uppercase"
-          style={{ color: tierMeta.fg, backgroundColor: tierMeta.bg, borderColor: tierMeta.border }}
-        >
-          {translate(`solarAppliance.tier.${tier}`)}
-        </span>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span
+            className="rounded-full border px-3 py-1 text-[10px] font-bold tracking-widest uppercase"
+            style={{ color: tierMeta.fg, backgroundColor: tierMeta.bg, borderColor: tierMeta.border }}
+          >
+            {translate(`solarAppliance.tier.${tier}`)}
+          </span>
+          {eta?.status === 'at' && (
+            <p className="text-right text-[10px] text-[var(--text-muted)]">
+              {formatEta(eta.date, locale, translate)}
+            </p>
+          )}
+          {eta?.status === 'none' && (
+            <p className="text-right text-[10px] text-[var(--text-muted)]">{translate('solarAppliance.etaNone')}</p>
+          )}
+          {latestStart && !latestStartHasPassed && (
+            <p className="text-right text-[10px] text-[var(--text-muted)]">
+              {translate('solarAppliance.latestStartToday').replace(
+                '{time}',
+                latestStart.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+              )}
+            </p>
+          )}
+          {latestStart && latestStartHasPassed && (
+            <p className="text-right text-[10px]" style={{ color: 'var(--status-warning-fg)' }}>
+              {translate('solarAppliance.startNowRisky')}
+            </p>
+          )}
+          {surplusHoldsUntil && durationMinutes <= 0 && (
+            <p className="text-right text-[10px] text-[var(--text-muted)]">
+              {translate('solarAppliance.surplusHoldsUntil').replace(
+                '{time}',
+                surplusHoldsUntil.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+              )}
+            </p>
+          )}
+        </div>
       </div>
 
       {(programName || remainingTimeText) && (
@@ -225,33 +256,6 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
         {tier !== 'now' && wattage > 0 && (
           <p className="text-[11px] text-[var(--text-muted)]">
             {translate('solarAppliance.gap').replace('{watts}', String(Math.round(gapW)))}
-          </p>
-        )}
-        {eta?.status === 'at' && (
-          <p className="text-[11px] text-[var(--text-muted)]">{formatEta(eta.date, locale, translate)}</p>
-        )}
-        {eta?.status === 'none' && (
-          <p className="text-[11px] text-[var(--text-muted)]">{translate('solarAppliance.etaNone')}</p>
-        )}
-        {latestStart && !latestStartHasPassed && (
-          <p className="text-[11px] text-[var(--text-muted)]">
-            {translate('solarAppliance.latestStartToday').replace(
-              '{time}',
-              latestStart.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
-            )}
-          </p>
-        )}
-        {latestStart && latestStartHasPassed && (
-          <p className="text-[11px]" style={{ color: 'var(--status-warning-fg)' }}>
-            {translate('solarAppliance.startNowRisky')}
-          </p>
-        )}
-        {surplusHoldsUntil && durationMinutes <= 0 && (
-          <p className="text-[11px] text-[var(--text-muted)]">
-            {translate('solarAppliance.surplusHoldsUntil').replace(
-              '{time}',
-              surplusHoldsUntil.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
-            )}
           </p>
         )}
         {wattage > 0 && (
