@@ -157,6 +157,7 @@ import {
   Umbrella,
   Users,
   CloudSnow,
+  WashingMachine,
 } from 'lucide-react';
 import {
   FaTemperatureHigh,
@@ -811,6 +812,7 @@ export const ICON_MAP = {
   RotateCcw,
   ArrowUp,
   ArrowDown,
+  WashingMachine,
 };
 
 const FALLBACK_ICON = ICON_MAP.Activity || ICON_MAP.Settings || (() => null);
