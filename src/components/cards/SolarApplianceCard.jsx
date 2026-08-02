@@ -206,9 +206,9 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-1">
+        <div className="flex min-w-0 max-w-[55%] flex-col items-end gap-1">
           <span
-            className="rounded-full border px-3 py-1 text-[10px] font-bold tracking-widest uppercase"
+            className="shrink-0 rounded-full border px-3 py-1 text-[10px] font-bold whitespace-nowrap tracking-widest uppercase"
             style={{ color: tierMeta.fg, backgroundColor: tierMeta.bg, borderColor: tierMeta.border }}
           >
             {translate(`solarAppliance.tier.${tier}`)}
