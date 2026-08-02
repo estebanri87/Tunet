@@ -11,6 +11,10 @@ import { CoverSettingsSection } from './editCard/CoverSettingsSection';
 import { CustomRowsSection } from './editCard/CustomRowsSection';
 import { EnergyFlowSettingsSection } from './editCard/EnergyFlowSettingsSection';
 import { WeatherItemsSection } from './editCard/WeatherItemsSection';
+import { SolarSystemSettingsSection } from './editCard/SolarSystemSettingsSection';
+import { SolarForecastSettingsSection } from './editCard/SolarForecastSettingsSection';
+import { WaterHeaterSettingsSection } from './editCard/WaterHeaterSettingsSection';
+import { SolarApplianceSettingsSection } from './editCard/SolarApplianceSettingsSection';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
 import {
   convertValueByKind,
@@ -749,6 +753,10 @@ export default function EditCardModal({
   isEditCost,
   isEditNordpool,
   isEditEnergyFlow,
+  isEditSolarSystem,
+  isEditSolarForecast,
+  isEditWaterHeater,
+  isEditSolarAppliance,
   isEditCar,
   isEditSpacer,
   isEditCamera,
@@ -3397,6 +3405,46 @@ export default function EditCardModal({
                   entities={entities}
                   pageOptions={roomPageOptions}
                   t={t}
+                />
+              )}
+
+              {isEditSolarSystem && editSettingsKey && (
+                <SolarSystemSettingsSection
+                  t={t}
+                  entities={entities}
+                  editSettings={editSettings}
+                  editSettingsKey={editSettingsKey}
+                  saveCardSetting={saveCardSetting}
+                />
+              )}
+
+              {isEditSolarForecast && editSettingsKey && (
+                <SolarForecastSettingsSection
+                  t={t}
+                  entities={entities}
+                  editSettings={editSettings}
+                  editSettingsKey={editSettingsKey}
+                  saveCardSetting={saveCardSetting}
+                />
+              )}
+
+              {isEditWaterHeater && editSettingsKey && (
+                <WaterHeaterSettingsSection
+                  t={t}
+                  entities={entities}
+                  editSettings={editSettings}
+                  editSettingsKey={editSettingsKey}
+                  saveCardSetting={saveCardSetting}
+                />
+              )}
+
+              {isEditSolarAppliance && editSettingsKey && (
+                <SolarApplianceSettingsSection
+                  t={t}
+                  entities={entities}
+                  editSettings={editSettings}
+                  editSettingsKey={editSettingsKey}
+                  saveCardSetting={saveCardSetting}
                 />
               )}
 

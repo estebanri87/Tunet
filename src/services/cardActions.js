@@ -312,6 +312,30 @@ export const handleAddSelected = (ctx) => {
       return;
     }
 
+    case 'solarsystem': {
+      const cardId = `solar_system_card_${Date.now()}`;
+      commitSingleCard(cardId, {}, { openEdit: true });
+      return;
+    }
+
+    case 'solarforecast': {
+      const cardId = `solar_forecast_card_${Date.now()}`;
+      commitSingleCard(cardId, { instances: [] }, { openEdit: true });
+      return;
+    }
+
+    case 'waterheater': {
+      const cardId = `water_heater_card_${Date.now()}`;
+      commitSingleCard(cardId, {}, { openEdit: true });
+      return;
+    }
+
+    case 'solarappliance': {
+      const cardId = `solar_appliance_card_${Date.now()}`;
+      commitSingleCard(cardId, {}, { openEdit: true });
+      return;
+    }
+
     // entity / toggle / sensor — default path for plain HA entities
     default: {
       const validSelectedEntities = selectedEntitiesForType();

@@ -50,6 +50,10 @@ export const RESIZABLE_PREFIXES = [
   'nordpool_card_',
   'energy_flow_',
   'sonos_group_',
+  'solar_system_card_',
+  'solar_forecast_card_',
+  'water_heater_card_',
+  'solar_appliance_card_',
 ];
 
 /** Returns the next size in the cycle small → medium → large → full → small. */

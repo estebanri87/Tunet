@@ -154,4 +154,5 @@ export {
   RotateCcw,
   ArrowUp,
   ArrowDown,
+  WashingMachine,
 } from 'lucide-react';

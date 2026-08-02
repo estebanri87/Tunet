@@ -43,6 +43,10 @@ export function useEditModalProps({
     const isEditSpacer = !!editId && editId.startsWith('spacer_card_');
     const isEditCamera = !!editId && editId.startsWith('camera_card_');
     const isEditFan = !!editId && (editId.startsWith('fan.') || editId.startsWith('fan_card_'));
+    const isEditSolarSystem = !!editId && editId.startsWith('solar_system_card_');
+    const isEditSolarForecast = !!editId && editId.startsWith('solar_forecast_card_');
+    const isEditWaterHeater = !!editId && editId.startsWith('water_heater_card_');
+    const isEditSolarAppliance = !!editId && editId.startsWith('solar_appliance_card_');
 
     const editSettings = isEditCar ? resolveCarSettings(editId, rawEditSettings) : rawEditSettings;
     const isEditGenericType =
@@ -98,7 +102,11 @@ export function useEditModalProps({
         (!!editEntity && !isEditMedia) ||
         editId === 'car' ||
         editId.startsWith('car_card_') ||
-        isEditFan);
+        isEditFan ||
+        isEditSolarSystem ||
+        isEditSolarForecast ||
+        isEditWaterHeater ||
+        isEditSolarAppliance);
 
     const canEditStatus =
       !!editEntity && !!editSettingsKey && editSettingsKey.startsWith('settings::');
@@ -127,6 +135,10 @@ export function useEditModalProps({
       isEditFan,
       isEditAlarm,
       isEditCover,
+      isEditSolarSystem,
+      isEditSolarForecast,
+      isEditWaterHeater,
+      isEditSolarAppliance,
       canEditCustomRows,
       editSettingsKey,
       editSettings,

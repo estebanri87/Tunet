@@ -25,6 +25,9 @@ import {
   Shield,
   Sparkles,
   Thermometer,
+  TrendingUp,
+  Droplets,
+  WashingMachine,
   X,
   Zap,
 } from '../icons';
@@ -1241,6 +1244,34 @@ function AddCardContent({
                     isActive={addCardType === 'spacer'}
                     onSelect={setAddCardType}
                   />
+                  <TypeButton
+                    type="solarsystem"
+                    icon={Sun}
+                    label={getLabel('addCard.type.solarSystem', 'Solar System')}
+                    isActive={addCardType === 'solarsystem'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="solarforecast"
+                    icon={TrendingUp}
+                    label={getLabel('addCard.type.solarForecast', 'Solar Forecast')}
+                    isActive={addCardType === 'solarforecast'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="waterheater"
+                    icon={Droplets}
+                    label={getLabel('addCard.type.waterHeater', 'Water Heater')}
+                    isActive={addCardType === 'waterheater'}
+                    onSelect={setAddCardType}
+                  />
+                  <TypeButton
+                    type="solarappliance"
+                    icon={WashingMachine}
+                    label={getLabel('addCard.type.solarAppliance', 'Solar Appliance')}
+                    isActive={addCardType === 'solarappliance'}
+                    onSelect={setAddCardType}
+                  />
                 </div>
                 {addCardType === 'sensor' && (
                   <p className="mt-2 ml-4 text-[11px] text-[var(--text-secondary)] opacity-75">
@@ -1270,6 +1301,30 @@ function AddCardContent({
                 renderSpacerSection()
               ) : addCardType === 'car' ? (
                 renderSimpleAddSection(Car, t('addCard.carDescription'), t('addCard.carCard'))
+              ) : addCardType === 'solarsystem' ? (
+                renderSimpleAddSection(
+                  Sun,
+                  t('addCard.solarSystemDescription'),
+                  t('addCard.add')
+                )
+              ) : addCardType === 'solarforecast' ? (
+                renderSimpleAddSection(
+                  TrendingUp,
+                  t('addCard.solarForecastDescription'),
+                  t('addCard.add')
+                )
+              ) : addCardType === 'waterheater' ? (
+                renderSimpleAddSection(
+                  Droplets,
+                  t('addCard.waterHeaterDescription'),
+                  t('addCard.add')
+                )
+              ) : addCardType === 'solarappliance' ? (
+                renderSimpleAddSection(
+                  WashingMachine,
+                  t('addCard.solarApplianceDescription'),
+                  t('addCard.add')
+                )
               ) : addCardType === 'nordpool' ? (
                 renderNordpoolSection()
               ) : addCardType === 'room' ? (

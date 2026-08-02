@@ -25,6 +25,10 @@ import {
   renderRoomCard,
   renderCameraCard,
   renderSpacerCard,
+  renderSolarSystemCard,
+  renderSolarForecastCard,
+  renderWaterHeaterCard,
+  renderSolarApplianceCard,
 } from './cards';
 
 /**
@@ -56,6 +60,10 @@ export const CARD_REGISTRY = [
   { prefix: 'camera_card_', renderer: renderCameraCard },
   { prefix: 'alarm_card_', renderer: renderAlarmCard },
   { prefix: 'spacer_card_', renderer: renderSpacerCard },
+  { prefix: 'solar_system_card_', renderer: renderSolarSystemCard },
+  { prefix: 'solar_forecast_card_', renderer: renderSolarForecastCard },
+  { prefix: 'water_heater_card_', renderer: renderWaterHeaterCard },
+  { prefix: 'solar_appliance_card_', renderer: renderSolarApplianceCard },
 ];
 
 export function dispatchCardRender(cardId, dragProps, getControls, cardStyle, settingsKey, ctx) {

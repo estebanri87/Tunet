@@ -21,3 +21,7 @@ export { renderAlarmCard } from './alarmRenderer';
 export { renderRoomCard } from './roomRenderer';
 export { renderCameraCard } from './cameraRenderer';
 export { renderSpacerCard } from './spacerRenderer';
+export { renderSolarSystemCard } from './solarSystemRenderer';
+export { renderSolarForecastCard } from './solarForecastRenderer';
+export { renderWaterHeaterCard } from './waterHeaterRenderer';
+export { renderSolarApplianceCard } from './solarApplianceRenderer';

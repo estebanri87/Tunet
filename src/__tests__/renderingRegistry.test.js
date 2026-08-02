@@ -24,6 +24,10 @@ const rendererMocks = vi.hoisted(() => ({
   renderRoomCard: vi.fn(() => ({ renderer: 'room' })),
   renderCameraCard: vi.fn(() => ({ renderer: 'camera' })),
   renderSpacerCard: vi.fn(() => ({ renderer: 'spacer' })),
+  renderSolarSystemCard: vi.fn(() => ({ renderer: 'solar_system' })),
+  renderSolarForecastCard: vi.fn(() => ({ renderer: 'solar_forecast' })),
+  renderWaterHeaterCard: vi.fn(() => ({ renderer: 'water_heater' })),
+  renderSolarApplianceCard: vi.fn(() => ({ renderer: 'solar_appliance' })),
 }));
 
 vi.mock('../rendering/cards', () => rendererMocks);
@@ -59,6 +63,26 @@ describe('rendering registry dispatch', () => {
     expect(CARD_REGISTRY.some((entry) => entry.prefix === 'lock_card_')).toBe(true);
     expect(CARD_REGISTRY.some((entry) => entry.prefix === 'lock.')).toBe(true);
     expect(CARD_REGISTRY.some((entry) => entry.prefix === 'energy_flow_')).toBe(true);
+    expect(CARD_REGISTRY.some((entry) => entry.prefix === 'solar_system_card_')).toBe(true);
+    expect(CARD_REGISTRY.some((entry) => entry.prefix === 'solar_forecast_card_')).toBe(true);
+    expect(CARD_REGISTRY.some((entry) => entry.prefix === 'water_heater_card_')).toBe(true);
+    expect(CARD_REGISTRY.some((entry) => entry.prefix === 'solar_appliance_card_')).toBe(true);
+  });
+
+  it('routes solar appliance cards to the solar appliance renderer', () => {
+    const { dragProps, getControls, cardStyle, settingsKey, ctx } = base();
+
+    const result = dispatchCardRender(
+      'solar_appliance_card_123',
+      dragProps,
+      getControls,
+      cardStyle,
+      settingsKey,
+      ctx
+    );
+
+    expect(result).toEqual({ renderer: 'solar_appliance' });
+    expect(rendererMocks.renderSolarApplianceCard).toHaveBeenCalledOnce();
   });
 
   it('routes energy flow cards to the energy flow renderer', () => {
