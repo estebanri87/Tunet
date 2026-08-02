@@ -11,6 +11,53 @@ const formatWatts = (value) => {
   return `${Math.round(abs)} W`;
 };
 
+const PLACEHOLDER_STATES = new Set(['unknown', 'unavailable', '-', '', 'none']);
+
+const isMeaningfulState = (state) => {
+  if (state === null || state === undefined) return false;
+  const normalized = String(state).trim().toLowerCase();
+  return normalized !== '' && !PLACEHOLDER_STATES.has(normalized);
+};
+
+/** Home Connect program keys look like "dishcare_dishwasher_program_eco_50";
+ * already-readable values (e.g. LG ThinQ's course name) pass through untouched. */
+const prettifyProgramName = (raw) => {
+  const match = String(raw).match(/^[a-z]+_[a-z]+_program_(.+)$/i);
+  const slug = match ? match[1] : String(raw);
+  return slug
+    .split('_')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+/** Parses "H:MM" / "H:MM:SS" or a plain number of minutes into total minutes. */
+const parseDurationMinutes = (value) => {
+  const str = String(value).trim();
+  if (/^\d+:\d{2}(:\d{2})?$/.test(str)) {
+    const [h, m] = str.split(':').map(Number);
+    return h * 60 + m;
+  }
+  const num = Number(str);
+  return Number.isFinite(num) ? num : null;
+};
+
+const formatRemainingTime = (entity, translate, locale) => {
+  if (!entity || !isMeaningfulState(entity.state)) return null;
+  if (entity.attributes?.device_class === 'timestamp') {
+    const date = new Date(entity.state);
+    if (Number.isNaN(date.getTime())) return null;
+    return translate('solarAppliance.finishesAt').replace(
+      '{time}',
+      date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+    );
+  }
+  const minutes = parseDurationMinutes(entity.state);
+  if (minutes === null || minutes <= 0) return null;
+  const duration = `${Math.floor(minutes / 60)}:${String(Math.round(minutes % 60)).padStart(2, '0')}`;
+  return translate('solarAppliance.remainingDuration').replace('{duration}', duration);
+};
+
 const formatEta = (date, locale, translate) => {
   const now = new Date();
   const time = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
@@ -63,9 +110,14 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
   const translate = t || ((key) => key);
   const surplus = useSolarSurplusData(entities, conn);
 
-  const { switchEntityId, powerEntityId, typicalWattage, icon } = settings;
+  const { switchEntityId, powerEntityId, programEntityId, remainingTimeEntityId, typicalWattage, icon } = settings;
   const switchEntity = switchEntityId ? entities?.[switchEntityId] : null;
   const powerEntity = powerEntityId ? entities?.[powerEntityId] : null;
+  const programEntity = programEntityId ? entities?.[programEntityId] : null;
+  const remainingTimeEntity = remainingTimeEntityId ? entities?.[remainingTimeEntityId] : null;
+  const programName =
+    programEntity && isMeaningfulState(programEntity.state) ? prettifyProgramName(programEntity.state) : null;
+  const remainingTimeText = formatRemainingTime(remainingTimeEntity, translate, locale);
 
   // Peak power seen on this appliance's own power sensor over the last 30
   // days — used instead of a hand-entered guess. Falls back to the manual
@@ -87,6 +139,7 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
   const tierMeta = TIER_META[tier];
   const gapW = Math.max(0, wattage - surplus.availableSurplusW);
   const eta = tier !== 'now' && wattage > 0 ? surplus.estimateNextAvailable(wattage) : null;
+  const latestStart = tier === 'now' && wattage > 0 ? surplus.estimateLatestStartToday(wattage) : null;
   const isOn = switchEntity?.state === 'on';
   const isDenseMobile = isMobile && settings.size !== 'small';
 
@@ -135,6 +188,12 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
         </span>
       </div>
 
+      {(programName || remainingTimeText) && (
+        <p className="relative z-10 -mt-2 truncate text-[11px] text-[var(--text-secondary)]">
+          {[programName, remainingTimeText].filter(Boolean).join(' · ')}
+        </p>
+      )}
+
       <div className="relative z-10 space-y-2">
         <Bar value={currentWatts} min={0} max={Math.max(wattage, currentWatts, 100)} color="var(--accent-color)" />
         {tier !== 'now' && wattage > 0 && (
@@ -147,6 +206,14 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
         )}
         {eta?.status === 'none' && (
           <p className="text-[11px] text-[var(--text-muted)]">{translate('solarAppliance.etaNone')}</p>
+        )}
+        {latestStart && (
+          <p className="text-[11px] text-[var(--text-muted)]">
+            {translate('solarAppliance.latestStartToday').replace(
+              '{time}',
+              latestStart.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+            )}
+          </p>
         )}
         {wattage > 0 && (
           <p className="text-[10px] text-[var(--text-muted)] opacity-60">

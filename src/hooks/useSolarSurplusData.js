@@ -166,6 +166,24 @@ export default function useSolarSurplusData(entities, conn) {
       return match ? { status: 'at', date: new Date(match.time) } : { status: 'none' };
     };
 
+    // For an appliance that already fits ("now"), scans the remaining hours
+    // of today for the first one predicted to drop back below
+    // `typicalWattage`, so a card can show the latest sensible time to still
+    // start today. Returns null if it's not tier "now", there's no forecast
+    // to check, or the surplus is predicted to hold for the rest of today.
+    const estimateLatestStartToday = (typicalWattage) => {
+      const watts = Number(typicalWattage);
+      if (!Number.isFinite(watts) || watts <= 0) return null;
+      if (availableSurplusW < watts) return null;
+      if (!pvPerIrradiance || futureRows.length === 0) return null;
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      const dropRow = futureRows.find(
+        (row) => row.time < midnight.getTime() && pvPerIrradiance * row.irradiance - houseLoadForecastW < watts
+      );
+      return dropRow ? new Date(dropRow.time) : null;
+    };
+
     return {
       totalPv,
       mainPv,
@@ -177,6 +195,7 @@ export default function useSolarSurplusData(entities, conn) {
       forecastNextHourAvgW,
       classify,
       estimateNextAvailable,
+      estimateLatestStartToday,
     };
   }, [entities, historicalPvPerIrradiance]);
 }

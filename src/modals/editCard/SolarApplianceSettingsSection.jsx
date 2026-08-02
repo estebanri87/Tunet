@@ -48,6 +48,10 @@ export function SolarApplianceSettingsSection({
   const allIds = React.useMemo(() => Object.keys(entities || {}), [entities]);
   const switchOptions = React.useMemo(() => allIds.filter((id) => id.startsWith('switch.')), [allIds]);
   const sensorOptions = React.useMemo(() => allIds.filter((id) => id.startsWith('sensor.')), [allIds]);
+  const programOptions = React.useMemo(
+    () => allIds.filter((id) => id.startsWith('sensor.') || id.startsWith('select.')),
+    [allIds]
+  );
   const SelectedIcon = editSettings.icon ? getIconComponent(editSettings.icon) : null;
 
   return (
@@ -103,6 +107,29 @@ export function SolarApplianceSettingsSection({
         value={editSettings.powerEntityId}
         options={sensorOptions}
         onChange={(value) => persist('powerEntityId', value)}
+        placeholder={t('dropdown.noneSelected')}
+        entities={entities}
+        t={t}
+        maxOptions={150}
+      />
+
+      <SearchableSelect
+        label={t('solarAppliance.programEntity')}
+        value={editSettings.programEntityId}
+        options={programOptions}
+        onChange={(value) => persist('programEntityId', value)}
+        placeholder={t('dropdown.noneSelected')}
+        entities={entities}
+        t={t}
+        maxOptions={150}
+      />
+      <p className="-mt-3 ml-1 text-[11px] text-[var(--text-muted)]">{t('solarAppliance.programEntityHint')}</p>
+
+      <SearchableSelect
+        label={t('solarAppliance.remainingTimeEntity')}
+        value={editSettings.remainingTimeEntityId}
+        options={sensorOptions}
+        onChange={(value) => persist('remainingTimeEntityId', value)}
         placeholder={t('dropdown.noneSelected')}
         entities={entities}
         t={t}

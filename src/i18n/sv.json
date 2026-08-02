@@ -1703,6 +1703,12 @@
   "solarAppliance.etaNone": "inget tillräckligt överskott väntas de kommande 10 dagarna",
   "solarAppliance.wattageAuto": "{watts} W uppmätt toppeffekt (senaste 30 dagarna)",
   "solarAppliance.wattageManual": "{watts} W uppskattat (ingen historik än)",
+  "solarAppliance.programEntity": "Program-/statussensor",
+  "solarAppliance.programEntityHint": "Visar aktuellt program om torktumlarens/diskmaskinens integration tillhandahåller det.",
+  "solarAppliance.remainingTimeEntity": "Återstående tid-sensor",
+  "solarAppliance.finishesAt": "klar kl. {time}",
+  "solarAppliance.remainingDuration": "{duration} tim kvar",
+  "solarAppliance.latestStartToday": "rekommenderad start senast kl. {time} idag",
   "welcome.subtitle": "Lägg till ditt första kort",
   "welcome.title": "Välkommen"
 }

@@ -1703,6 +1703,12 @@
   "solarAppliance.etaNone": "aucun surplus suffisant prévu dans les 10 prochains jours",
   "solarAppliance.wattageAuto": "{watts} W de pointe mesurés (30 derniers jours)",
   "solarAppliance.wattageManual": "{watts} W estimés (pas encore d'historique)",
+  "solarAppliance.programEntity": "Capteur de programme/état",
+  "solarAppliance.programEntityHint": "Affiche le programme en cours si l'intégration du sèche-linge/lave-vaisselle le fournit.",
+  "solarAppliance.remainingTimeEntity": "Capteur de temps restant",
+  "solarAppliance.finishesAt": "terminé à {time}",
+  "solarAppliance.remainingDuration": "{duration} h restantes",
+  "solarAppliance.latestStartToday": "démarrage recommandé au plus tard à {time} aujourd'hui",
   "welcome.subtitle": "Ajoutez votre première carte",
   "welcome.title": "Bienvenue"
 }

@@ -1703,6 +1703,12 @@
   "solarAppliance.etaNone": "in den nächsten 10 Tagen kein ausreichender Überschuss erwartet",
   "solarAppliance.wattageAuto": "{watts} W gemessene Spitzenleistung (letzte 30 Tage)",
   "solarAppliance.wattageManual": "{watts} W geschätzt (noch keine Verlaufsdaten)",
+  "solarAppliance.programEntity": "Programm-/Statussensor",
+  "solarAppliance.programEntityHint": "Zeigt das aktuelle Programm an, sofern Trockner/Spülmaschine dies über ihre Integration bereitstellen.",
+  "solarAppliance.remainingTimeEntity": "Restzeit-Sensor",
+  "solarAppliance.finishesAt": "fertig um {time} Uhr",
+  "solarAppliance.remainingDuration": "noch {duration} Std",
+  "solarAppliance.latestStartToday": "spätester empfohlener Start heute: {time} Uhr",
   "welcome.subtitle": "Füge deine erste Karte hinzu",
   "welcome.title": "Willkommen"
 }

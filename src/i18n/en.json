@@ -1703,6 +1703,12 @@
   "solarAppliance.etaNone": "no sufficient surplus expected in the next 10 days",
   "solarAppliance.wattageAuto": "{watts} W measured peak (last 30 days)",
   "solarAppliance.wattageManual": "{watts} W estimated (no history yet)",
+  "solarAppliance.programEntity": "Program/status sensor",
+  "solarAppliance.programEntityHint": "Shows the current program if the dryer/dishwasher's integration provides one.",
+  "solarAppliance.remainingTimeEntity": "Remaining time sensor",
+  "solarAppliance.finishesAt": "finishes at {time}",
+  "solarAppliance.remainingDuration": "{duration} h remaining",
+  "solarAppliance.latestStartToday": "recommended start by {time} at the latest today",
   "welcome.subtitle": "Add your first card",
   "welcome.title": "Welcome"
 }

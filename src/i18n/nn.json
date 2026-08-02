@@ -1703,6 +1703,12 @@
   "solarAppliance.etaNone": "ikkje nok overskot venta dei neste 10 dagane",
   "solarAppliance.wattageAuto": "{watts} W målt toppeffekt (siste 30 dagar)",
   "solarAppliance.wattageManual": "{watts} W anslått (ingen historikk enno)",
+  "solarAppliance.programEntity": "Program-/statussensor",
+  "solarAppliance.programEntityHint": "Viser gjeldande program dersom tørketrommelen/oppvaskmaskina si integrasjon gjev dette.",
+  "solarAppliance.remainingTimeEntity": "Attverande tid-sensor",
+  "solarAppliance.finishesAt": "ferdig kl. {time}",
+  "solarAppliance.remainingDuration": "{duration} t att",
+  "solarAppliance.latestStartToday": "tilrådd start seinast kl. {time} i dag",
   "welcome.subtitle": "Legg til ditt første kort",
   "welcome.title": "Velkomen"
 }
