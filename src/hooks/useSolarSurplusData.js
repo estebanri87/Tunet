@@ -25,6 +25,44 @@ export const SURPLUS_ENTITY_IDS = {
 /** Below this W/m² the PV-per-irradiance calibration ratio gets too noisy (dawn/dusk). */
 const MIN_IRRADIANCE_FOR_CALIBRATION = 100;
 
+/**
+ * Last known-good PV-per-irradiance ratio. Without this, the ratio can only
+ * ever be computed while the sun is actually up -- after dark, live
+ * irradiance drops to ~0 and a fresh ratio can't be derived, which would
+ * silently kill the appliance ETA estimate every night. Persisted to
+ * localStorage (not just module scope) so it survives a page reload or
+ * add-on rebuild overnight, not just re-renders within the same tab.
+ */
+const RATIO_STORAGE_KEY = 'tunet_solar_pv_per_irradiance_ratio';
+/** Ignore a stored ratio older than this -- panel soiling/seasonal tilt drift. */
+const RATIO_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+/** Minimum time between localStorage writes while the ratio keeps recalibrating in daylight. */
+const RATIO_PERSIST_INTERVAL_MS = 60 * 1000;
+
+function loadCachedRatio() {
+  try {
+    const raw = localStorage.getItem(RATIO_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Number.isFinite(parsed?.ratio) || !Number.isFinite(parsed?.at)) return null;
+    if (Date.now() - parsed.at > RATIO_MAX_AGE_MS) return null;
+    return parsed.ratio;
+  } catch {
+    return null;
+  }
+}
+
+function saveCachedRatio(ratio) {
+  try {
+    localStorage.setItem(RATIO_STORAGE_KEY, JSON.stringify({ ratio, at: Date.now() }));
+  } catch {
+    /* localStorage unavailable (private mode/quota) -- module-scope cache still works */
+  }
+}
+
+let cachedPvPerIrradiance = loadCachedRatio();
+let lastPersistAt = 0;
+
 export function getNumericState(entity) {
   const raw = entity?.state;
   if (raw === undefined || raw === null || raw === 'unavailable' || raw === 'unknown') return null;
@@ -74,11 +112,20 @@ export default function useSolarSurplusData(entities) {
 
     // Translate the DWD irradiance curve (W/m²) into an expected PV power
     // curve (W) using a ratio calibrated against the live system right now,
-    // instead of needing panel specs/orientation.
-    const pvPerIrradiance =
+    // instead of needing panel specs/orientation. Falls back to the last
+    // valid ratio seen this session once the sun goes down.
+    const liveRatio =
       irradianceNowW && irradianceNowW >= MIN_IRRADIANCE_FOR_CALIBRATION ? totalPv / irradianceNowW : null;
-
     const now = Date.now();
+    if (liveRatio !== null) {
+      cachedPvPerIrradiance = liveRatio;
+      if (now - lastPersistAt > RATIO_PERSIST_INTERVAL_MS) {
+        lastPersistAt = now;
+        saveCachedRatio(liveRatio);
+      }
+    }
+    const pvPerIrradiance = liveRatio ?? cachedPvPerIrradiance;
+
     const futureRows = pvPerIrradiance
       ? forecastRows
           .map((row) => ({ time: new Date(row.datetime).getTime(), irradiance: Number(row.value) }))

@@ -15,6 +15,21 @@ const formatKwh = (value) => {
   return `${value.toFixed(1)} kWh`;
 };
 
+/** Raw battery_mode enum values (e.g. GoodWe) -> i18n key. */
+const BATTERY_MODE_KEY_MAP = {
+  'no battery': 'noBattery',
+  standby: 'standby',
+  discharge: 'discharge',
+  charge: 'charge',
+  'to be charged': 'toBeCharged',
+  'to be discharged': 'toBeDischarged',
+};
+
+const translateBatteryMode = (mode, translate) => {
+  const key = BATTERY_MODE_KEY_MAP[mode?.toLowerCase?.().trim()];
+  return key ? translate(`solarSystem.batteryMode.${key}`) : mode;
+};
+
 const Stat = ({ label, value, hint }) => (
   <div>
     <p className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase opacity-70">
@@ -156,7 +171,8 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
             </p>
             {batteryMode && (
               <p className="text-[11px] text-[var(--text-muted)]">
-                {batteryMode} {batteryPower !== null ? `· ${formatWatts(batteryPower)}` : ''}
+                {translateBatteryMode(batteryMode, translate)}{' '}
+                {batteryPower !== null ? `· ${formatWatts(batteryPower)}` : ''}
               </p>
             )}
           </div>
