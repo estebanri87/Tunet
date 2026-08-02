@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import usePvIrradianceRatio from './usePvIrradianceRatio';
 
 /**
  * Fixed, house-wide entity IDs for the solar-surplus calculation.
@@ -82,8 +83,14 @@ export function getNumericState(entity) {
  * right now is, by definition, free to redirect to a new load, without
  * needing to reserve anything for battery charging (handled externally) or
  * re-derive house consumption from other sensors.
+ *
+ * `conn` is optional -- pass it (from ctx) to enable the DWD-based ETA
+ * estimate, which needs a history-derived PV-per-irradiance ratio. Without
+ * it, `estimateNextAvailable` always returns null.
  */
-export default function useSolarSurplusData(entities) {
+export default function useSolarSurplusData(entities, conn) {
+  const historicalPvPerIrradiance = usePvIrradianceRatio(conn);
+
   return useMemo(() => {
     const mainPv = getNumericState(entities?.[SURPLUS_ENTITY_IDS.mainPvPower]) ?? 0;
     const bkwPv = getNumericState(entities?.[SURPLUS_ENTITY_IDS.bkwPvPower]) ?? 0;
@@ -111,9 +118,11 @@ export default function useSolarSurplusData(entities) {
     const forecastRows = Array.isArray(irradianceEntity?.attributes?.data) ? irradianceEntity.attributes.data : [];
 
     // Translate the DWD irradiance curve (W/m²) into an expected PV power
-    // curve (W) using a ratio calibrated against the live system right now,
-    // instead of needing panel specs/orientation. Falls back to the last
-    // valid ratio seen this session once the sun goes down.
+    // curve (W) using a ratio of this installation's own output to its own
+    // irradiance. Preferred source is the multi-day statistics-derived ratio
+    // (works any time of day/night); the live instant and the cached value
+    // are fallbacks for while that hasn't loaded yet (e.g. right after
+    // opening the dashboard, before the history query resolves).
     const liveRatio =
       irradianceNowW && irradianceNowW >= MIN_IRRADIANCE_FOR_CALIBRATION ? totalPv / irradianceNowW : null;
     const now = Date.now();
@@ -124,7 +133,7 @@ export default function useSolarSurplusData(entities) {
         saveCachedRatio(liveRatio);
       }
     }
-    const pvPerIrradiance = liveRatio ?? cachedPvPerIrradiance;
+    const pvPerIrradiance = historicalPvPerIrradiance ?? liveRatio ?? cachedPvPerIrradiance;
 
     const futureRows = pvPerIrradiance
       ? forecastRows
@@ -169,5 +178,5 @@ export default function useSolarSurplusData(entities) {
       classify,
       estimateNextAvailable,
     };
-  }, [entities]);
+  }, [entities, historicalPvPerIrradiance]);
 }

@@ -61,7 +61,7 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
   t,
 }) {
   const translate = t || ((key) => key);
-  const surplus = useSolarSurplusData(entities);
+  const surplus = useSolarSurplusData(entities, conn);
 
   const { switchEntityId, powerEntityId, typicalWattage, icon } = settings;
   const switchEntity = switchEntityId ? entities?.[switchEntityId] : null;

@@ -36,6 +36,7 @@ const WaterHeaterCard = memo(/** @param {any} props */ function WaterHeaterCard(
   cardStyle,
   editMode,
   entities,
+  conn,
   callService,
   customNames,
   settings = {},
@@ -46,7 +47,7 @@ const WaterHeaterCard = memo(/** @param {any} props */ function WaterHeaterCard(
   const entityId = settings.entityId;
   const entity = entityId ? entities?.[entityId] : null;
   const [pendingTemp, setPendingTemp] = useState(null);
-  const surplus = useSolarSurplusData(entities);
+  const surplus = useSolarSurplusData(entities, conn);
 
   const name = customNames?.[cardId] || settings.heading || entity?.attributes?.friendly_name || cardId;
   const isDenseMobile = isMobile && settings.size !== 'small';
