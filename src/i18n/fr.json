@@ -1673,6 +1673,7 @@
   "waterHeater.entity": "Entité chauffe-eau",
   "waterHeater.missingEntity": "Aucune entité chauffe-eau sélectionnée",
   "waterHeater.target": "Température cible",
+  "waterHeater.powerEntity": "Capteur de puissance",
   "waterHeater.mode.manual": "Manuel",
   "waterHeater.mode.timeControlled": "Programmé",
   "waterHeater.mode.off": "Éteint",

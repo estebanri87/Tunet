@@ -1673,6 +1673,7 @@
   "waterHeater.entity": "Varmtvasseining",
   "waterHeater.missingEntity": "Inga varmtvasseining vald",
   "waterHeater.target": "Måltemperatur",
+  "waterHeater.powerEntity": "Effektsensor",
   "waterHeater.mode.manual": "Manuell",
   "waterHeater.mode.timeControlled": "Tidsstyrt",
   "waterHeater.mode.off": "Av",

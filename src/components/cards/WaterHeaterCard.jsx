@@ -1,7 +1,14 @@
 import { memo, useState } from 'react';
 import { Donut } from '../charts/SensorGauge';
 import { Droplets } from '../../icons';
-import useSolarSurplusData from '../../hooks/useSolarSurplusData';
+import useSolarSurplusData, { getNumericState } from '../../hooks/useSolarSurplusData';
+
+const formatWatts = (value) => {
+  if (value === null || value === undefined) return '--';
+  const abs = Math.abs(value);
+  if (abs >= 1000) return `${(abs / 1000).toFixed(1)} kW`;
+  return `${Math.round(abs)} W`;
+};
 
 /** Raw operation_mode values reported by the water_heater entity (e.g. myVaillant) -> i18n key. */
 const MODE_KEY_MAP = {
@@ -46,6 +53,9 @@ const WaterHeaterCard = memo(/** @param {any} props */ function WaterHeaterCard(
   const translate = t || ((key) => key);
   const entityId = settings.entityId;
   const entity = entityId ? entities?.[entityId] : null;
+  const powerEntityId = settings.powerEntityId;
+  const powerEntity = powerEntityId ? entities?.[powerEntityId] : null;
+  const currentWatts = getNumericState(powerEntity);
   const [pendingTemp, setPendingTemp] = useState(null);
   const surplus = useSolarSurplusData(entities, conn);
 
@@ -120,9 +130,16 @@ const WaterHeaterCard = memo(/** @param {any} props */ function WaterHeaterCard(
           >
             <Droplets className="h-5 w-5" strokeWidth={1.5} />
           </div>
-          <p className="truncate text-xs leading-none font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-70">
-            {name}
-          </p>
+          <div className="min-w-0">
+            <p className="truncate text-xs leading-none font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-70">
+              {name}
+            </p>
+            {powerEntityId && (
+              <p className="mt-1.5 text-2xl leading-none font-light text-[var(--text-primary)]">
+                {formatWatts(currentWatts)}
+              </p>
+            )}
+          </div>
         </div>
 
         {boostTier && (

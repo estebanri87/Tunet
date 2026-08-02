@@ -1673,6 +1673,7 @@
   "waterHeater.entity": "Warmwasser-Entity",
   "waterHeater.missingEntity": "Keine Warmwasser-Entity ausgewählt",
   "waterHeater.target": "Zieltemperatur",
+  "waterHeater.powerEntity": "Leistungssensor",
   "waterHeater.mode.manual": "Manuell",
   "waterHeater.mode.timeControlled": "Zeitgesteuert",
   "waterHeater.mode.off": "Aus",

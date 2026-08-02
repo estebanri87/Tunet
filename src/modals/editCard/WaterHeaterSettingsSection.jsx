@@ -40,6 +40,10 @@ export function WaterHeaterSettingsSection({ t, entities, editSettings, editSett
     () => Object.keys(entities || {}).filter((id) => id.startsWith('water_heater.')),
     [entities]
   );
+  const sensorOptions = React.useMemo(
+    () => Object.keys(entities || {}).filter((id) => id.startsWith('sensor.')),
+    [entities]
+  );
 
   return (
     <div className="space-y-5">
@@ -54,6 +58,16 @@ export function WaterHeaterSettingsSection({ t, entities, editSettings, editSett
         value={editSettings.entityId}
         options={waterHeaterOptions}
         onChange={(value) => persist('entityId', value)}
+        placeholder={t('dropdown.noneSelected')}
+        entities={entities}
+        t={t}
+        maxOptions={150}
+      />
+      <SearchableSelect
+        label={t('waterHeater.powerEntity')}
+        value={editSettings.powerEntityId}
+        options={sensorOptions}
+        onChange={(value) => persist('powerEntityId', value)}
         placeholder={t('dropdown.noneSelected')}
         entities={entities}
         t={t}

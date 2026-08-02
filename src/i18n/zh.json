@@ -1574,6 +1574,7 @@
   "waterHeater.entity": "热水器实体",
   "waterHeater.missingEntity": "未选择热水器实体",
   "waterHeater.target": "目标温度",
+  "waterHeater.powerEntity": "功率传感器",
   "waterHeater.mode.manual": "手动",
   "waterHeater.mode.timeControlled": "时间控制",
   "waterHeater.mode.off": "关闭",
