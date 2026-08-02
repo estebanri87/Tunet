@@ -1669,13 +1669,16 @@
   "solarAppliance.icon": "Icône",
   "solarAppliance.switchEntity": "Entité interrupteur",
   "solarAppliance.powerEntity": "Capteur de puissance",
-  "solarAppliance.typicalWattage": "Puissance typique (W)",
+  "solarAppliance.typicalWattage": "Puissance typique (W) — solution de repli",
+  "solarAppliance.typicalWattageHint": "Utilisé uniquement tant qu'aucun historique de consommation n'est disponible pour le capteur ci-dessus.",
   "solarAppliance.turnOn": "Allumer",
   "solarAppliance.turnOff": "Éteindre",
   "solarAppliance.tier.now": "Maintenant",
   "solarAppliance.tier.soon": "Bientôt",
   "solarAppliance.tier.wait": "Attendre",
   "solarAppliance.gap": "encore {watts} W nécessaires",
+  "solarAppliance.wattageAuto": "{watts} W de pointe mesurés (30 derniers jours)",
+  "solarAppliance.wattageManual": "{watts} W estimés (pas encore d'historique)",
   "welcome.subtitle": "Ajoutez votre première carte",
   "welcome.title": "Bienvenue"
 }

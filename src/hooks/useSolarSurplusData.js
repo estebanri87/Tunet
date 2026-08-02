@@ -9,9 +9,6 @@ import { useMemo } from 'react';
 export const SURPLUS_ENTITY_IDS = {
   mainPvPower: 'sensor.technikraum_wechselrichter_gw12k_et_20_pv_power',
   bkwPvPower: 'sensor.bkw_garage_pv_power',
-  batteryPower: 'sensor.technikraum_wechselrichter_gw12k_et_20_battery_power',
-  batteryMode: 'sensor.technikraum_wechselrichter_gw12k_et_20_battery_mode',
-  batterySoc: 'sensor.technikraum_wechselrichter_gw12k_et_20_battery_state_of_charge',
   houseLoad: 'sensor.wirkleistung_haus',
   gridPower: 'sensor.smart_meter_aktuelle_gesamtwirkleistung',
   forecastNextHour: [
@@ -20,9 +17,6 @@ export const SURPLUS_ENTITY_IDS = {
     'sensor.energy_next_hour_3',
   ],
 };
-
-/** Battery is only "reserved" for charging below this SoC (%). */
-export const BATTERY_RESERVE_THRESHOLD_PCT = 90;
 
 export function getNumericState(entity) {
   const raw = entity?.state;
@@ -35,6 +29,9 @@ export function getNumericState(entity) {
  * Computes the current solar-surplus picture for the whole house and a
  * `classify(typicalWattage)` helper that tiers an appliance's recommendation
  * as 'now' | 'soon' | 'wait'.
+ *
+ * No battery-charging reservation: the inverter/EMS already manages battery
+ * priority itself, so surplus here is the raw PV-minus-house-load figure.
  */
 export default function useSolarSurplusData(entities) {
   return useMemo(() => {
@@ -43,17 +40,9 @@ export default function useSolarSurplusData(entities) {
     const totalPv = mainPv + bkwPv;
 
     const houseLoad = getNumericState(entities?.[SURPLUS_ENTITY_IDS.houseLoad]) ?? 0;
-    const batteryPower = getNumericState(entities?.[SURPLUS_ENTITY_IDS.batteryPower]) ?? 0;
-    const batteryMode = entities?.[SURPLUS_ENTITY_IDS.batteryMode]?.state ?? null;
-    const batterySoc = getNumericState(entities?.[SURPLUS_ENTITY_IDS.batterySoc]);
     const gridPower = getNumericState(entities?.[SURPLUS_ENTITY_IDS.gridPower]);
 
-    const rawSurplusW = totalPv - houseLoad;
-    const batteryChargingW =
-      batteryMode === 'Charge' && batterySoc !== null && batterySoc < BATTERY_RESERVE_THRESHOLD_PCT
-        ? Math.abs(batteryPower)
-        : 0;
-    const availableSurplusW = Math.max(0, rawSurplusW - batteryChargingW);
+    const availableSurplusW = Math.max(0, totalPv - houseLoad);
 
     // Forecast.Solar "next hour" energy (kWh) summed across all instances,
     // used as an approximation of the average W over the coming hour --
@@ -77,12 +66,7 @@ export default function useSolarSurplusData(entities) {
       mainPv,
       bkwPv,
       houseLoad,
-      batteryPower,
-      batteryMode,
-      batterySoc,
       gridPower,
-      rawSurplusW,
-      batteryChargingW,
       availableSurplusW,
       forecastNextHourAvgW,
       classify,

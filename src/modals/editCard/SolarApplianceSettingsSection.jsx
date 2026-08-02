@@ -115,6 +115,7 @@ export function SolarApplianceSettingsSection({
         placeholder="2000"
         onChange={(value) => persist('typicalWattage', value)}
       />
+      <p className="-mt-3 ml-1 text-[11px] text-[var(--text-muted)]">{t('solarAppliance.typicalWattageHint')}</p>
     </div>
   );
 }

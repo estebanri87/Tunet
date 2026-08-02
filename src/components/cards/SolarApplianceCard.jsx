@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Bar } from '../charts/SensorGauge';
 import { Zap, getIconComponent } from '../../icons';
 import useSolarSurplusData, { getNumericState } from '../../hooks/useSolarSurplusData';
+import useApplianceTypicalWattage from '../../hooks/useApplianceTypicalWattage';
 
 const formatWatts = (value) => {
   if (value === null || value === undefined) return '--';
@@ -35,6 +36,7 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
   cardStyle,
   editMode,
   entities,
+  conn,
   callService,
   customNames,
   customIcons,
@@ -49,6 +51,14 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
   const switchEntity = switchEntityId ? entities?.[switchEntityId] : null;
   const powerEntity = powerEntityId ? entities?.[powerEntityId] : null;
 
+  // Peak power seen on this appliance's own power sensor over the last 30
+  // days — used instead of a hand-entered guess. Falls back to the manual
+  // `typicalWattage` setting only while no history exists yet (e.g. the
+  // appliance has never run since the sensor was added).
+  const autoWattage = useApplianceTypicalWattage(conn, powerEntityId);
+  const wattage = autoWattage ?? (Number(typicalWattage) || 0);
+  const wattageIsAuto = autoWattage !== null;
+
   const name = customNames?.[cardId] || settings.label || switchEntity?.attributes?.friendly_name || cardId;
   const Icon = customIcons?.[cardId]
     ? getIconComponent(customIcons[cardId]) || Zap
@@ -57,7 +67,6 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
       : Zap;
 
   const currentWatts = getNumericState(powerEntity) ?? 0;
-  const wattage = Number(typicalWattage) || 0;
   const tier = wattage > 0 ? surplus.classify(wattage) : 'wait';
   const tierMeta = TIER_META[tier];
   const gapW = Math.max(0, wattage - surplus.availableSurplusW);
@@ -114,6 +123,14 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
         {tier !== 'now' && wattage > 0 && (
           <p className="text-[11px] text-[var(--text-muted)]">
             {translate('solarAppliance.gap').replace('{watts}', String(Math.round(gapW)))}
+          </p>
+        )}
+        {wattage > 0 && (
+          <p className="text-[10px] text-[var(--text-muted)] opacity-60">
+            {translate(wattageIsAuto ? 'solarAppliance.wattageAuto' : 'solarAppliance.wattageManual').replace(
+              '{watts}',
+              String(Math.round(wattage))
+            )}
           </p>
         )}
       </div>

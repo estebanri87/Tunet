@@ -1669,13 +1669,16 @@
   "solarAppliance.icon": "Symbol",
   "solarAppliance.switchEntity": "Schalt-Entity",
   "solarAppliance.powerEntity": "Leistungssensor",
-  "solarAppliance.typicalWattage": "Typische Leistung (W)",
+  "solarAppliance.typicalWattage": "Typische Leistung (W) — Fallback",
+  "solarAppliance.typicalWattageHint": "Wird nur verwendet, solange für den obigen Leistungssensor noch keine Verlaufsdaten vorliegen.",
   "solarAppliance.turnOn": "Einschalten",
   "solarAppliance.turnOff": "Ausschalten",
   "solarAppliance.tier.now": "Jetzt",
   "solarAppliance.tier.soon": "Bald",
   "solarAppliance.tier.wait": "Warten",
   "solarAppliance.gap": "noch {watts} W nötig",
+  "solarAppliance.wattageAuto": "{watts} W gemessene Spitzenleistung (letzte 30 Tage)",
+  "solarAppliance.wattageManual": "{watts} W geschätzt (noch keine Verlaufsdaten)",
   "welcome.subtitle": "Füge deine erste Karte hinzu",
   "welcome.title": "Willkommen"
 }

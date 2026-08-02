@@ -2,7 +2,7 @@ import { SolarApplianceCard } from '../../components';
 import { getSettings } from '../helpers';
 
 export function renderSolarApplianceCard(cardId, dragProps, getControls, cardStyle, settingsKey, ctx) {
-  const { entities, editMode, cardSettings, customNames, customIcons, callService, isMobile, t } = ctx;
+  const { entities, editMode, cardSettings, customNames, customIcons, callService, isMobile, t, conn } = ctx;
   const settings = getSettings(cardSettings, settingsKey, cardId);
   return (
     <SolarApplianceCard
@@ -12,6 +12,7 @@ export function renderSolarApplianceCard(cardId, dragProps, getControls, cardSty
       cardStyle={cardStyle}
       entities={entities}
       editMode={editMode}
+      conn={conn}
       callService={callService}
       customNames={customNames}
       customIcons={customIcons}

@@ -1669,13 +1669,16 @@
   "solarAppliance.icon": "Ikon",
   "solarAppliance.switchEntity": "Brytarentitet",
   "solarAppliance.powerEntity": "Effektsensor",
-  "solarAppliance.typicalWattage": "Typisk effekt (W)",
+  "solarAppliance.typicalWattage": "Typisk effekt (W) — reservvärde",
+  "solarAppliance.typicalWattageHint": "Används bara tills det finns historik för effektsensorn ovan.",
   "solarAppliance.turnOn": "Slå på",
   "solarAppliance.turnOff": "Stäng av",
   "solarAppliance.tier.now": "Nu",
   "solarAppliance.tier.soon": "Snart",
   "solarAppliance.tier.wait": "Vänta",
   "solarAppliance.gap": "{watts} W saknas",
+  "solarAppliance.wattageAuto": "{watts} W uppmätt toppeffekt (senaste 30 dagarna)",
+  "solarAppliance.wattageManual": "{watts} W uppskattat (ingen historik än)",
   "welcome.subtitle": "Lägg till ditt första kort",
   "welcome.title": "Välkommen"
 }

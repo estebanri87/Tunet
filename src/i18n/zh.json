@@ -1570,13 +1570,16 @@
   "solarAppliance.icon": "图标",
   "solarAppliance.switchEntity": "开关实体",
   "solarAppliance.powerEntity": "功率传感器",
-  "solarAppliance.typicalWattage": "典型功率 (瓦)",
+  "solarAppliance.typicalWattage": "典型功率 (瓦) — 备用值",
+  "solarAppliance.typicalWattageHint": "仅在上方功率传感器尚无历史数据时使用。",
   "solarAppliance.turnOn": "打开",
   "solarAppliance.turnOff": "关闭",
   "solarAppliance.tier.now": "现在",
   "solarAppliance.tier.soon": "稍后",
   "solarAppliance.tier.wait": "等待",
   "solarAppliance.gap": "还差 {watts} 瓦",
+  "solarAppliance.wattageAuto": "{watts} 瓦 实测峰值(最近30天)",
+  "solarAppliance.wattageManual": "{watts} 瓦 估算值(暂无历史数据)",
   "welcome.subtitle": "添加您的第一张卡",
   "welcome.title": "欢迎"
 }

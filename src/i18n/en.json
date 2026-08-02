@@ -1669,13 +1669,16 @@
   "solarAppliance.icon": "Icon",
   "solarAppliance.switchEntity": "Switch entity",
   "solarAppliance.powerEntity": "Power sensor",
-  "solarAppliance.typicalWattage": "Typical wattage (W)",
+  "solarAppliance.typicalWattage": "Typical wattage (W) — fallback",
+  "solarAppliance.typicalWattageHint": "Used only until real consumption history is available for the power sensor above.",
   "solarAppliance.turnOn": "Turn on",
   "solarAppliance.turnOff": "Turn off",
   "solarAppliance.tier.now": "Now",
   "solarAppliance.tier.soon": "Soon",
   "solarAppliance.tier.wait": "Wait",
   "solarAppliance.gap": "still {watts} W needed",
+  "solarAppliance.wattageAuto": "{watts} W measured peak (last 30 days)",
+  "solarAppliance.wattageManual": "{watts} W estimated (no history yet)",
   "welcome.subtitle": "Add your first card",
   "welcome.title": "Welcome"
 }
