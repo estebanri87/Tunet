@@ -11,6 +11,21 @@ const formatWatts = (value) => {
   return `${Math.round(abs)} W`;
 };
 
+const formatEta = (date, locale, translate) => {
+  const now = new Date();
+  const time = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  if (date.toDateString() === now.toDateString()) {
+    return translate('solarAppliance.etaToday').replace('{time}', time);
+  }
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  if (date.toDateString() === tomorrow.toDateString()) {
+    return translate('solarAppliance.etaTomorrow').replace('{time}', time);
+  }
+  const weekday = date.toLocaleDateString(locale, { weekday: 'long' });
+  return translate('solarAppliance.etaLater').replace('{weekday}', weekday).replace('{time}', time);
+};
+
 const TIER_META = {
   now: {
     fg: 'var(--status-success-fg)',
@@ -42,6 +57,7 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
   customIcons,
   settings = {},
   isMobile,
+  locale,
   t,
 }) {
   const translate = t || ((key) => key);
@@ -70,6 +86,7 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
   const tier = wattage > 0 ? surplus.classify(wattage) : 'wait';
   const tierMeta = TIER_META[tier];
   const gapW = Math.max(0, wattage - surplus.availableSurplusW);
+  const eta = tier !== 'now' && wattage > 0 ? surplus.estimateNextAvailable(wattage) : null;
   const isOn = switchEntity?.state === 'on';
   const isDenseMobile = isMobile && settings.size !== 'small';
 
@@ -124,6 +141,12 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
           <p className="text-[11px] text-[var(--text-muted)]">
             {translate('solarAppliance.gap').replace('{watts}', String(Math.round(gapW)))}
           </p>
+        )}
+        {eta?.status === 'at' && (
+          <p className="text-[11px] text-[var(--text-muted)]">{formatEta(eta.date, locale, translate)}</p>
+        )}
+        {eta?.status === 'none' && (
+          <p className="text-[11px] text-[var(--text-muted)]">{translate('solarAppliance.etaNone')}</p>
         )}
         {wattage > 0 && (
           <p className="text-[10px] text-[var(--text-muted)] opacity-60">

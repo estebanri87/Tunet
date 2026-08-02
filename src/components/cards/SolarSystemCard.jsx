@@ -15,12 +15,13 @@ const formatKwh = (value) => {
   return `${value.toFixed(1)} kWh`;
 };
 
-const Stat = ({ label, value }) => (
+const Stat = ({ label, value, hint }) => (
   <div>
     <p className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase opacity-70">
       {label}
     </p>
     <p className="mt-0.5 text-sm font-medium text-[var(--text-primary)]">{value}</p>
+    {hint && <p className="text-[10px] text-[var(--text-muted)]">{hint}</p>}
   </div>
 );
 
@@ -165,7 +166,12 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
         {gridPowerId && (
           <Stat
             label={translate('solarSystem.grid')}
-            value={gridPower !== null ? formatWatts(gridPower) : '--'}
+            value={gridPower !== null ? `${gridPower >= 0 ? '+' : '−'}${formatWatts(gridPower)}` : '--'}
+            hint={
+              gridPower !== null
+                ? translate(gridPower >= 0 ? 'solarSystem.gridImport' : 'solarSystem.gridExport')
+                : null
+            }
           />
         )}
         {todayProductionId && (

@@ -5,18 +5,23 @@ import { useMemo } from 'react';
  * These are shared across every solar_appliance_card_ instance so the
  * recommendation logic stays consistent regardless of which (if any)
  * solar_system_card_/solar_forecast_card_ instances the user has added.
+ *
+ * `sensor.wirkleistung_haus` and the GoodWe inverter's own
+ * `..._house_consumption` sensor were both tried as a "house load" source
+ * and dropped: live checks showed the former tracking the grid meter
+ * almost 1:1 (not real consumption) and the latter going negative during
+ * PV surplus. Neither is used here.
  */
 export const SURPLUS_ENTITY_IDS = {
   mainPvPower: 'sensor.technikraum_wechselrichter_gw12k_et_20_pv_power',
   bkwPvPower: 'sensor.bkw_garage_pv_power',
-  houseLoad: 'sensor.wirkleistung_haus',
   gridPower: 'sensor.smart_meter_aktuelle_gesamtwirkleistung',
-  forecastNextHour: [
-    'sensor.energy_next_hour',
-    'sensor.energy_next_hour_2',
-    'sensor.energy_next_hour_3',
-  ],
+  houseLoadForecast: 'sensor.technikraum_wechselrichter_gw12k_et_20_hauslast_mittel_24h_lastprognose',
+  irradianceForecast: 'sensor.neckargemuend_kleing_sonneneinstrahlung',
 };
+
+/** Below this W/m² the PV-per-irradiance calibration ratio gets too noisy (dawn/dusk). */
+const MIN_IRRADIANCE_FOR_CALIBRATION = 100;
 
 export function getNumericState(entity) {
   const raw = entity?.state;
@@ -26,12 +31,17 @@ export function getNumericState(entity) {
 }
 
 /**
- * Computes the current solar-surplus picture for the whole house and a
+ * Computes the current solar-surplus picture for the whole house, a
  * `classify(typicalWattage)` helper that tiers an appliance's recommendation
- * as 'now' | 'soon' | 'wait'.
+ * as 'now' | 'soon' | 'wait', and `estimateNextAvailable(typicalWattage)`
+ * which scans the DWD irradiance forecast for the next time enough surplus
+ * is expected.
  *
- * No battery-charging reservation: the inverter/EMS already manages battery
- * priority itself, so surplus here is the raw PV-minus-house-load figure.
+ * Available surplus is simply the power currently being exported to the
+ * grid (negative grid reading): whatever isn't being pulled from the grid
+ * right now is, by definition, free to redirect to a new load, without
+ * needing to reserve anything for battery charging (handled externally) or
+ * re-derive house consumption from other sensors.
  */
 export default function useSolarSurplusData(entities) {
   return useMemo(() => {
@@ -39,19 +49,32 @@ export default function useSolarSurplusData(entities) {
     const bkwPv = getNumericState(entities?.[SURPLUS_ENTITY_IDS.bkwPvPower]) ?? 0;
     const totalPv = mainPv + bkwPv;
 
-    const houseLoad = getNumericState(entities?.[SURPLUS_ENTITY_IDS.houseLoad]) ?? 0;
+    // Grid convention: positive = import (Bezug), negative = export (Einspeisung).
     const gridPower = getNumericState(entities?.[SURPLUS_ENTITY_IDS.gridPower]);
+    const availableSurplusW = gridPower !== null ? Math.max(0, -gridPower) : 0;
 
-    const availableSurplusW = Math.max(0, totalPv - houseLoad);
+    const houseLoadForecastW = getNumericState(entities?.[SURPLUS_ENTITY_IDS.houseLoadForecast]) ?? 0;
 
-    // Forecast.Solar "next hour" energy (kWh) summed across all instances,
-    // used as an approximation of the average W over the coming hour --
-    // not a precise physical prediction.
-    const forecastNextHourKwh = SURPLUS_ENTITY_IDS.forecastNextHour.reduce((sum, id) => {
-      const value = getNumericState(entities?.[id]);
-      return sum + (value ?? 0);
-    }, 0);
-    const forecastNextHourAvgW = forecastNextHourKwh * 1000;
+    const irradianceEntity = entities?.[SURPLUS_ENTITY_IDS.irradianceForecast];
+    const irradianceNowW = getNumericState(irradianceEntity);
+    const forecastRows = Array.isArray(irradianceEntity?.attributes?.data) ? irradianceEntity.attributes.data : [];
+
+    // Translate the DWD irradiance curve (W/m²) into an expected PV power
+    // curve (W) using a ratio calibrated against the live system right now,
+    // instead of needing panel specs/orientation.
+    const pvPerIrradiance =
+      irradianceNowW && irradianceNowW >= MIN_IRRADIANCE_FOR_CALIBRATION ? totalPv / irradianceNowW : null;
+
+    const now = Date.now();
+    const futureRows = pvPerIrradiance
+      ? forecastRows
+          .map((row) => ({ time: new Date(row.datetime).getTime(), irradiance: Number(row.value) }))
+          .filter((row) => Number.isFinite(row.time) && Number.isFinite(row.irradiance) && row.time > now)
+      : [];
+
+    const forecastNextHourAvgW = futureRows.length
+      ? Math.max(0, pvPerIrradiance * futureRows[0].irradiance - houseLoadForecastW)
+      : 0;
 
     const classify = (typicalWattage) => {
       const watts = Number(typicalWattage);
@@ -61,15 +84,29 @@ export default function useSolarSurplusData(entities) {
       return 'wait';
     };
 
+    // Scans the DWD irradiance forecast (~10 days ahead) for the first hour
+    // whose predicted PV output minus the 24h-average house-load forecast
+    // would cover `typicalWattage`. Returns null when there isn't enough data
+    // to estimate yet (e.g. no calibration ratio available after dark).
+    const estimateNextAvailable = (typicalWattage) => {
+      const watts = Number(typicalWattage);
+      if (!Number.isFinite(watts) || watts <= 0) return null;
+      if (availableSurplusW >= watts) return { status: 'now' };
+      if (!pvPerIrradiance || futureRows.length === 0) return null;
+      const match = futureRows.find((row) => pvPerIrradiance * row.irradiance - houseLoadForecastW >= watts);
+      return match ? { status: 'at', date: new Date(match.time) } : { status: 'none' };
+    };
+
     return {
       totalPv,
       mainPv,
       bkwPv,
-      houseLoad,
       gridPower,
       availableSurplusW,
+      houseLoadForecastW,
       forecastNextHourAvgW,
       classify,
+      estimateNextAvailable,
     };
   }, [entities]);
 }
