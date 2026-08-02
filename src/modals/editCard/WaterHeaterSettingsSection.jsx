@@ -14,6 +14,19 @@ const TextField = ({ label, value, onBlur, placeholder }) => (
   </div>
 );
 
+const NumberField = ({ label, value, placeholder, onChange }) => (
+  <div className="space-y-2">
+    <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">{label}</label>
+    <input
+      type="number"
+      value={value ?? ''}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
+      className="popup-surface w-full rounded-2xl px-4 py-3 text-[var(--text-primary)] outline-none"
+    />
+  </div>
+);
+
 export function WaterHeaterSettingsSection({ t, entities, editSettings, editSettingsKey, saveCardSetting }) {
   const persist = React.useCallback(
     (key, value) => {
@@ -46,6 +59,13 @@ export function WaterHeaterSettingsSection({ t, entities, editSettings, editSett
         t={t}
         maxOptions={150}
       />
+      <NumberField
+        label={t('waterHeater.boostThreshold')}
+        value={editSettings.boostThresholdW}
+        placeholder="2000"
+        onChange={(value) => persist('boostThresholdW', value)}
+      />
+      <p className="-mt-3 ml-1 text-[11px] text-[var(--text-muted)]">{t('waterHeater.boostThresholdHint')}</p>
     </div>
   );
 }

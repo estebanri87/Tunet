@@ -1,6 +1,33 @@
 import { memo, useState } from 'react';
 import { Donut } from '../charts/SensorGauge';
 import { Droplets } from '../../icons';
+import useSolarSurplusData from '../../hooks/useSolarSurplusData';
+
+/** Raw operation_mode values reported by the water_heater entity (e.g. myVaillant) -> i18n key. */
+const MODE_KEY_MAP = {
+  manual: 'manual',
+  'time controlled': 'timeControlled',
+  off: 'off',
+  'cylinder boost': 'cylinderBoost',
+};
+
+const BOOST_TIER_META = {
+  now: {
+    fg: 'var(--status-success-fg)',
+    bg: 'var(--status-success-bg)',
+    border: 'var(--status-success-border)',
+  },
+  soon: {
+    fg: 'var(--status-info-fg)',
+    bg: 'var(--status-info-bg)',
+    border: 'var(--status-info-border)',
+  },
+  wait: {
+    fg: 'var(--status-warning-fg)',
+    bg: 'var(--status-warning-bg)',
+    border: 'var(--status-warning-border)',
+  },
+};
 
 const WaterHeaterCard = memo(/** @param {any} props */ function WaterHeaterCard({
   cardId,
@@ -19,6 +46,7 @@ const WaterHeaterCard = memo(/** @param {any} props */ function WaterHeaterCard(
   const entityId = settings.entityId;
   const entity = entityId ? entities?.[entityId] : null;
   const [pendingTemp, setPendingTemp] = useState(null);
+  const surplus = useSolarSurplusData(entities);
 
   const name = customNames?.[cardId] || settings.heading || entity?.attributes?.friendly_name || cardId;
   const isDenseMobile = isMobile && settings.size !== 'small';
@@ -46,6 +74,20 @@ const WaterHeaterCard = memo(/** @param {any} props */ function WaterHeaterCard(
   const operationList = Array.isArray(attrs.operation_list) ? attrs.operation_list : [];
   const operationMode = attrs.operation_mode || entity.state;
 
+  const translateMode = (mode) => {
+    const key = MODE_KEY_MAP[mode?.toLowerCase?.().trim()];
+    return key ? translate(`waterHeater.mode.${key}`) : mode;
+  };
+
+  // Surplus-based boost recommendation: only relevant while the water
+  // heater isn't already boosting and a boost threshold is configured.
+  const boostModeValue = operationList.find((mode) => /boost/i.test(mode)) || null;
+  const isBoostActive = boostModeValue ? operationMode === boostModeValue : false;
+  const boostThresholdW = Number(settings.boostThresholdW) || 0;
+  const boostTier =
+    !isBoostActive && boostModeValue && boostThresholdW > 0 ? surplus.classify(boostThresholdW) : null;
+  const boostGapW = boostTier ? Math.max(0, boostThresholdW - surplus.availableSurplusW) : 0;
+
   const handleModeSelect = (mode) => {
     if (editMode || !entityId) return;
     callService?.('water_heater', 'set_operation_mode', { entity_id: entityId, operation_mode: mode });
@@ -66,20 +108,41 @@ const WaterHeaterCard = memo(/** @param {any} props */ function WaterHeaterCard(
     >
       {controls}
 
-      <div className="relative z-10 flex items-center gap-3">
-        <div
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:scale-110"
-          style={{
-            backgroundColor: 'color-mix(in srgb, #38bdf8 15%, transparent)',
-            color: '#38bdf8',
-          }}
-        >
-          <Droplets className="h-5 w-5" strokeWidth={1.5} />
+      <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:scale-110"
+            style={{
+              backgroundColor: 'color-mix(in srgb, #38bdf8 15%, transparent)',
+              color: '#38bdf8',
+            }}
+          >
+            <Droplets className="h-5 w-5" strokeWidth={1.5} />
+          </div>
+          <p className="truncate text-xs leading-none font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-70">
+            {name}
+          </p>
         </div>
-        <p className="truncate text-xs leading-none font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-70">
-          {name}
-        </p>
+
+        {boostTier && (
+          <span
+            className="shrink-0 rounded-full border px-3 py-1 text-[10px] font-bold tracking-widest uppercase"
+            style={{
+              color: BOOST_TIER_META[boostTier].fg,
+              backgroundColor: BOOST_TIER_META[boostTier].bg,
+              borderColor: BOOST_TIER_META[boostTier].border,
+            }}
+          >
+            {translate(`waterHeater.boostTier.${boostTier}`)}
+          </span>
+        )}
       </div>
+
+      {boostTier && boostTier !== 'now' && (
+        <p className="relative z-10 -mt-2 text-[11px] text-[var(--text-muted)]">
+          {translate('waterHeater.boostGap').replace('{watts}', String(Math.round(boostGapW)))}
+        </p>
+      )}
 
       <div className="relative z-10 flex items-center gap-4">
         <div className="relative shrink-0">
@@ -124,7 +187,7 @@ const WaterHeaterCard = memo(/** @param {any} props */ function WaterHeaterCard(
                   : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
               }`}
             >
-              {mode}
+              {translateMode(mode)}
             </button>
           ))}
         </div>
