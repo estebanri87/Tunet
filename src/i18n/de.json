@@ -1709,6 +1709,12 @@
   "solarAppliance.finishesAt": "fertig um {time} Uhr",
   "solarAppliance.remainingDuration": "noch {duration} Std",
   "solarAppliance.latestStartToday": "spätester empfohlener Start heute: {time} Uhr",
+  "solarAppliance.typicalDuration": "Typische Programmdauer (Min)",
+  "solarAppliance.typicalDurationHint": "Wird zusammen mit dem Sicherheitspuffer genutzt, um den spätesten sinnvollen Startzeitpunkt zu berechnen, damit das Programm vor dem erwarteten Absinken des Überschusses fertig wird.",
+  "solarAppliance.safetyMargin": "Sicherheitspuffer (Min)",
+  "solarAppliance.safetyMarginHint": "Zusätzlicher Puffer, der vom berechneten Ende abgezogen wird, um Prognoseunsicherheit abzufangen.",
+  "solarAppliance.surplusHoldsUntil": "Überschuss reicht laut Vorhersage voraussichtlich bis {time} Uhr (Programmdauer oben eintragen für eine Start-Empfehlung)",
+  "solarAppliance.startNowRisky": "Bei Start jetzt reicht der Überschuss laut Vorhersage evtl. nicht bis Programmende",
   "welcome.subtitle": "Füge deine erste Karte hinzu",
   "welcome.title": "Willkommen"
 }

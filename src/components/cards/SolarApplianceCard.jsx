@@ -110,7 +110,16 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
   const translate = t || ((key) => key);
   const surplus = useSolarSurplusData(entities, conn);
 
-  const { switchEntityId, powerEntityId, programEntityId, remainingTimeEntityId, typicalWattage, icon } = settings;
+  const {
+    switchEntityId,
+    powerEntityId,
+    programEntityId,
+    remainingTimeEntityId,
+    typicalWattage,
+    typicalDurationMinutes,
+    safetyMarginMinutes,
+    icon,
+  } = settings;
   const switchEntity = switchEntityId ? entities?.[switchEntityId] : null;
   const powerEntity = powerEntityId ? entities?.[powerEntityId] : null;
   const programEntity = programEntityId ? entities?.[programEntityId] : null;
@@ -139,7 +148,24 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
   const tierMeta = TIER_META[tier];
   const gapW = Math.max(0, wattage - surplus.availableSurplusW);
   const eta = tier !== 'now' && wattage > 0 ? surplus.estimateNextAvailable(wattage) : null;
-  const latestStart = tier === 'now' && wattage > 0 ? surplus.estimateLatestStartToday(wattage) : null;
+
+  // "Jetzt" only means enough surplus exists right now -- it says nothing
+  // about whether that surplus will still be there once the program has
+  // actually run its course. surplusHoldsUntil is when the forecast expects
+  // surplus to drop back below what this appliance needs; subtracting the
+  // appliance's own typical runtime (+ a safety margin) turns that into an
+  // actual "start by" recommendation. Without a configured duration there's
+  // no way to know if today's runway is long enough, so the render below
+  // falls back to a plain "holds until" notice instead of implying a false
+  // guarantee.
+  const durationMinutes = Number(typicalDurationMinutes) || 0;
+  const marginMinutes = Number(safetyMarginMinutes) || 0;
+  const surplusHoldsUntil = tier === 'now' && wattage > 0 ? surplus.estimateSurplusHoldsUntil(wattage) : null;
+  const latestStart =
+    surplusHoldsUntil && durationMinutes > 0
+      ? new Date(surplusHoldsUntil.getTime() - (durationMinutes + marginMinutes) * 60000)
+      : null;
+  const latestStartHasPassed = latestStart ? latestStart.getTime() <= Date.now() : false;
   const isOn = switchEntity?.state === 'on';
   const isDenseMobile = isMobile && settings.size !== 'small';
 
@@ -207,11 +233,24 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
         {eta?.status === 'none' && (
           <p className="text-[11px] text-[var(--text-muted)]">{translate('solarAppliance.etaNone')}</p>
         )}
-        {latestStart && (
+        {latestStart && !latestStartHasPassed && (
           <p className="text-[11px] text-[var(--text-muted)]">
             {translate('solarAppliance.latestStartToday').replace(
               '{time}',
               latestStart.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+            )}
+          </p>
+        )}
+        {latestStart && latestStartHasPassed && (
+          <p className="text-[11px]" style={{ color: 'var(--status-warning-fg)' }}>
+            {translate('solarAppliance.startNowRisky')}
+          </p>
+        )}
+        {surplusHoldsUntil && durationMinutes <= 0 && (
+          <p className="text-[11px] text-[var(--text-muted)]">
+            {translate('solarAppliance.surplusHoldsUntil').replace(
+              '{time}',
+              surplusHoldsUntil.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
             )}
           </p>
         )}

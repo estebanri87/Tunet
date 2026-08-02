@@ -1709,6 +1709,12 @@
   "solarAppliance.finishesAt": "finishes at {time}",
   "solarAppliance.remainingDuration": "{duration} h remaining",
   "solarAppliance.latestStartToday": "recommended start by {time} at the latest today",
+  "solarAppliance.typicalDuration": "Typical program duration (min)",
+  "solarAppliance.typicalDurationHint": "Used together with the safety margin to compute the latest sensible start time so the program finishes before surplus is expected to drop.",
+  "solarAppliance.safetyMargin": "Safety margin (min)",
+  "solarAppliance.safetyMarginHint": "Extra buffer subtracted from the computed end time, to cover forecast uncertainty.",
+  "solarAppliance.surplusHoldsUntil": "surplus expected to last until {time} (set a program duration above for a start-by recommendation)",
+  "solarAppliance.startNowRisky": "starting now may not leave enough surplus to finish the program",
   "welcome.subtitle": "Add your first card",
   "welcome.title": "Welcome"
 }

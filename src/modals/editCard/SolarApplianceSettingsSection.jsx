@@ -143,6 +143,22 @@ export function SolarApplianceSettingsSection({
         onChange={(value) => persist('typicalWattage', value)}
       />
       <p className="-mt-3 ml-1 text-[11px] text-[var(--text-muted)]">{t('solarAppliance.typicalWattageHint')}</p>
+
+      <NumberField
+        label={t('solarAppliance.typicalDuration')}
+        value={editSettings.typicalDurationMinutes}
+        placeholder="150"
+        onChange={(value) => persist('typicalDurationMinutes', value)}
+      />
+      <p className="-mt-3 ml-1 text-[11px] text-[var(--text-muted)]">{t('solarAppliance.typicalDurationHint')}</p>
+
+      <NumberField
+        label={t('solarAppliance.safetyMargin')}
+        value={editSettings.safetyMarginMinutes}
+        placeholder="30"
+        onChange={(value) => persist('safetyMarginMinutes', value)}
+      />
+      <p className="-mt-3 ml-1 text-[11px] text-[var(--text-muted)]">{t('solarAppliance.safetyMarginHint')}</p>
     </div>
   );
 }

@@ -168,10 +168,13 @@ export default function useSolarSurplusData(entities, conn) {
 
     // For an appliance that already fits ("now"), scans the remaining hours
     // of today for the first one predicted to drop back below
-    // `typicalWattage`, so a card can show the latest sensible time to still
-    // start today. Returns null if it's not tier "now", there's no forecast
-    // to check, or the surplus is predicted to hold for the rest of today.
-    const estimateLatestStartToday = (typicalWattage) => {
+    // `typicalWattage` -- i.e. the point until which the forecast expects
+    // surplus to hold. This is NOT a "start by" recommendation on its own:
+    // the caller still needs to subtract the appliance's own program
+    // duration (+ a safety margin) to know the actual latest sensible start
+    // time. Returns null if it's not tier "now", there's no forecast to
+    // check, or the surplus is predicted to hold for the rest of today.
+    const estimateSurplusHoldsUntil = (typicalWattage) => {
       const watts = Number(typicalWattage);
       if (!Number.isFinite(watts) || watts <= 0) return null;
       if (availableSurplusW < watts) return null;
@@ -195,7 +198,7 @@ export default function useSolarSurplusData(entities, conn) {
       forecastNextHourAvgW,
       classify,
       estimateNextAvailable,
-      estimateLatestStartToday,
+      estimateSurplusHoldsUntil,
     };
   }, [entities, historicalPvPerIrradiance]);
 }

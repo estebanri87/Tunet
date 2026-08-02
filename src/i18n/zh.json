@@ -1610,6 +1610,12 @@
   "solarAppliance.finishesAt": "{time} 完成",
   "solarAppliance.remainingDuration": "还剩 {duration} 小时",
   "solarAppliance.latestStartToday": "建议今天最晚 {time} 前启动",
+  "solarAppliance.typicalDuration": "典型程序时长(分钟)",
+  "solarAppliance.typicalDurationHint": "与安全余量一起用于计算最晚合理启动时间，以便程序在预计盈余下降前完成。",
+  "solarAppliance.safetyMargin": "安全余量(分钟)",
+  "solarAppliance.safetyMarginHint": "从计算出的结束时间中扣除的额外余量，用于应对预测的不确定性。",
+  "solarAppliance.surplusHoldsUntil": "预计盈余可持续到 {time}(请在上方填写程序时长以获得启动建议)",
+  "solarAppliance.startNowRisky": "现在启动可能没有足够的盈余完成整个程序",
   "welcome.subtitle": "添加您的第一张卡",
   "welcome.title": "欢迎"
 }

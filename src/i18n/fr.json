@@ -1709,6 +1709,12 @@
   "solarAppliance.finishesAt": "terminé à {time}",
   "solarAppliance.remainingDuration": "{duration} h restantes",
   "solarAppliance.latestStartToday": "démarrage recommandé au plus tard à {time} aujourd'hui",
+  "solarAppliance.typicalDuration": "Durée typique du programme (min)",
+  "solarAppliance.typicalDurationHint": "Utilisé avec la marge de sécurité pour calculer l'heure limite de démarrage, afin que le programme se termine avant la baisse prévue du surplus.",
+  "solarAppliance.safetyMargin": "Marge de sécurité (min)",
+  "solarAppliance.safetyMarginHint": "Marge supplémentaire soustraite de l'heure de fin calculée, pour couvrir l'incertitude de la prévision.",
+  "solarAppliance.surplusHoldsUntil": "surplus suffisant prévu jusqu'à {time} (indiquez une durée de programme ci-dessus pour une recommandation de démarrage)",
+  "solarAppliance.startNowRisky": "démarrer maintenant pourrait ne pas laisser assez de surplus pour terminer le programme",
   "welcome.subtitle": "Ajoutez votre première carte",
   "welcome.title": "Bienvenue"
 }

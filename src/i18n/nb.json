@@ -1709,6 +1709,12 @@
   "solarAppliance.finishesAt": "ferdig kl. {time}",
   "solarAppliance.remainingDuration": "{duration} t igjen",
   "solarAppliance.latestStartToday": "anbefalt start senest kl. {time} i dag",
+  "solarAppliance.typicalDuration": "Typisk programvarighet (min)",
+  "solarAppliance.typicalDurationHint": "Brukes sammen med sikkerhetsmarginen til å beregne siste fornuftige starttidspunkt, slik at programmet blir ferdig før overskuddet forventes å synke.",
+  "solarAppliance.safetyMargin": "Sikkerhetsmargin (min)",
+  "solarAppliance.safetyMarginHint": "Ekstra margin som trekkes fra det beregnede sluttidspunktet, for å dekke usikkerhet i prognosen.",
+  "solarAppliance.surplusHoldsUntil": "overskudd forventes å vare til kl. {time} (angi programvarighet ovenfor for en startanbefaling)",
+  "solarAppliance.startNowRisky": "å starte nå gir kanskje ikke nok overskudd til å fullføre programmet",
   "welcome.subtitle": "Legg til ditt første kort",
   "welcome.title": "Velkommen"
 }
