@@ -73,6 +73,11 @@ export function onEntitiesUpdate(callback) {
   return () => entitySubscribers.delete(callback);
 }
 
+/** Diagnostic-only: number of still-registered entity subscribers. */
+export function getEntitySubscriberCount() {
+  return entitySubscribers.size;
+}
+
 /** Forwards an arbitrary Home Assistant websocket message (service calls,
  * history/statistics queries, registry lookups, return_response calls,
  * media browsing, ...) and resolves with HA's response. One relay

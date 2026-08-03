@@ -10,7 +10,13 @@ import iconsRouter from './routes/icons.js';
 import settingsRouter from './routes/settings.js';
 import ingressIdentityRouter from './routes/ingressIdentity.js';
 import { createHomeAssistantAuthMiddleware, getTrustedSupervisorUser } from './haAuth.js';
-import { getHaRelayConnection, getLatestEntities, onEntitiesUpdate, forwardMessage } from './haRelay.js';
+import {
+  getHaRelayConnection,
+  getLatestEntities,
+  onEntitiesUpdate,
+  forwardMessage,
+  getEntitySubscriberCount,
+} from './haRelay.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3002', 10);
@@ -252,6 +258,10 @@ function handleRelayClient(ws) {
     });
 
   const unsubscribe = onEntitiesUpdate(sendEntities);
+  ws.isAlive = true;
+  ws.on('pong', () => {
+    ws.isAlive = true;
+  });
 
   ws.on('message', (raw) => {
     let message;
@@ -275,6 +285,10 @@ function handleRelayClient(ws) {
           );
         }
       });
+  });
+
+  ws.on('error', (err) => {
+    console.warn('[ha-relay] client socket error:', err?.message || err);
   });
 
   ws.on('close', unsubscribe);
@@ -313,6 +327,45 @@ if (isMainModule) {
       handleRelayClient(ws);
     });
   });
+
+  // Kiosk/mobile clients routinely vanish without a clean WebSocket close
+  // (sleep, dropped Wi-Fi, hard page reload) -- without this, such a client's
+  // entity-update subscriber (server/haRelay.js) is never unsubscribed and
+  // accumulates on every reconnect, since a dead TCP socket alone doesn't
+  // fire 'close'. Pinging and terminating unresponsive sockets forces that
+  // cleanup to happen promptly instead of relying on an OS-level timeout.
+  const RELAY_HEARTBEAT_INTERVAL_MS = 30_000;
+  const relayHeartbeat = setInterval(() => {
+    for (const ws of wss.clients) {
+      if (ws.isAlive === false) {
+        ws.terminate();
+        continue;
+      }
+      ws.isAlive = false;
+      ws.ping();
+    }
+  }, RELAY_HEARTBEAT_INTERVAL_MS);
+  relayHeartbeat.unref();
+
+  // Temporary diagnostics for tracking down a heap-growth crash-loop --
+  // remove once the cause is confirmed fixed. Logs process memory alongside
+  // the size of the shared entity snapshot and how many relay clients are
+  // currently subscribed to it, so a runaway subscriber leak (or a genuinely
+  // huge entity snapshot) shows up directly in the addon log before a crash.
+  const diagnosticsTimer = setInterval(() => {
+    const mem = process.memoryUsage();
+    const toMb = (bytes) => Math.round(bytes / 1024 / 1024);
+    let entitiesSizeMb = 'n/a';
+    try {
+      entitiesSizeMb = toMb(Buffer.byteLength(JSON.stringify(getLatestEntities())));
+    } catch {
+      // ignore serialization errors in diagnostics
+    }
+    console.log(
+      `[diagnostics] rss=${toMb(mem.rss)}MB heapUsed=${toMb(mem.heapUsed)}MB heapTotal=${toMb(mem.heapTotal)}MB external=${toMb(mem.external)}MB arrayBuffers=${toMb(mem.arrayBuffers)}MB wsClients=${wss.clients.size} entitySubscribers=${getEntitySubscriberCount()} entitiesSnapshot=${entitiesSizeMb}MB`
+    );
+  }, 15_000);
+  diagnosticsTimer.unref();
 
   server.listen(PORT, '0.0.0.0', () => {
     console.log(
