@@ -70,6 +70,7 @@ export function SolarSystemSettingsSection({ t, entities, editSettings, editSett
         {picker('batteryPowerId', t('solarSystem.batteryPower'))}
         {picker('batteryModeId', t('solarSystem.batteryMode'))}
         {picker('batterySocId', t('solarSystem.batterySoc'))}
+        {picker('batteryCapacityId', t('solarSystem.batteryCapacity'))}
       </div>
 
       <div className="space-y-3 border-t border-[var(--glass-border)] pt-4">

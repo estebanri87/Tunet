@@ -30,6 +30,12 @@ const translateBatteryMode = (mode, translate) => {
   return key ? translate(`solarSystem.batteryMode.${key}`) : mode;
 };
 
+/** Formats a number of hours as "H:MM". */
+const formatDuration = (hours) => {
+  const totalMinutes = Math.round(hours * 60);
+  return `${Math.floor(totalMinutes / 60)}:${String(totalMinutes % 60).padStart(2, '0')}`;
+};
+
 const Stat = ({ label, value, hint }) => (
   <div>
     <p className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase opacity-70">
@@ -61,6 +67,7 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
     batteryPowerId,
     batteryModeId,
     batterySocId,
+    batteryCapacityId,
     gridPowerId,
     todayProductionId,
     lifetimeProductionId,
@@ -74,6 +81,14 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
   const batteryPower = getNumericState(entities?.[batteryPowerId]);
   const batteryMode = entities?.[batteryModeId]?.state ?? null;
   const batterySoc = getNumericState(entities?.[batterySocId]);
+  const batteryCapacity = getNumericState(entities?.[batteryCapacityId]);
+  // Rough, momentary estimate -- how long the current discharge rate could
+  // continue given what's left in the battery. Only meaningful while
+  // actively discharging; charging/standby/etc. have no "runtime" to report.
+  const batteryRuntimeHours =
+    batteryMode?.toLowerCase?.() === 'discharge' && batteryPower > 0 && batteryCapacity !== null
+      ? batteryCapacity / (batteryPower / 1000)
+      : null;
   const gridPower = getNumericState(entities?.[gridPowerId]);
   const todayProduction = getNumericState(entities?.[todayProductionId]);
   const lifetimeProduction = getNumericState(entities?.[lifetimeProductionId]);
@@ -173,6 +188,18 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
               <p className="text-[11px] text-[var(--text-muted)]">
                 {translateBatteryMode(batteryMode, translate)}{' '}
                 {batteryPower !== null ? `· ${formatWatts(batteryPower)}` : ''}
+              </p>
+            )}
+            {batteryCapacityId && (
+              <p className="text-[11px] text-[var(--text-muted)]">
+                {batteryCapacity !== null
+                  ? `${formatKwh(batteryCapacity)} ${translate('solarSystem.batteryRemaining')}`
+                  : '--'}
+              </p>
+            )}
+            {batteryRuntimeHours !== null && (
+              <p className="text-[11px] text-[var(--text-muted)]">
+                {translate('solarSystem.batteryRuntime').replace('{duration}', formatDuration(batteryRuntimeHours))}
               </p>
             )}
           </div>
