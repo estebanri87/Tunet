@@ -544,6 +544,7 @@
   "header.styleClassic": "Classique",
   "header.titleLabel": "Titre de la page",
   "header.titlePlaceholder": "Modifier le titre de l'en-tête",
+  "header.titleScale": "Taille du titre",
   "header.variantGlass": "Verre",
   "header.variantOutline": "Contour",
   "header.variantSolid": "Plein",

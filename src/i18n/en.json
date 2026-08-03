@@ -544,6 +544,7 @@
   "header.styleClassic": "Classic",
   "header.titleLabel": "Page title",
   "header.titlePlaceholder": "Edit header title",
+  "header.titleScale": "Title size",
   "header.variantGlass": "Glass",
   "header.variantOutline": "Outline",
   "header.variantSolid": "Solid",

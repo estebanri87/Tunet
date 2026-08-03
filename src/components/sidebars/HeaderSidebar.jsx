@@ -181,6 +181,7 @@ export default function HeaderSidebar({
   const fontStyle = setting('fontStyle', 'normal');
   const clockScale = setting('clockScale', 1.0);
   const dateScale = setting('dateScale', 1.0);
+  const titleScale = setting('titleScale', 1.0);
 
   return (
     <SidebarContainer open={open} onClose={onClose} title={t('system.tabHeader')} icon={Type}>
@@ -452,6 +453,34 @@ export default function HeaderSidebar({
               }))}
               value={letterSpacing}
               onChange={(v) => update('letterSpacing', v)}
+            />
+          </div>
+
+          {/* Title Scale */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span
+                className="text-[11px] font-bold tracking-wider uppercase"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                {t('header.titleScale')}
+              </span>
+              <div className="flex items-center gap-2">
+                <span
+                  className="font-mono text-[11px] tabular-nums"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {(titleScale * 100).toFixed(0)}%
+                </span>
+                {titleScale !== 1 && <ResetButton onClick={() => update('titleScale', 1)} t={t} />}
+              </div>
+            </div>
+            <M3Slider
+              min={0.5}
+              max={2.0}
+              step={0.1}
+              value={titleScale}
+              onChange={(e) => update('titleScale', parseFloat(e.target.value))}
             />
           </div>
 

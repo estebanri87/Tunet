@@ -74,6 +74,7 @@ export default function Header({
   const is12h = clockFormat === '12h';
   const clockScale = headerSettings?.clockScale ?? 1.0;
   const dateScale = headerSettings?.dateScale ?? 1.0;
+  const titleScale = headerSettings?.titleScale ?? 1.0;
   const locale = getLocaleForLanguage(language);
 
   /** @type {Intl.DateTimeFormatOptions} */
@@ -84,7 +85,7 @@ export default function Header({
   const timeStr = now.toLocaleTimeString(locale, timeOptions);
   const headingFontSize = `calc(${
     isMobile ? 'clamp(2.75rem, 14vw, 3.75rem)' : 'clamp(3rem, 5vw, 3.75rem)'
-  } * ${headerScale})`;
+  } * ${headerScale} * ${titleScale})`;
   const clockFontSize = `calc(${
     isMobile ? 'clamp(2.4rem, 12vw, 3.25rem)' : 'clamp(3rem, 5vw, 3.75rem)'
   } * ${headerScale} * ${clockScale})`;
