@@ -941,10 +941,13 @@ export default function App() {
     });
   }, [config.authMethod, config.url, isOAuthCallback, oauthTokenRevision, showOnboarding]);
 
-  // During onboarding, block token connections but ALLOW OAuth (including callbacks)
+  // During onboarding, block token connections but ALLOW OAuth (including
+  // callbacks) and the Ingress relay (which has no token to block anyway,
+  // and must be allowed to connect in the background so onboarding can
+  // auto-close the moment it does).
   const haConfig = showOnboarding
-    ? config.authMethod === 'oauth'
-      ? config // OAuth: pass config through so callback can be processed
+    ? config.authMethod === 'oauth' || config.authMethod === 'relay'
+      ? config // OAuth/relay: pass config through so it can connect/process a callback
       : { ...config, token: '' } // Token: block until onboarding finishes
     : config;
 

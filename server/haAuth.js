@@ -72,7 +72,7 @@ const isTrustedIngressRequest = (req) => {
   return TRUSTED_INGRESS_IPS.has(remoteAddress);
 };
 
-const getTrustedSupervisorUser = (req) => {
+export const getTrustedSupervisorUser = (req) => {
   if (!isTrustedIngressRequest(req)) return null;
 
   const userId = req.get('x-remote-user-id');

@@ -1,12 +1,16 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join, dirname, extname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import profilesRouter from './routes/profiles.js';
 import iconsRouter from './routes/icons.js';
 import settingsRouter from './routes/settings.js';
-import { createHomeAssistantAuthMiddleware } from './haAuth.js';
+import ingressIdentityRouter from './routes/ingressIdentity.js';
+import { createHomeAssistantAuthMiddleware, getTrustedSupervisorUser } from './haAuth.js';
+import { getHaRelayConnection, getLatestEntities, onEntitiesUpdate, forwardMessage } from './haRelay.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3002', 10);
@@ -94,6 +98,7 @@ export const createApp = ({
   app.use('/api/profiles', homeAssistantAuth, profilesRouter);
   app.use('/api/icons', iconsRouter);
   app.use('/api/settings', homeAssistantAuth, settingsRouter);
+  app.use('/api/ingress-identity', ingressIdentityRouter);
 
   // Health check
   app.get('/api/health', (_req, res) => {
@@ -206,8 +211,102 @@ export const createApp = ({
 const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 const app = createApp();
 
+/**
+ * Relays a single browser client over the WS-relay upgrade: sends the
+ * current entity snapshot immediately, keeps it updated, and forwards any
+ * `{type: 'forward', id, payload}` message to the real Home Assistant
+ * connection, replying with the same id so the frontend can correlate
+ * request/response.
+ */
+function handleRelayClient(ws) {
+  const sendEntities = (entities) => {
+    if (ws.readyState !== ws.OPEN) return;
+    try {
+      ws.send(JSON.stringify({ type: 'entities', data: entities }));
+    } catch (err) {
+      console.warn('[ha-relay] failed to send entity snapshot:', err);
+    }
+  };
+
+  getHaRelayConnection()
+    .then(() => sendEntities(getLatestEntities()))
+    .catch((err) => {
+      console.error('[ha-relay] failed to establish Home Assistant connection:', err);
+      if (ws.readyState === ws.OPEN) {
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            id: null,
+            error: 'Relay could not reach Home Assistant.',
+          })
+        );
+      }
+    });
+
+  const unsubscribe = onEntitiesUpdate(sendEntities);
+
+  ws.on('message', (raw) => {
+    let message;
+    try {
+      message = JSON.parse(raw.toString());
+    } catch {
+      return;
+    }
+    if (message?.type !== 'forward' || message.id === undefined) return;
+
+    forwardMessage(message.payload)
+      .then((result) => {
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({ type: 'response', id: message.id, result }));
+        }
+      })
+      .catch((err) => {
+        if (ws.readyState === ws.OPEN) {
+          ws.send(
+            JSON.stringify({ type: 'error', id: message.id, error: err?.message || String(err) })
+          );
+        }
+      });
+  });
+
+  ws.on('close', unsubscribe);
+}
+
 if (isMainModule) {
-  app.listen(PORT, '0.0.0.0', () => {
+  const server = createServer(app);
+  const wss = new WebSocketServer({ noServer: true });
+
+  // WS-relay upgrade -- mirrors the Express ingress-path-strip middleware
+  // above, since upgrade requests never pass through Express middleware.
+  server.on('upgrade', (req, socket, head) => {
+    const ingressPath = req.headers['x-ingress-path'];
+    let url = req.url;
+    if (ingressPath && url.startsWith(ingressPath)) {
+      url = url.slice(ingressPath.length) || '/';
+    }
+
+    if (url !== '/api/ws-relay') {
+      socket.destroy();
+      return;
+    }
+
+    const reqLike = {
+      get: (name) => req.headers[name.toLowerCase()],
+      socket: req.socket,
+      connection: req.socket,
+    };
+    if (!getTrustedSupervisorUser(reqLike)) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      handleRelayClient(ws);
+    });
+  });
+
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(
       `[server] Nyx backend running on port ${PORT} (${process.env.NODE_ENV === 'production' ? 'production' : 'development'})`
     );

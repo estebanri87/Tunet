@@ -20,6 +20,13 @@ export const getStoredAuthMethod = () => {
 
 const isOAuthAuthMethod = () => getStoredAuthMethod() === 'oauth';
 
+// Relay mode (trusted Supervisor Ingress, see ConfigContext.jsx) has no
+// personal URL/token at all -- the backend authenticates every request via
+// Supervisor-injected headers on the raw HTTP request itself, regardless of
+// what the frontend sends. Request-header validation below must not throw
+// for "missing" credentials that were never meant to exist in this mode.
+const isRelayAuthMethod = () => getStoredAuthMethod() === 'relay';
+
 const getOAuthAuth = () => oauthAuthProvider?.current ?? detachedOAuthAuth ?? null;
 
 const getStoredToken = () => {
@@ -268,12 +275,15 @@ export async function getHomeAssistantRequestHeadersAsync({ forceRefreshOAuth = 
 }
 
 export function hasHomeAssistantRequestAuth() {
+  if (isRelayAuthMethod()) return true;
   const headers = getHomeAssistantRequestHeaders();
   return Boolean(headers['x-ha-url'] && headers.Authorization);
 }
 
 export function getValidatedHomeAssistantRequestHeaders() {
   const headers = getHomeAssistantRequestHeaders();
+
+  if (isRelayAuthMethod()) return headers;
 
   if (!headers['x-ha-url']) {
     throw notifyHomeAssistantApiUnauthorized('Missing Home Assistant URL');
@@ -288,6 +298,8 @@ export function getValidatedHomeAssistantRequestHeaders() {
 
 export async function getValidatedHomeAssistantRequestHeadersAsync(options = {}) {
   const headers = await getHomeAssistantRequestHeadersAsync(options);
+
+  if (isRelayAuthMethod()) return headers;
 
   if (!headers['x-ha-url']) {
     throw notifyHomeAssistantApiUnauthorized('Missing Home Assistant URL');

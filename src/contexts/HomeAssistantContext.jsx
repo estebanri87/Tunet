@@ -16,6 +16,7 @@ import {
 import { saveTokens, loadTokens, clearOAuthTokens, hasOAuthTokens } from '../services/oauthStorage';
 import { HOME_ASSISTANT_API_UNAUTHORIZED_EVENT, setOAuthAuthProvider } from '../services/apiAuth';
 import { getDeviceRegistry, getEntityRegistry } from '../services/haClient';
+import { createRelayConnection } from '../services/haRelayConnection';
 import { buildRegistryLookupMap, enrichEntitiesWithRegistryMetadata, isEntityDataStale } from '../utils';
 
 /** @typedef {import('../types/dashboard').EntityMap} EntityMap */
@@ -203,6 +204,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
 
   // Connect to Home Assistant
   useEffect(() => {
+    const isRelay = config.authMethod === 'relay';
     const isOAuth = config.authMethod === 'oauth';
     const hasToken = !!config.token;
     const hasOAuth = hasOAuthTokens();
@@ -219,23 +221,27 @@ export const HomeAssistantProvider = ({ children, config }) => {
       return;
     }
 
-    // For token mode, require token
-    if (!isOAuth && !hasToken) {
-      cleanupConnection();
-      setConnected(false);
-      setEntityDataStale(false);
-      setDisconnectedSince(null);
-      setLastEntityUpdateAt(0);
-      return;
-    }
-    // For oauth mode, require stored tokens OR an active callback in the URL
-    if (isOAuth && !hasOAuth && !isOAuthCallback && !config.isIngress) {
-      cleanupConnection();
-      setConnected(false);
-      setEntityDataStale(false);
-      setDisconnectedSince(null);
-      setLastEntityUpdateAt(0);
-      return;
+    // Relay mode (trusted Supervisor Ingress) needs neither a personal token
+    // nor stored OAuth tokens -- the backend authenticates on its own.
+    if (!isRelay) {
+      // For token mode, require token
+      if (!isOAuth && !hasToken) {
+        cleanupConnection();
+        setConnected(false);
+        setEntityDataStale(false);
+        setDisconnectedSince(null);
+        setLastEntityUpdateAt(0);
+        return;
+      }
+      // For oauth mode, require stored tokens OR an active callback in the URL
+      if (isOAuth && !hasOAuth && !isOAuthCallback && !config.isIngress) {
+        cleanupConnection();
+        setConnected(false);
+        setEntityDataStale(false);
+        setDisconnectedSince(null);
+        setLastEntityUpdateAt(0);
+        return;
+      }
     }
 
     const attemptId = connectAttemptRef.current + 1;
@@ -443,9 +449,43 @@ export const HomeAssistantProvider = ({ children, config }) => {
       return connInstance;
     }
 
+    async function connectWithRelay() {
+      const connInstance = await createRelayConnection();
+      if (!isCurrentAttempt()) {
+        connInstance.close();
+        return null;
+      }
+      connection = connInstance;
+      connectionRef.current = connInstance;
+      authRef.current = null;
+      setConn(connInstance);
+      setConnected(true);
+      setHaUnavailable(false);
+      setDisconnectedSince(null);
+      // Ingress-embedded pages share Home Assistant Core's own origin, so
+      // camera/media REST URLs (which read activeUrl directly, bypassing
+      // the relay entirely) resolve correctly without any relay involvement.
+      setActiveUrl(globalThis.window.location.origin);
+      fetchHaConfig(connInstance);
+      fetchCurrentUser(connInstance);
+      fetchRegistryMetadata(connInstance);
+      const unsub = connInstance.onEntities((updatedEntities) => {
+        if (isCurrentAttempt()) {
+          pushEntitySnapshot(updatedEntities);
+          setEntitiesLoaded(true);
+          setLastEntityUpdateAt(Date.now());
+          setEntityDataStale(false);
+        }
+      });
+      unsubscribeEntitiesRef.current = typeof unsub === 'function' ? unsub : null;
+      return connInstance;
+    }
+
     async function connect() {
       try {
-        if (isOAuth) {
+        if (isRelay) {
+          await connectWithRelay();
+        } else if (isOAuth) {
           await connectWithOAuth(config.url);
         } else {
           await connectWithToken(config.url);
@@ -473,7 +513,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
         }
 
         // Try fallback URL (token mode only)
-        if (!isOAuth && config.fallbackUrl) {
+        if (!isOAuth && !isRelay && config.fallbackUrl) {
           try {
             await connectWithToken(config.fallbackUrl);
             return;

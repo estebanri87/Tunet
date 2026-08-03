@@ -265,6 +265,42 @@ export const ConfigProvider = ({ children }) => {
     return { url: '', fallbackUrl: '', token: '', authMethod: 'oauth' };
   });
 
+  // Detect trusted Supervisor Ingress access and switch to the zero-config
+  // backend relay -- OAuth cannot complete under Ingress (Home Assistant's
+  // own auth server rejects Ingress redirect URIs) and this avoids needing
+  // a personal Long-Lived Access Token on every new device. Reuses the same
+  // server-side trust check already used for /api/profiles and /api/settings,
+  // rather than guessing from the URL shape (which has changed across HA
+  // versions). A non-ingress "not trusted" response leaves token/oauth
+  // config exactly as loaded above.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('./api/ingress-identity')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.trusted) return;
+        try {
+          // apiAuth.js reads this synchronously (it isn't React-aware) to
+          // decide whether /api/profiles and /api/settings calls need a
+          // URL/token at all.
+          localStorage.setItem('ha_auth_method', 'relay');
+        } catch {
+          /* ignore storage errors */
+        }
+        setConfig((prev) =>
+          prev.authMethod === 'relay'
+            ? prev
+            : { ...prev, authMethod: 'relay', isIngress: true, url: prev.url || globalThis.window.location.origin }
+        );
+      })
+      .catch(() => {
+        /* not running behind the Nyx backend (e.g. plain Vite dev server against a remote HA) -- ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Apply theme to DOM
   useEffect(() => {
     const themeKey = themes[currentTheme] ? currentTheme : 'dark';

@@ -29,9 +29,13 @@ export function useConnectionSetup({
   const [connectionTestResult, setConnectionTestResult] = useState(null);
   const [configTab, setConfigTab] = useState('connection');
 
-  // ── Auto-close onboarding when OAuth connects ──────────────────────────
+  // ── Auto-close onboarding when OAuth or the Ingress relay connects ─────
   useEffect(() => {
-    if (connected && config.authMethod === 'oauth' && showOnboarding) {
+    if (
+      connected &&
+      (config.authMethod === 'oauth' || config.authMethod === 'relay') &&
+      showOnboarding
+    ) {
       setShowOnboarding(false);
       setShowConfigModal(false);
     }
@@ -46,7 +50,13 @@ export function useConnectionSetup({
       new URLSearchParams(window.location.search).has('auth_callback');
     if (isOAuthCallback) return;
 
-    const hasAuth = config.token || (config.authMethod === 'oauth' && hasOAuthTokens());
+    // Relay mode (trusted Supervisor Ingress) has no personal token/OAuth
+    // tokens by design -- it's never "missing auth" the way the other two
+    // modes are.
+    const hasAuth =
+      config.token ||
+      (config.authMethod === 'oauth' && hasOAuthTokens()) ||
+      config.authMethod === 'relay';
     if (!hasAuth && !showOnboarding && !showConfigModal) {
       setShowOnboarding(true);
       setOnboardingStep(0);
