@@ -2,9 +2,9 @@ name: Version Sync
 
 on:
   push:
-    branches: [main]
+    branches: [v1]
   pull_request:
-    branches: [main]
+    branches: [v1]
 
 permissions:
   contents: read
