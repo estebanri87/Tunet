@@ -1707,6 +1707,7 @@
   "solarAppliance.typicalWattageHint": "Used only until real consumption history is available for the power sensor above.",
   "solarAppliance.turnOn": "Turn on",
   "solarAppliance.turnOff": "Turn off",
+  "solarAppliance.tier.active": "Active",
   "solarAppliance.tier.now": "Now",
   "solarAppliance.tier.soon": "Soon",
   "solarAppliance.tier.wait": "Wait",

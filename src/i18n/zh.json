@@ -1608,6 +1608,7 @@
   "solarAppliance.typicalWattageHint": "仅在上方功率传感器尚无历史数据时使用。",
   "solarAppliance.turnOn": "打开",
   "solarAppliance.turnOff": "关闭",
+  "solarAppliance.tier.active": "运行中",
   "solarAppliance.tier.now": "现在",
   "solarAppliance.tier.soon": "稍后",
   "solarAppliance.tier.wait": "等待",

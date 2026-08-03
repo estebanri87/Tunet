@@ -1707,6 +1707,7 @@
   "solarAppliance.typicalWattageHint": "Utilisé uniquement tant qu'aucun historique de consommation n'est disponible pour le capteur ci-dessus.",
   "solarAppliance.turnOn": "Allumer",
   "solarAppliance.turnOff": "Éteindre",
+  "solarAppliance.tier.active": "Actif",
   "solarAppliance.tier.now": "Maintenant",
   "solarAppliance.tier.soon": "Bientôt",
   "solarAppliance.tier.wait": "Attendre",

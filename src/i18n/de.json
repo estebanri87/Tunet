@@ -1707,6 +1707,7 @@
   "solarAppliance.typicalWattageHint": "Wird nur verwendet, solange für den obigen Leistungssensor noch keine Verlaufsdaten vorliegen.",
   "solarAppliance.turnOn": "Einschalten",
   "solarAppliance.turnOff": "Ausschalten",
+  "solarAppliance.tier.active": "Aktiv",
   "solarAppliance.tier.now": "Jetzt",
   "solarAppliance.tier.soon": "Bald",
   "solarAppliance.tier.wait": "Warten",

@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import Database from 'better-sqlite3';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const OPEN = 1;
@@ -14,6 +15,14 @@ const createMockWs = () => ({
 
 const flushMicrotasks = () => new Promise((resolve) => setImmediate(resolve));
 
+// server/index.js imports the profiles/settings/kiosk routers, which import
+// the real server/db.js -- without mocking it, every dynamic import below
+// would open the same real, shared data/nyx.db file that other test files
+// also touch, which caused lock contention and 5s timeouts when the full
+// suite ran many test files in parallel. Mock it with an isolated in-memory
+// database instead, matching the pattern already used in routeAuth.test.js.
+vi.mock('../db.js', () => ({ default: new Database(':memory:') }));
+
 afterEach(() => {
   vi.doUnmock('../haRelay.js');
   vi.resetModules();
@@ -21,6 +30,10 @@ afterEach(() => {
 
 describe('handleRelayClient', () => {
   it('sends a full snapshot on connect, diffs on subsequent updates, and resyncs with a full snapshot after a backpressure skip', async () => {
+    // Dynamically re-importing the whole server/index.js dependency tree
+    // (express, ws, all routers) after vi.resetModules() is heavier than a
+    // typical unit test; under a full-suite parallel run this occasionally
+    // exceeds the default 5s timeout, so it's raised explicitly here.
     const fullEntitiesA = { 'light.a': { state: 'on' } };
     const fullEntitiesB = { 'light.a': { state: 'off' } };
     const fullEntitiesC = { 'light.a': { state: 'on' } };
@@ -84,7 +97,7 @@ describe('handleRelayClient', () => {
       type: 'entities',
       data: fullEntitiesC,
     });
-  });
+  }, 20000);
 
   it('skips sending when a diff has no actual changes', async () => {
     const fullEntitiesA = { 'light.a': { state: 'on' } };
@@ -110,5 +123,5 @@ describe('handleRelayClient', () => {
 
     updateCallback({ full: fullEntitiesA, diff: { changed: {}, removed: [] } });
     expect(ws.send).toHaveBeenCalledTimes(1);
-  });
+  }, 20000);
 });

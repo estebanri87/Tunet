@@ -1707,6 +1707,7 @@
   "solarAppliance.typicalWattageHint": "Brukes bare til det finnes historikk for effektsensoren over.",
   "solarAppliance.turnOn": "Slå på",
   "solarAppliance.turnOff": "Slå av",
+  "solarAppliance.tier.active": "Aktiv",
   "solarAppliance.tier.now": "Nå",
   "solarAppliance.tier.soon": "Snart",
   "solarAppliance.tier.wait": "Vent",

@@ -74,6 +74,11 @@ const formatEta = (date, locale, translate) => {
 };
 
 const TIER_META = {
+  active: {
+    fg: 'var(--accent-color)',
+    bg: 'var(--accent-bg)',
+    border: 'var(--accent-color)',
+  },
   now: {
     fg: 'var(--status-success-fg)',
     bg: 'var(--status-success-bg)',
@@ -90,6 +95,12 @@ const TIER_META = {
     border: 'var(--status-warning-border)',
   },
 };
+
+/** Below this draw, an appliance is considered idle/standby rather than
+ * actually mid-cycle -- typical dishwashers/washing machines pull only a
+ * few watts on standby, so anything meaningfully above that is genuinely
+ * running. */
+const RUNNING_WATTS_THRESHOLD = 20;
 
 const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianceCard({
   cardId,
@@ -144,10 +155,16 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
       : Zap;
 
   const currentWatts = getNumericState(powerEntity) ?? 0;
-  const tier = wattage > 0 ? surplus.classify(wattage) : 'wait';
+  // Once the appliance is genuinely drawing power it has already started --
+  // the solar-surplus tier (now/soon/wait) is a scheduling recommendation
+  // for *whether to start it*, so showing "Soon"/"Wait" while it's actively
+  // running mid-cycle is misleading. Surface that it's running instead.
+  const isRunning = currentWatts >= RUNNING_WATTS_THRESHOLD;
+  const scheduleTier = wattage > 0 ? surplus.classify(wattage) : 'wait';
+  const tier = isRunning ? 'active' : scheduleTier;
   const tierMeta = TIER_META[tier];
   const gapW = Math.max(0, wattage - surplus.availableSurplusW);
-  const eta = tier !== 'now' && wattage > 0 ? surplus.estimateNextAvailable(wattage) : null;
+  const eta = tier !== 'now' && tier !== 'active' && wattage > 0 ? surplus.estimateNextAvailable(wattage) : null;
 
   // "Jetzt" only means enough surplus exists right now -- it says nothing
   // about whether that surplus will still be there once the program has
@@ -253,7 +270,7 @@ const SolarApplianceCard = memo(/** @param {any} props */ function SolarApplianc
 
       <div className="relative z-10 space-y-2">
         <Bar value={currentWatts} min={0} max={Math.max(wattage, currentWatts, 100)} color="var(--accent-color)" />
-        {tier !== 'now' && wattage > 0 && (
+        {tier !== 'now' && tier !== 'active' && wattage > 0 && (
           <p className="text-[11px] text-[var(--text-muted)]">
             {translate('solarAppliance.gap').replace('{watts}', String(Math.round(gapW)))}
           </p>
