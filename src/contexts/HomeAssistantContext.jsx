@@ -290,6 +290,35 @@ export const HomeAssistantProvider = ({ children, config }) => {
       }
     }
 
+    /**
+     * Resolve the viewing user under the Ingress relay. `auth/current_user`
+     * must not be used here: the relay forwards it over the backend's single
+     * shared Supervisor-token connection, so it answers with the add-on's own
+     * service user rather than the person viewing the page. The backend
+     * authorizes /api/profiles and /api/settings against the Ingress-forwarded
+     * user instead, so ask it for that same identity — otherwise every request
+     * fails the ha_user_id check with "Forbidden: user mismatch".
+     */
+    async function fetchRelayUser() {
+      try {
+        const res = await fetch('./api/ingress-identity');
+        const data = res.ok ? await res.json() : null;
+        if (!isCurrentAttempt()) return;
+        setHaUser(
+          data?.user
+            ? {
+                id: data.user.id,
+                name: data.user.name,
+                is_owner: data.user.is_owner,
+                is_admin: data.user.is_admin,
+              }
+            : null
+        );
+      } catch {
+        if (isCurrentAttempt()) setHaUser(null);
+      }
+    }
+
     /** Fetch the HA system config (currency, units, etc.) */
     async function fetchHaConfig(connInstance) {
       try {
@@ -467,7 +496,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
       // the relay entirely) resolve correctly without any relay involvement.
       setActiveUrl(globalThis.window.location.origin);
       fetchHaConfig(connInstance);
-      fetchCurrentUser(connInstance);
+      fetchRelayUser();
       fetchRegistryMetadata(connInstance);
       const unsub = connInstance.onEntities((updatedEntities) => {
         if (isCurrentAttempt()) {
