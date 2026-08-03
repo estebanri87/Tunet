@@ -53,6 +53,20 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_current_settings_history_lookup
     ON current_settings_history(ha_user_id, device_id, revision DESC);
+
+  -- Single-row table: a dashboard state any authenticated device can publish
+  -- to and any device can follow, independent of which HA user account is
+  -- connected. Lets a kiosk/display device run under its own (e.g. deliberately
+  -- restricted) HA account while still auto-mirroring whatever an editing
+  -- device publishes -- the per-user 'profiles' and 'current_settings' tables
+  -- above can't do that, since they're scoped to ha_user_id.
+  CREATE TABLE IF NOT EXISTS kiosk_broadcast (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    data TEXT,
+    data_enc TEXT,
+    revision INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 const ensureColumn = (tableName, columnName, columnSql) => {

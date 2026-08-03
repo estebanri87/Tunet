@@ -477,6 +477,7 @@ export default function ConfigModal({
       startBlank,
       haUser,
       autoSync,
+      kioskSync,
     } = profiles;
 
     const syncStatusLabel =
@@ -510,6 +511,20 @@ export default function ConfigModal({
         await saveProfile(name, profileDeviceLabel.trim());
         setProfileName('');
         setProfileDeviceLabel('');
+      } catch {}
+    };
+    const kioskStatusLabel =
+      {
+        idle: t('profiles.kioskStatusIdle'),
+        following: t('profiles.kioskStatusFollowing'),
+        'not-published': t('profiles.kioskStatusNotPublished'),
+        error: t('profiles.kioskStatusError'),
+      }[kioskSync?.status] ||
+      kioskSync?.status ||
+      t('common.unknown');
+    const handlePublishKiosk = async () => {
+      try {
+        await kioskSync?.publish();
       } catch {}
     };
     let syncStatusTone = 'text-[var(--status-success-fg)]';
@@ -964,6 +979,69 @@ export default function ConfigModal({
                     </div>
                   )}
                 </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {haUser && backendAvailable && kioskSync && (
+          <div className="space-y-3">
+            <h3 className="ml-1 text-xs font-bold tracking-wider text-[var(--text-muted)] uppercase">
+              {t('profiles.kioskSection')}
+            </h3>
+            <div className="popup-surface space-y-4 p-4">
+              <div className="flex items-start gap-3">
+                <Monitor className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--accent-color)]" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-[var(--text-primary)]">
+                    {t('profiles.kioskTitle')}
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    {t('profiles.kioskHint')}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handlePublishKiosk}
+                disabled={kioskSync.publishing}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent-color)] py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-[var(--accent-color)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Save className="h-4 w-4" />
+                {kioskSync.publishing ? t('profiles.kioskPublishing') : t('profiles.kioskPublish')}
+              </button>
+
+              {kioskSync.error && (
+                <p className="text-xs font-bold text-[var(--status-error-fg)]">{kioskSync.error}</p>
+              )}
+
+              <label className="flex items-center justify-between gap-3 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3">
+                <span className="min-w-0">
+                  <span className="block text-sm font-bold text-[var(--text-primary)]">
+                    {t('profiles.kioskFollowLabel')}
+                  </span>
+                  <span className="block text-[11px] text-[var(--text-muted)]">
+                    {t('profiles.kioskFollowHint')}
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={kioskSync.followEnabled}
+                  onChange={(event) => kioskSync.setFollowEnabled(event.target.checked)}
+                  className="h-5 w-5 flex-shrink-0 accent-[var(--accent-color)]"
+                />
+              </label>
+
+              {kioskSync.followEnabled && (
+                <div className="flex items-center justify-between gap-2 text-[11px] text-[var(--text-muted)]">
+                  <span>
+                    {t('profiles.autoSyncStatusLabel')}: <span className="font-bold">{kioskStatusLabel}</span>
+                  </span>
+                  {kioskSync.lastUpdatedAt && (
+                    <span>{t('profiles.autoSyncLastSynced')}: {new Date(kioskSync.lastUpdatedAt).toLocaleTimeString()}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -2284,6 +2362,17 @@ const autoSyncShape = PropTypes.shape({
   removeKnownDevice: PropTypes.func,
 });
 
+const kioskSyncShape = PropTypes.shape({
+  followEnabled: PropTypes.bool,
+  setFollowEnabled: PropTypes.func,
+  publishing: PropTypes.bool,
+  publish: PropTypes.func,
+  unpublish: PropTypes.func,
+  status: PropTypes.string,
+  error: PropTypes.string,
+  lastUpdatedAt: PropTypes.string,
+});
+
 const profilesShape = PropTypes.shape({
   haUser: haUserShape,
   profiles: PropTypes.array,
@@ -2299,6 +2388,7 @@ const profilesShape = PropTypes.shape({
   exportDashboard: PropTypes.func,
   startBlank: PropTypes.func,
   autoSync: autoSyncShape,
+  kioskSync: kioskSyncShape,
 });
 
 ConfigModal.propTypes = {

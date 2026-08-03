@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import profilesRouter from './routes/profiles.js';
 import iconsRouter from './routes/icons.js';
 import settingsRouter from './routes/settings.js';
+import kioskRouter from './routes/kiosk.js';
 import ingressIdentityRouter from './routes/ingressIdentity.js';
 import { createHomeAssistantAuthMiddleware, getTrustedSupervisorUser } from './haAuth.js';
 import {
@@ -112,6 +113,7 @@ export const createApp = ({
   app.use('/api/profiles', homeAssistantAuth, profilesRouter);
   app.use('/api/icons', iconsRouter);
   app.use('/api/settings', homeAssistantAuth, settingsRouter);
+  app.use('/api/kiosk', homeAssistantAuth, kioskRouter);
   app.use('/api/ingress-identity', ingressIdentityRouter);
 
   // Health check

@@ -45,6 +45,14 @@ const createTestDb = () => {
 
     CREATE INDEX idx_current_settings_history_lookup
       ON current_settings_history(ha_user_id, device_id, revision DESC);
+
+    CREATE TABLE kiosk_broadcast (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      data TEXT,
+      data_enc TEXT,
+      revision INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
   return database;
 };
@@ -390,5 +398,81 @@ describe('profiles route auth', () => {
     await expect(response.json()).resolves.toEqual({
       error: 'data must be an object when provided',
     });
+  });
+});
+
+describe('kiosk broadcast route', () => {
+  it('returns null when nothing has been published yet', async () => {
+    const harness = await startRouterHarness('../routes/kiosk.js', '/api/kiosk');
+
+    const response = await harness.request('/');
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toBeNull();
+  });
+
+  it('publishes independent of which account is asking, and any account can read it back', async () => {
+    const harness = await startRouterHarness('../routes/kiosk.js', '/api/kiosk');
+
+    const publishResponse = await harness.request('/', {
+      method: 'PUT',
+      headers: { 'x-test-user-id': 'pc-account' },
+      body: JSON.stringify({ data: { version: 1, layout: {} } }),
+    });
+
+    expect(publishResponse.status).toBe(200);
+    await expect(publishResponse.json()).resolves.toMatchObject({ success: true, revision: 1 });
+
+    const readResponse = await harness.request('/', {
+      headers: { 'x-test-user-id': 'kiosk-account' },
+    });
+
+    expect(readResponse.status).toBe(200);
+    await expect(readResponse.json()).resolves.toMatchObject({
+      data: { version: 1, layout: {} },
+      revision: 1,
+    });
+  });
+
+  it('increments the revision on each republish', async () => {
+    const harness = await startRouterHarness('../routes/kiosk.js', '/api/kiosk');
+
+    await harness.request('/', {
+      method: 'PUT',
+      body: JSON.stringify({ data: { version: 1 } }),
+    });
+    const second = await harness.request('/', {
+      method: 'PUT',
+      body: JSON.stringify({ data: { version: 2 } }),
+    });
+
+    await expect(second.json()).resolves.toMatchObject({ success: true, revision: 2 });
+  });
+
+  it('rejects non-object data payloads', async () => {
+    const harness = await startRouterHarness('../routes/kiosk.js', '/api/kiosk');
+
+    const response = await harness.request('/', {
+      method: 'PUT',
+      body: JSON.stringify({ data: 'not-an-object' }),
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: 'data must be an object' });
+  });
+
+  it('clears the published dashboard on delete', async () => {
+    const harness = await startRouterHarness('../routes/kiosk.js', '/api/kiosk');
+
+    await harness.request('/', {
+      method: 'PUT',
+      body: JSON.stringify({ data: { version: 1 } }),
+    });
+
+    const deleteResponse = await harness.request('/', { method: 'DELETE' });
+    expect(deleteResponse.status).toBe(200);
+
+    const readResponse = await harness.request('/');
+    await expect(readResponse.json()).resolves.toBeNull();
   });
 });

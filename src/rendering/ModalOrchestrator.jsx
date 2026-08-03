@@ -1,6 +1,7 @@
 import { buildOnboardingSteps } from '../config/onboarding';
 import { useHomeAssistantMeta } from '../contexts';
 import { useProfiles } from '../hooks/useProfiles';
+import { useKioskSync } from '../hooks/useKioskSync';
 import { ModalEntitySlice } from './modalSlices/ModalEntitySlice';
 import { ModalManagementSlice } from './modalSlices/ModalManagementSlice';
 import { ModalSettingsSlice } from './modalSlices/ModalSettingsSlice';
@@ -153,9 +154,12 @@ export default function ModalOrchestrator({
     prefetchProfiles: modals.showConfigModal,
   });
 
+  const kioskSync = useKioskSync({ contextSetters: profileContextSetters });
+
   const profilesProps = {
     ...profilesHook,
     haUser,
+    kioskSync,
   };
 
   const core = {
