@@ -234,9 +234,26 @@ const app = createApp();
  * connection, replying with the same id so the frontend can correlate
  * request/response.
  */
+// A client stuck behind a slow/flaky link (kiosk tablets on weak Wi-Fi are
+// the common case) can't drain its TCP socket as fast as entity updates
+// arrive. Without a check, every update queues another full ~1MB snapshot
+// into that socket's write buffer on top of ones never delivered yet --
+// this is what was driving the heap-OOM crash-loop (confirmed via the
+// [diagnostics] log: arrayBuffers ballooning to 1GB+ within a couple of
+// minutes of a second client connecting, while the snapshot size itself
+// stayed flat). Skipping sends while already backed up bounds that growth;
+// the client catches up on the next update it can actually receive.
+const RELAY_MAX_BUFFERED_BYTES = 4 * 1024 * 1024;
+
 function handleRelayClient(ws) {
   const sendEntities = (entities) => {
     if (ws.readyState !== ws.OPEN) return;
+    if (ws.bufferedAmount > RELAY_MAX_BUFFERED_BYTES) {
+      console.warn(
+        `[ha-relay] client is behind (bufferedAmount=${ws.bufferedAmount}); skipping this entity update`
+      );
+      return;
+    }
     try {
       ws.send(JSON.stringify({ type: 'entities', data: entities }));
     } catch (err) {
