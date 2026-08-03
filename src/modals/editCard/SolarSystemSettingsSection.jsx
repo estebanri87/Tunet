@@ -14,6 +14,23 @@ const TextField = ({ label, value, onBlur, placeholder }) => (
   </div>
 );
 
+const NumberField = ({ label, value, onBlur, placeholder }) => (
+  <div className="space-y-2">
+    <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">{label}</label>
+    <input
+      type="number"
+      step="0.1"
+      className="popup-surface w-full rounded-2xl px-4 py-3 text-[var(--text-primary)] transition-colors outline-none focus:border-[var(--glass-border)]"
+      defaultValue={value ?? ''}
+      onBlur={(e) => {
+        const trimmed = e.target.value.trim();
+        onBlur(trimmed === '' ? null : Number(trimmed));
+      }}
+      placeholder={placeholder}
+    />
+  </div>
+);
+
 const SectionLabel = ({ title }) => (
   <span className="block px-1 text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
     {title}
@@ -70,7 +87,13 @@ export function SolarSystemSettingsSection({ t, entities, editSettings, editSett
         {picker('batteryPowerId', t('solarSystem.batteryPower'))}
         {picker('batteryModeId', t('solarSystem.batteryMode'))}
         {picker('batterySocId', t('solarSystem.batterySoc'))}
-        {picker('batteryCapacityId', t('solarSystem.batteryCapacity'))}
+        <NumberField
+          label={t('solarSystem.batteryCapacityKwh')}
+          value={editSettings.batteryCapacityKwh}
+          onBlur={(value) => persist('batteryCapacityKwh', value)}
+          placeholder="10"
+        />
+        {picker('batteryReserveId', t('solarSystem.batteryReserve'))}
       </div>
 
       <div className="space-y-3 border-t border-[var(--glass-border)] pt-4">

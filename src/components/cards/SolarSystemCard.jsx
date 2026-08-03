@@ -67,7 +67,8 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
     batteryPowerId,
     batteryModeId,
     batterySocId,
-    batteryCapacityId,
+    batteryCapacityKwh,
+    batteryReserveId,
     gridPowerId,
     todayProductionId,
     lifetimeProductionId,
@@ -81,13 +82,19 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
   const batteryPower = getNumericState(entities?.[batteryPowerId]);
   const batteryMode = entities?.[batteryModeId]?.state ?? null;
   const batterySoc = getNumericState(entities?.[batterySocId]);
-  const batteryCapacity = getNumericState(entities?.[batteryCapacityId]);
+  const batteryReserveSoc = getNumericState(entities?.[batteryReserveId]);
+  // Usable energy is what's above the reserve floor, not the raw SOC -- the
+  // battery stops discharging once it hits its configured reserve.
+  const usableRemainingKwh =
+    typeof batteryCapacityKwh === 'number' && batterySoc !== null
+      ? (Math.max(0, batterySoc - (batteryReserveSoc ?? 0)) / 100) * batteryCapacityKwh
+      : null;
   // Rough, momentary estimate -- how long the current discharge rate could
-  // continue given what's left in the battery. Only meaningful while
+  // continue given what's left above the reserve. Only meaningful while
   // actively discharging; charging/standby/etc. have no "runtime" to report.
   const batteryRuntimeHours =
-    batteryMode?.toLowerCase?.() === 'discharge' && batteryPower > 0 && batteryCapacity !== null
-      ? batteryCapacity / (batteryPower / 1000)
+    batteryMode?.toLowerCase?.() === 'discharge' && batteryPower > 0 && usableRemainingKwh !== null
+      ? usableRemainingKwh / (batteryPower / 1000)
       : null;
   const gridPower = getNumericState(entities?.[gridPowerId]);
   const todayProduction = getNumericState(entities?.[todayProductionId]);
@@ -190,10 +197,10 @@ const SolarSystemCard = memo(/** @param {any} props */ function SolarSystemCard(
                 {batteryPower !== null ? `· ${formatWatts(batteryPower)}` : ''}
               </p>
             )}
-            {batteryCapacityId && (
+            {typeof batteryCapacityKwh === 'number' && (
               <p className="text-[11px] text-[var(--text-muted)]">
-                {batteryCapacity !== null
-                  ? `${formatKwh(batteryCapacity)} ${translate('solarSystem.batteryRemaining')}`
+                {usableRemainingKwh !== null
+                  ? `${formatKwh(usableRemainingKwh)} ${translate('solarSystem.batteryRemaining')}`
                   : '--'}
               </p>
             )}
