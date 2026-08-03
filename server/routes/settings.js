@@ -22,6 +22,11 @@ const settingsRateLimiter = rateLimit({
   max: Math.max(Number(process.env.SETTINGS_RATE_LIMIT_MAX) || 180, 10),
   standardHeaders: true,
   legacyHeaders: false,
+  // We intentionally key on the immediate socket peer, not X-Forwarded-For
+  // (Ingress traffic all arrives from the Supervisor's proxy). Skips
+  // express-rate-limit's trust-proxy sanity check, which would otherwise
+  // log a warning on every request in this setup.
+  keyGenerator: (req) => req.socket?.remoteAddress || req.ip,
 });
 
 router.use(settingsRateLimiter);

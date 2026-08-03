@@ -4,6 +4,12 @@ cd /app
 export NODE_ENV=production
 export PORT=3002
 export NYX_TRUST_SUPERVISOR_INGRESS=1
+# The production image installs Node via `apk add nodejs` (see Dockerfile),
+# so the exact V8 build/version isn't pinned and its default heap ceiling
+# can land well under the host's actual available RAM. Set it explicitly
+# so a large Home Assistant instance (many entities/profiles) doesn't
+# crash-loop against an arbitrary default.
+export NODE_OPTIONS="--max-old-space-size=2560"
 
 if bashio::config.has_value 'data_encryption_mode'; then
 	export NYX_ENCRYPTION_MODE="$(bashio::config 'data_encryption_mode')"

@@ -69,11 +69,18 @@ export const createApp = ({
   // Parse JSON bodies
   app.use(express.json({ limit: '2mb' }));
 
+  // Both limiters intentionally key on the immediate socket peer, not
+  // X-Forwarded-For (Ingress traffic all arrives from the Supervisor's
+  // proxy). This skips express-rate-limit's trust-proxy sanity check,
+  // which would otherwise log a warning on every request in this setup.
+  const remoteAddressKeyGenerator = (req) => req.socket?.remoteAddress || req.ip;
+
   const apiRateLimiter = rateLimit({
     windowMs: Math.max(Number(process.env.API_RATE_LIMIT_WINDOW_MS) || 60_000, 1_000),
     max: Math.max(Number(process.env.API_RATE_LIMIT_MAX) || 300, 10),
     standardHeaders: true,
     legacyHeaders: false,
+    keyGenerator: remoteAddressKeyGenerator,
   });
 
   const assetFallbackRateLimiter = rateLimit({
@@ -81,6 +88,7 @@ export const createApp = ({
     max: Math.max(Number(process.env.ASSET_FALLBACK_RATE_LIMIT_MAX) || 120, 10),
     standardHeaders: true,
     legacyHeaders: false,
+    keyGenerator: remoteAddressKeyGenerator,
   });
 
   app.use('/api', apiRateLimiter);

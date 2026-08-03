@@ -1,6 +1,6 @@
 name: 'Nyx'
 description: 'A modern, responsive dashboard for Home Assistant'
-version: "1.20.39-v1dev"
+version: "1.20.40-v1dev"
 slug: 'nyx'
 url: 'https://github.com/estebanri87/Nyx'
 init: false
