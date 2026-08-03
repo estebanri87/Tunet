@@ -11,10 +11,31 @@ const SUPERVISOR_CORE_URL = 'http://supervisor/core';
 
 let connectionPromise = null;
 let latestEntities = {};
+let previousEntities = {};
 const entitySubscribers = new Set();
 
 function getSupervisorToken() {
   return process.env.SUPERVISOR_TOKEN || '';
+}
+
+/**
+ * Diffs two HAWS-merged entity maps. Relies on the standard, documented
+ * home-assistant-js-websocket behavior (also relied on by HA's own native
+ * frontend for render optimization): subscribeEntities only replaces the
+ * object *reference* for entities that actually changed on a given update --
+ * untouched entities keep the exact same reference across calls. So a cheap
+ * `!==` check per key is a correct, efficient diff; no deep-equality needed.
+ */
+export function computeEntityDiff(prevEntities, nextEntities) {
+  const changed = {};
+  for (const id in nextEntities) {
+    if (prevEntities[id] !== nextEntities[id]) changed[id] = nextEntities[id];
+  }
+  const removed = [];
+  for (const id in prevEntities) {
+    if (!(id in nextEntities)) removed.push(id);
+  }
+  return { changed, removed };
 }
 
 async function connect() {
@@ -36,10 +57,12 @@ async function connect() {
   });
 
   subscribeEntities(conn, (entities) => {
+    const diff = computeEntityDiff(previousEntities, entities);
+    previousEntities = entities;
     latestEntities = entities;
     for (const callback of entitySubscribers) {
       try {
-        callback(entities);
+        callback({ full: entities, diff });
       } catch (err) {
         console.error('[ha-relay] entity subscriber threw:', err);
       }

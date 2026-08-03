@@ -73,6 +73,7 @@ export function createRelayConnection() {
     };
 
     let ws;
+    let localEntities = {};
     try {
       ws = new globalThis.WebSocket(buildRelayUrl());
     } catch (err) {
@@ -89,12 +90,28 @@ export function createRelayConnection() {
       }
 
       if (message.type === 'entities') {
+        localEntities = message.data;
         if (!settled) {
           settled = true;
           resolve(conn);
           notify('ready');
         }
-        entitiesCallback?.(message.data);
+        entitiesCallback?.(localEntities);
+        return;
+      }
+
+      // Every update after the initial snapshot arrives as a compact diff
+      // (only changed/removed entity_ids) instead of the full merged map --
+      // reconstruct the full map locally so callers keep receiving the same
+      // "full entities object" shape HAWS's own subscribeEntities provides.
+      if (message.type === 'entities_diff') {
+        if (!settled) return; // shouldn't happen before a full snapshot; ignore defensively
+        const next = { ...localEntities, ...(message.changed || {}) };
+        for (const id of message.removed || []) {
+          delete next[id];
+        }
+        localEntities = next;
+        entitiesCallback?.(localEntities);
         return;
       }
 

@@ -229,40 +229,73 @@ const app = createApp();
 
 /**
  * Relays a single browser client over the WS-relay upgrade: sends the
- * current entity snapshot immediately, keeps it updated, and forwards any
- * `{type: 'forward', id, payload}` message to the real Home Assistant
- * connection, replying with the same id so the frontend can correlate
- * request/response.
+ * current entity snapshot immediately, keeps it updated with compact diffs
+ * afterward, and forwards any `{type: 'forward', id, payload}` message to
+ * the real Home Assistant connection, replying with the same id so the
+ * frontend can correlate request/response.
  */
 // A client stuck behind a slow/flaky link (kiosk tablets on weak Wi-Fi are
 // the common case) can't drain its TCP socket as fast as entity updates
-// arrive. Without a check, every update queues another full ~1MB snapshot
-// into that socket's write buffer on top of ones never delivered yet --
-// this is what was driving the heap-OOM crash-loop (confirmed via the
-// [diagnostics] log: arrayBuffers ballooning to 1GB+ within a couple of
-// minutes of a second client connecting, while the snapshot size itself
-// stayed flat). Skipping sends while already backed up bounds that growth;
-// the client catches up on the next update it can actually receive.
+// arrive. Without a check, every update queues another message into that
+// socket's write buffer on top of ones never delivered yet -- this is what
+// was driving the heap-OOM crash-loop (confirmed via the [diagnostics] log:
+// arrayBuffers ballooning to 1GB+ within a couple of minutes of a second
+// client connecting). Skipping sends while already backed up bounds that
+// growth; the client is resynced with a full snapshot once it catches up.
 const RELAY_MAX_BUFFERED_BYTES = 4 * 1024 * 1024;
 
-function handleRelayClient(ws) {
-  const sendEntities = (entities) => {
+export function handleRelayClient(ws) {
+  // Every update anywhere in the whole HA install used to re-serialize and
+  // resend the ENTIRE ~1MB entity map to every client -- confirmed via
+  // research as the dominant cause of "laggy dashboard" reports. Now only
+  // the initial connect (and any resync after a skipped/failed send) gets
+  // the full snapshot; every other update sends a compact diff instead.
+  let needsFullResync = true;
+
+  const sendFull = (entities) => {
     if (ws.readyState !== ws.OPEN) return;
     if (ws.bufferedAmount > RELAY_MAX_BUFFERED_BYTES) {
       console.warn(
-        `[ha-relay] client is behind (bufferedAmount=${ws.bufferedAmount}); skipping this entity update`
+        `[ha-relay] client is behind (bufferedAmount=${ws.bufferedAmount}); skipping full snapshot`
       );
       return;
     }
     try {
       ws.send(JSON.stringify({ type: 'entities', data: entities }));
+      needsFullResync = false;
     } catch (err) {
       console.warn('[ha-relay] failed to send entity snapshot:', err);
+      needsFullResync = true;
+    }
+  };
+
+  const sendDiff = ({ changed, removed }) => {
+    if (ws.readyState !== ws.OPEN) return;
+    if (ws.bufferedAmount > RELAY_MAX_BUFFERED_BYTES) {
+      console.warn(
+        `[ha-relay] client is behind (bufferedAmount=${ws.bufferedAmount}); skipping this entity update`
+      );
+      needsFullResync = true;
+      return;
+    }
+    try {
+      ws.send(JSON.stringify({ type: 'entities_diff', changed, removed }));
+    } catch (err) {
+      console.warn('[ha-relay] failed to send entity diff:', err);
+      needsFullResync = true;
+    }
+  };
+
+  const handleUpdate = ({ full, diff }) => {
+    if (needsFullResync) {
+      sendFull(full);
+    } else if (Object.keys(diff.changed).length > 0 || diff.removed.length > 0) {
+      sendDiff(diff);
     }
   };
 
   getHaRelayConnection()
-    .then(() => sendEntities(getLatestEntities()))
+    .then(() => sendFull(getLatestEntities()))
     .catch((err) => {
       console.error('[ha-relay] failed to establish Home Assistant connection:', err);
       if (ws.readyState === ws.OPEN) {
@@ -276,7 +309,7 @@ function handleRelayClient(ws) {
       }
     });
 
-  const unsubscribe = onEntitiesUpdate(sendEntities);
+  const unsubscribe = onEntitiesUpdate(handleUpdate);
   ws.isAlive = true;
   ws.on('pong', () => {
     ws.isAlive = true;
