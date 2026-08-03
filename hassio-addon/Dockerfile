@@ -11,9 +11,9 @@ RUN apk add --no-cache curl tar python3 make g++ \
 			URL="https://codeload.github.com/estebanri87/Nyx/tar.gz/refs/tags/${REF}"; \
 		fi \
  && if [ -n "$URL" ] && ! curl -fsSL "$URL" -o /tmp/nyx.tar.gz; then \
-			URL="https://codeload.github.com/estebanri87/Nyx/tar.gz/refs/heads/maindev"; \
+			URL="https://codeload.github.com/estebanri87/Nyx/tar.gz/refs/heads/v1dev"; \
 		fi \
- && if [ -z "$URL" ]; then URL="https://codeload.github.com/estebanri87/Nyx/tar.gz/refs/heads/maindev"; fi \
+ && if [ -z "$URL" ]; then URL="https://codeload.github.com/estebanri87/Nyx/tar.gz/refs/heads/v1dev"; fi \
  && if [ ! -f /tmp/nyx.tar.gz ]; then curl -fsSL "$URL" -o /tmp/nyx.tar.gz; fi \
  && mkdir -p /src \
  && tar -xzf /tmp/nyx.tar.gz --strip-components=1 -C /src \
