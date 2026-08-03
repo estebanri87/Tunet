@@ -1,4 +1,4 @@
-# Tunet Dashboard — Setup Guide
+# Nyx Dashboard — Setup Guide
 
 > See also [README.md](README.md) for features and screenshots.
 
@@ -14,7 +14,7 @@
 ## Project Structure
 
 ```
-tunet/
+nyx/
 ├── src/
 │   ├── App.jsx              # Main dashboard component
 │   ├── main.jsx             # React entry point
@@ -64,13 +64,13 @@ npm run lint         # ESLint
 docker compose up -d
 ```
 
-Access at `http://localhost:3002`. Profile data is persisted in a Docker volume (`tunet-data`).
+Access at `http://localhost:3002`. Profile data is persisted in a Docker volume (`nyx-data`).
 
 Verify:
 
 ```bash
-docker logs tunet-dashboard
-# expect: Tunet backend running on port 3002
+docker logs nyx-dashboard
+# expect: Nyx backend running on port 3002
 
 curl http://localhost:3002/api/health
 # expect: {"status":"ok",...}
@@ -79,17 +79,17 @@ curl http://localhost:3002/api/health
 ### Docker directly
 
 ```bash
-docker build -t tunet-dashboard .
-docker run -d -p 3002:3002 -v tunet-data:/app/data --name tunet-dashboard tunet-dashboard
+docker build -t nyx-dashboard .
+docker run -d -p 3002:3002 -v nyx-data:/app/data --name nyx-dashboard nyx-dashboard
 ```
 
 ### Useful commands
 
 ```bash
-docker logs tunet-dashboard       # View logs
-docker stop tunet-dashboard       # Stop
-docker start tunet-dashboard      # Start
-docker rm tunet-dashboard         # Remove container
+docker logs nyx-dashboard       # View logs
+docker stop nyx-dashboard       # Stop
+docker start nyx-dashboard      # Start
+docker rm nyx-dashboard         # Remove container
 ```
 
 ## Configuration
@@ -121,7 +121,7 @@ For a detailed overview of card types, available options, and screenshots, see [
 
 Where data lives:
 
-- Dashboard/layout/theme/language: browser `localStorage` (`tunet_*` keys) by default; can also be saved/restored via Profiles (server-side) per HA user.
+- Dashboard/layout/theme/language: browser `localStorage` (`nyx_*` keys) by default; can also be saved/restored via Profiles (server-side) per HA user.
 - HA credentials: `ha_url`, `ha_token`, and the OAuth session cache are stored in browser storage for reconnect and same-browser tab reuse.
 - Profiles: server-side SQLite (`server/db.js`, default `data/` dir).
 
@@ -134,19 +134,19 @@ Where data lives:
 | `NODE_ENV`              | `production`            | Environment mode                                                                        |
 | `VITE_PORT`             | `5173`                  | Vite dev server port (dev only)                                                         |
 | `VITE_PROXY_TARGET`     | `http://localhost:3002` | API proxy target (dev)                                                                  |
-| `TUNET_INTERNAL_HA_URL` | _(unset)_               | Optional server-side Home Assistant URL override for backend auth validation             |
-| `TUNET_INTERNAL_HA_FALLBACK_URL` | _(unset)_      | Optional secondary internal HA URL for backend auth validation in Docker/server setups   |
-| `TUNET_TRUST_SUPERVISOR_INGRESS` | `0`            | Trust Home Assistant Supervisor ingress headers. Intended for the add-on runtime only.   |
-| `TUNET_ENCRYPTION_MODE` | `off`                   | Data-at-rest mode for server snapshots/profiles: `off`, `dual`, `enc_only`              |
-| `TUNET_DATA_KEY`        | _(unset)_               | Secret used for encryption when mode is `dual` or `enc_only`                            |
-| `TUNET_DATA_KEY_SALT`   | _(unset)_               | Required only when `TUNET_DATA_KEY` is a passphrase instead of a 32-byte base64/hex key |
+| `NYX_INTERNAL_HA_URL` | _(unset)_               | Optional server-side Home Assistant URL override for backend auth validation             |
+| `NYX_INTERNAL_HA_FALLBACK_URL` | _(unset)_      | Optional secondary internal HA URL for backend auth validation in Docker/server setups   |
+| `NYX_TRUST_SUPERVISOR_INGRESS` | `0`            | Trust Home Assistant Supervisor ingress headers. Intended for the add-on runtime only.   |
+| `NYX_ENCRYPTION_MODE` | `off`                   | Data-at-rest mode for server snapshots/profiles: `off`, `dual`, `enc_only`              |
+| `NYX_DATA_KEY`        | _(unset)_               | Secret used for encryption when mode is `dual` or `enc_only`                            |
+| `NYX_DATA_KEY_SALT`   | _(unset)_               | Required only when `NYX_DATA_KEY` is a passphrase instead of a 32-byte base64/hex key |
 
 Server-side auth guidance:
 
 - `ha_url` is still the primary browser connection target.
 - `ha_fallback_url` is also sent to the backend and can be used when the server cannot reach the primary HA URL.
-- `TUNET_INTERNAL_HA_URL` and `TUNET_INTERNAL_HA_FALLBACK_URL` take precedence for backend validation and are useful when Docker/server networking differs from browser networking.
-- `TUNET_TRUST_SUPERVISOR_INGRESS` should stay disabled outside the Home Assistant add-on. The add-on launcher enables it explicitly for trusted Supervisor ingress requests.
+- `NYX_INTERNAL_HA_URL` and `NYX_INTERNAL_HA_FALLBACK_URL` take precedence for backend validation and are useful when Docker/server networking differs from browser networking.
+- `NYX_TRUST_SUPERVISOR_INGRESS` should stay disabled outside the Home Assistant add-on. The add-on launcher enables it explicitly for trusted Supervisor ingress requests.
 
 ### Data-at-rest encryption rollout (safe migration)
 
@@ -163,12 +163,12 @@ Key guidance:
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-- If using a passphrase key, set `TUNET_DATA_KEY_SALT` explicitly and keep it stable.
-- Migration note: if you previously relied on default passphrase salt behavior, set `TUNET_DATA_KEY_SALT=tunet-data-key-v1` to preserve decrypt compatibility.
+- If using a passphrase key, set `NYX_DATA_KEY_SALT` explicitly and keep it stable.
+- Migration note: if you previously relied on default passphrase salt behavior, set `NYX_DATA_KEY_SALT=nyx-data-key-v1` to preserve decrypt compatibility.
 
 Recommended rollout to avoid data loss:
 
-1. Set `TUNET_ENCRYPTION_MODE=dual` with a strong `TUNET_DATA_KEY`.
+1. Set `NYX_ENCRYPTION_MODE=dual` with a strong `NYX_DATA_KEY`.
 2. Keep `dual` for at least one full release cycle.
 3. Move to `enc_only` only after confirming all rows/devices are migrated and keep the same key.
 
@@ -180,7 +180,7 @@ Recommended rollout to avoid data loss:
 | Build fails         | Ensure Docker has enough memory. Try `docker system prune -a` then rebuild                                                |
 | Native module error | The Dockerfile installs build tools automatically. If building locally, ensure `python3`, `make`, and `g++` are available |
 | Connection error    | Check HA URL (no trailing `/api`) and token. For external origins ensure HA `cors_allowed_origins` includes your host     |
-| Profiles not saving | Check that the backend is running (`/api/health`) and that the backend container can reach Home Assistant; set `ha_fallback_url` or `TUNET_INTERNAL_HA_URL` if needed |
+| Profiles not saving | Check that the backend is running (`/api/health`) and that the backend container can reach Home Assistant; set `ha_fallback_url` or `NYX_INTERNAL_HA_URL` if needed |
 | History/CORS issues | Prefer WebSocket history; otherwise allow your origin in HA `cors_allowed_origins`                                        |
 
 ## Release Workflow (Maintainers)

@@ -5,18 +5,18 @@ services:
       - '3002:3002'
     extra_hosts:
       - 'host.docker.internal:host-gateway'
-    container_name: tunet-dashboard
+    container_name: nyx-dashboard
     restart: unless-stopped
     environment:
       - NODE_ENV=production
       - DATA_DIR=/app/data
-      - TUNET_INTERNAL_HA_URL=${TUNET_INTERNAL_HA_URL:-}
-      - TUNET_INTERNAL_HA_FALLBACK_URL=${TUNET_INTERNAL_HA_FALLBACK_URL:-}
-      - TUNET_ENCRYPTION_MODE=${TUNET_ENCRYPTION_MODE:-off}
-      - TUNET_DATA_KEY=${TUNET_DATA_KEY:-}
-      - TUNET_DATA_KEY_SALT=${TUNET_DATA_KEY_SALT:-}
+      - NYX_INTERNAL_HA_URL=${NYX_INTERNAL_HA_URL:-}
+      - NYX_INTERNAL_HA_FALLBACK_URL=${NYX_INTERNAL_HA_FALLBACK_URL:-}
+      - NYX_ENCRYPTION_MODE=${NYX_ENCRYPTION_MODE:-off}
+      - NYX_DATA_KEY=${NYX_DATA_KEY:-}
+      - NYX_DATA_KEY_SALT=${NYX_DATA_KEY_SALT:-}
     volumes:
-      - tunet-data:/app/data
+      - nyx-data:/app/data
     healthcheck:
       test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://127.0.0.1:3002/api/health']
       interval: 30s
@@ -25,4 +25,4 @@ services:
       start_period: 5s
 
 volumes:
-  tunet-data:
+  nyx-data:

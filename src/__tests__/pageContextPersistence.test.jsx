@@ -24,7 +24,7 @@ describe('PageContext persistence', () => {
     });
 
     await waitFor(() => {
-      const stored = JSON.parse(localStorage.getItem('tunet_pages_config') || '{}');
+      const stored = JSON.parse(localStorage.getItem('nyx_pages_config') || '{}');
       expect(stored).toEqual(nextConfig);
     });
   });
@@ -44,7 +44,7 @@ describe('PageContext persistence', () => {
     });
 
     await waitFor(() => {
-      const stored = JSON.parse(localStorage.getItem('tunet_pages_config') || '{}');
+      const stored = JSON.parse(localStorage.getItem('nyx_pages_config') || '{}');
       expect(stored).toEqual(nextConfig);
     });
   });
@@ -59,7 +59,7 @@ describe('PageContext persistence', () => {
     });
 
     await waitFor(() => {
-      expect(localStorage.getItem('tunet_cards_only_mode')).toBe('1');
+      expect(localStorage.getItem('nyx_cards_only_mode')).toBe('1');
     });
 
     first.unmount();
@@ -73,7 +73,7 @@ describe('PageContext persistence', () => {
     });
 
     await waitFor(() => {
-      expect(localStorage.getItem('tunet_cards_only_mode')).toBe('0');
+      expect(localStorage.getItem('nyx_cards_only_mode')).toBe('0');
     });
   });
 
@@ -100,7 +100,7 @@ describe('PageContext persistence', () => {
     });
 
     await waitFor(() => {
-      const stored = JSON.parse(localStorage.getItem('tunet_status_pills_config') || '[]');
+      const stored = JSON.parse(localStorage.getItem('nyx_status_pills_config') || '[]');
       expect(stored[0]).toMatchObject(nextPills[0]);
     });
 
@@ -113,7 +113,7 @@ describe('PageContext persistence', () => {
 
   it('migrates string-based status pill visibility flags back to booleans on load', () => {
     localStorage.setItem(
-      'tunet_status_pills_config',
+      'nyx_status_pills_config',
       JSON.stringify([
         {
           id: 'pill-1',
@@ -147,7 +147,7 @@ describe('PageContext persistence', () => {
 
   it('keeps legacy status pill conditions enabled when conditionEnabled is missing', () => {
     localStorage.setItem(
-      'tunet_status_pills_config',
+      'nyx_status_pills_config',
       JSON.stringify([
         {
           id: 'pill-1',

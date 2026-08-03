@@ -89,7 +89,7 @@ describe('createValidatedHomeAssistantUserResolver', () => {
 
 describe('createHomeAssistantAuthMiddleware', () => {
   it('trusts Supervisor-provided user headers for ingress requests from the trusted proxy', async () => {
-    process.env.TUNET_TRUST_SUPERVISOR_INGRESS = '1';
+    process.env.NYX_TRUST_SUPERVISOR_INGRESS = '1';
     const validateHomeAssistantUser = vi.fn();
     const middleware = createHomeAssistantAuthMiddleware({ validateHomeAssistantUser });
     const req = createRequest({
@@ -113,11 +113,11 @@ describe('createHomeAssistantAuthMiddleware', () => {
       source: 'supervisor-ingress',
     });
     expect(next).toHaveBeenCalledTimes(1);
-    delete process.env.TUNET_TRUST_SUPERVISOR_INGRESS;
+    delete process.env.NYX_TRUST_SUPERVISOR_INGRESS;
   });
 
   it('does not trust ingress headers unless explicitly enabled', async () => {
-    delete process.env.TUNET_TRUST_SUPERVISOR_INGRESS;
+    delete process.env.NYX_TRUST_SUPERVISOR_INGRESS;
     const validateHomeAssistantUser = vi.fn();
     const middleware = createHomeAssistantAuthMiddleware({ validateHomeAssistantUser });
     const req = createRequest({
@@ -209,7 +209,7 @@ describe('createHomeAssistantAuthMiddleware', () => {
 
     expect(res.statusCode).toBe(503);
     expect(res.body).toEqual({
-      error: 'Tunet backend could not reach Home Assistant while validating the current user.',
+      error: 'Nyx backend could not reach Home Assistant while validating the current user.',
       code: 'HA_VALIDATION_UNREACHABLE',
     });
     expect(next).not.toHaveBeenCalled();

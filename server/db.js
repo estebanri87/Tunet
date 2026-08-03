@@ -9,7 +9,7 @@ if (!existsSync(DATA_DIR)) {
   mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const dbPath = join(DATA_DIR, 'tunet.db');
+const dbPath = join(DATA_DIR, 'nyx.db');
 const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrent read performance

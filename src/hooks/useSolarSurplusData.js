@@ -34,7 +34,7 @@ const MIN_IRRADIANCE_FOR_CALIBRATION = 100;
  * localStorage (not just module scope) so it survives a page reload or
  * add-on rebuild overnight, not just re-renders within the same tab.
  */
-const RATIO_STORAGE_KEY = 'tunet_solar_pv_per_irradiance_ratio';
+const RATIO_STORAGE_KEY = 'nyx_solar_pv_per_irradiance_ratio';
 /** Ignore a stored ratio older than this -- panel soiling/seasonal tilt drift. */
 const RATIO_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 /** Minimum time between localStorage writes while the ratio keeps recalibrating in daylight. */

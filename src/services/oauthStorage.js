@@ -1,11 +1,11 @@
 // OAuth2 token persistence for Home Assistant
 // Used as saveTokens / loadTokens callbacks for HAWS getAuth()
 
-const PRIMARY_STORAGE_SLOT = 'tunet_auth_cache_v1';
-const TOKEN_SAVED_AT_SLOT = 'tunet_auth_saved_at_v1';
-const OAUTH_SYNC_REQUEST_KEY = 'tunet_auth_sync_request_v1';
-const OAUTH_SYNC_RESPONSE_KEY = 'tunet_auth_sync_response_v1';
-const OAUTH_SYNC_CHANNEL_NAME = 'tunet_auth_sync_channel_v1';
+const PRIMARY_STORAGE_SLOT = 'nyx_auth_cache_v1';
+const TOKEN_SAVED_AT_SLOT = 'nyx_auth_saved_at_v1';
+const OAUTH_SYNC_REQUEST_KEY = 'nyx_auth_sync_request_v1';
+const OAUTH_SYNC_RESPONSE_KEY = 'nyx_auth_sync_response_v1';
+const OAUTH_SYNC_CHANNEL_NAME = 'nyx_auth_sync_channel_v1';
 const OAUTH_SYNC_TIMEOUT_MS = 400;
 const LEGACY_STORAGE_SLOT = String.fromCharCode(
   104,

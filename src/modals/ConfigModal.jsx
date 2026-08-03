@@ -691,7 +691,7 @@ export default function ConfigModal({
         const anchor = document.createElement('a');
         const dateTag = new Date().toISOString().slice(0, 10);
         anchor.href = url;
-        anchor.download = `tunet-dashboard-${dateTag}.json`;
+        anchor.download = `nyx-dashboard-${dateTag}.json`;
         document.body.appendChild(anchor);
         anchor.click();
         anchor.remove();
@@ -1225,7 +1225,7 @@ export default function ConfigModal({
                       const newVal = inactivityTimeout > 0 ? 0 : 60;
                       setInactivityTimeout(newVal);
                       try {
-                        localStorage.setItem('tunet_inactivity_timeout', String(newVal));
+                        localStorage.setItem('nyx_inactivity_timeout', String(newVal));
                       } catch {}
                     }}
                     className={`relative h-6 w-10 rounded-full p-1 transition-colors ${inactivityTimeout > 0 ? 'bg-[var(--accent-color)]' : 'bg-gray-500/30'}`}
@@ -1253,7 +1253,7 @@ export default function ConfigModal({
                       const val = Number.parseInt(e.target.value, 10);
                       setInactivityTimeout(val);
                       try {
-                        localStorage.setItem('tunet_inactivity_timeout', String(val));
+                        localStorage.setItem('nyx_inactivity_timeout', String(val));
                       } catch {}
                     }}
                     colorClass="bg-[var(--accent-color)]"
@@ -2059,7 +2059,7 @@ export default function ConfigModal({
                             const val = Number.parseInt(e.target.value, 10);
                             setInactivityTimeout(val);
                             try {
-                              localStorage.setItem('tunet_inactivity_timeout', String(val));
+                              localStorage.setItem('nyx_inactivity_timeout', String(val));
                             } catch {}
                           }}
                           colorClass="bg-[var(--accent-color)]"
@@ -2160,7 +2160,7 @@ export default function ConfigModal({
                   </button>
                   <div className="pt-2 text-center">
                     <p className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase opacity-50">
-                      Tunet Dashboard v{__APP_VERSION__}
+                      Nyx Dashboard v{__APP_VERSION__}
                     </p>
                   </div>
                 </div>
@@ -2230,7 +2230,7 @@ export default function ConfigModal({
                   </button>
                   <div className="pt-2 text-center">
                     <p className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase opacity-50">
-                      Tunet Dashboard v{__APP_VERSION__}
+                      Nyx Dashboard v{__APP_VERSION__}
                     </p>
                   </div>
                 </div>

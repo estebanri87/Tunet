@@ -8,7 +8,7 @@ export const hashPin = (pin) => {
     hash = (hash << 5) + hash + normalizedPin.charCodeAt(index);
   }
 
-  return `tunet_${(hash >>> 0).toString(16)}`;
+  return `nyx_${(hash >>> 0).toString(16)}`;
 };
 
 export const verifyPin = (pin, expectedHash) => {

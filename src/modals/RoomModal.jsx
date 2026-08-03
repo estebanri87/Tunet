@@ -70,7 +70,7 @@ export default function RoomModal({
     const roomKey = String(settings?.areaName || settings?.areaId || 'default')
       .toLowerCase()
       .replace(/\s+/g, '_');
-    return `tunet_room_collapsed_${roomKey}`;
+    return `nyx_room_collapsed_${roomKey}`;
   }, [settings?.areaId, settings?.areaName]);
   const [collapsedSections, setCollapsedSections] = useState(() => {
     try {

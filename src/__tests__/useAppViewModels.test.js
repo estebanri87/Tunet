@@ -85,7 +85,7 @@ const makeParams = (overrides = {}) => ({
   updateSectionSpacing: vi.fn(),
   cardsOnlyMode: false,
   updateCardsOnlyMode: vi.fn(),
-  headerTitle: 'Tunet',
+  headerTitle: 'Nyx',
   headerScale: 1,
   headerSettings: {},
   updateHeaderTitle: vi.fn(),

@@ -189,7 +189,7 @@ export const test = baseTest.extend({
       localStorage.setItem('ha_auth_method', 'token');
       localStorage.setItem('ha_token', 'test_token');
       localStorage.setItem(
-        'tunet_auth_cache_v1',
+        'nyx_auth_cache_v1',
         JSON.stringify({
           access_token: 'test_token',
           refresh_token: 'test_refresh_token',

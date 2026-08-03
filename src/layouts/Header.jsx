@@ -138,7 +138,7 @@ export default function Header({
           {/* Left: Title */}
           {headerSettings.showTitle && (
             <h1 className="leading-none select-none whitespace-nowrap" style={titleStyle}>
-              {headerTitle || 'Tunet'}
+              {headerTitle || 'Nyx'}
             </h1>
           )}
 
@@ -210,7 +210,7 @@ export default function Header({
         <div className={`flex items-center gap-4 ${isMobile ? 'w-full justify-center' : ''}`}>
           {headerSettings.showTitle && (
             <h1 className="leading-none select-none" style={titleStyle}>
-              {headerTitle || 'Tunet'}
+              {headerTitle || 'Nyx'}
             </h1>
           )}
         </div>

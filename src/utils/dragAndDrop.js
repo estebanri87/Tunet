@@ -40,7 +40,7 @@ export const createDragAndDropHandlers = ({
     }
     setPagesConfig(newConfig);
     try {
-      localStorage.setItem('tunet_pages_config', JSON.stringify(newConfig));
+      localStorage.setItem('nyx_pages_config', JSON.stringify(newConfig));
     } catch (error) {
       console.error('Failed to save pages config to localStorage:', error);
     }

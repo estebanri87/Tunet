@@ -20,7 +20,7 @@ function isChunkLoadError(error) {
 
 function reloadForChunkErrorOnce() {
   if (globalThis.window === undefined) return;
-  const key = 'tunet_chunk_reload_once';
+  const key = 'nyx_chunk_reload_once';
   if (globalThis.sessionStorage.getItem(key) === '1') return;
   globalThis.sessionStorage.setItem(key, '1');
   globalThis.window.history.go(0);

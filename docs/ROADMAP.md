@@ -1,6 +1,6 @@
 # Roadmap
 
-This roadmap is intentionally small: a practical snapshot of where Tunet is headed, not a promise list.
+This roadmap is intentionally small: a practical snapshot of where Nyx is headed, not a promise list.
 
 ## Now
 

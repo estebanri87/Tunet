@@ -30,7 +30,7 @@ const createDeviceId = () => {
 };
 
 const getOrCreateDeviceId = () => {
-  const key = 'tunet_device_id';
+  const key = 'nyx_device_id';
   try {
     const existing = localStorage.getItem(key);
     if (existing) return existing;
@@ -50,7 +50,7 @@ const clampHistoryKeepLimit = (value) => {
 
 const getStoredDeviceLabel = () => {
   try {
-    return (localStorage.getItem('tunet_device_label') || '').trim();
+    return (localStorage.getItem('nyx_device_label') || '').trim();
   } catch {
     return '';
   }
@@ -64,7 +64,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
   const deviceLabelRef = useRef(getStoredDeviceLabel());
   const [enabled, setEnabled] = useState(() => {
     try {
-      const raw = localStorage.getItem('tunet_auto_sync_enabled');
+      const raw = localStorage.getItem('nyx_auto_sync_enabled');
       return raw == null ? true : raw !== '0';
     } catch {
       return true;
@@ -83,7 +83,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
   const [updatingDeviceId, setUpdatingDeviceId] = useState('');
   const [historyKeepLimit, setHistoryKeepLimit] = useState(() => {
     try {
-      const raw = localStorage.getItem('tunet_history_keep_limit');
+      const raw = localStorage.getItem('nyx_history_keep_limit');
       return clampHistoryKeepLimit(raw ?? 50);
     } catch {
       return 50;
@@ -132,7 +132,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
 
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_auto_sync_enabled', enabled ? '1' : '0');
+      localStorage.setItem('nyx_auto_sync_enabled', enabled ? '1' : '0');
     } catch {
       // ignore storage errors
     }
@@ -141,7 +141,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
   useEffect(() => {
     try {
       localStorage.setItem(
-        'tunet_history_keep_limit',
+        'nyx_history_keep_limit',
         String(clampHistoryKeepLimit(historyKeepLimit))
       );
     } catch {
@@ -183,7 +183,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
         if (typeof row.device_label === 'string') {
           deviceLabelRef.current = row.device_label.trim();
           try {
-            localStorage.setItem('tunet_device_label', deviceLabelRef.current);
+            localStorage.setItem('nyx_device_label', deviceLabelRef.current);
           } catch {
             // ignore storage errors
           }
@@ -467,9 +467,9 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
       queueAutoSync(true, { ignoreEnabled: true });
     };
 
-    globalThis.window.addEventListener('tunet:edit-done', handleEditDone);
+    globalThis.window.addEventListener('nyx:edit-done', handleEditDone);
     return () => {
-      globalThis.window.removeEventListener('tunet:edit-done', handleEditDone);
+      globalThis.window.removeEventListener('nyx:edit-done', handleEditDone);
     };
   }, [haUserId, queueAutoSync]);
 
@@ -597,7 +597,7 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
           const normalized = typeof nextLabel === 'string' ? nextLabel.trim() : '';
           deviceLabelRef.current = normalized;
           try {
-            localStorage.setItem('tunet_device_label', normalized);
+            localStorage.setItem('nyx_device_label', normalized);
           } catch {
             // ignore storage errors
           }

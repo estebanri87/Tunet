@@ -23,7 +23,7 @@ Branch: `fix/dashboard-idle-cpu`
 | Host `/api/health` at `http://localhost:3002/api/health`                                                                                                   | Passed: `{ status: 'ok', version: '1.18.0' }`                                      |
 | Docker-served DOM check at `http://localhost:3002`                                                                                                         | Passed: `bgMode=theme`, `animatedBlobCount=0`, `fullWindowBackgroundCanvasCount=0` |
 | Docker-served E2E smoke: `PLAYWRIGHT_BASE_URL=http://localhost:3002 PLAYWRIGHT_SKIP_WEB_SERVER=1 npx playwright test e2e/modals.e2e.js --project=chromium` | Passed: 12 tests; final rerun completed in 6.6s                                    |
-| Container health probe: `docker exec tunet-dashboard wget --quiet --tries=1 --spider http://127.0.0.1:3002/api/health`                                     | Passed                                                                             |
+| Container health probe: `docker exec nyx-dashboard wget --quiet --tries=1 --spider http://127.0.0.1:3002/api/health`                                     | Passed                                                                             |
 | Final Docker status/stats                                                                                                                                  | Healthy; CPU `0.04%`, memory `52.08MiB / 15.5GiB`                                  |
 
 ## Notes

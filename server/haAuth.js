@@ -47,7 +47,7 @@ if (typeof globalThis.WebSocket === 'undefined') {
   globalThis.WebSocket = NodeWebSocket;
 }
 
-const isSupervisorIngressTrustEnabled = () => process.env.TUNET_TRUST_SUPERVISOR_INGRESS === '1';
+const isSupervisorIngressTrustEnabled = () => process.env.NYX_TRUST_SUPERVISOR_INGRESS === '1';
 
 const normalizeRemoteAddress = (rawAddress) => {
   if (typeof rawAddress !== 'string' || !rawAddress.trim()) return '';
@@ -144,8 +144,8 @@ const pushUniqueCandidate = (candidates, rawCandidate) => {
 const getHomeAssistantUrlCandidates = (req) => {
   const candidates = [];
   const envCandidates = [
-    process.env.TUNET_INTERNAL_HA_URL,
-    process.env.TUNET_INTERNAL_HA_FALLBACK_URL,
+    process.env.NYX_INTERNAL_HA_URL,
+    process.env.NYX_INTERNAL_HA_FALLBACK_URL,
   ];
   const requestCandidates = [req.get('x-ha-url'), req.get('x-ha-fallback-url')];
 
@@ -269,7 +269,7 @@ const sendValidationFailure = (res, error, { haUrls = [] } = {}) => {
     sendJsonError(
       res,
       503,
-      'Tunet backend could not reach Home Assistant while validating the current user.',
+      'Nyx backend could not reach Home Assistant while validating the current user.',
       'HA_VALIDATION_UNREACHABLE'
     );
     return;
@@ -279,7 +279,7 @@ const sendValidationFailure = (res, error, { haUrls = [] } = {}) => {
   sendJsonError(
     res,
     503,
-    'Tunet backend could not validate the current Home Assistant session.',
+    'Nyx backend could not validate the current Home Assistant session.',
     'HA_VALIDATION_FAILED'
   );
 };

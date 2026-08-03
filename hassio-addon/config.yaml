@@ -1,8 +1,8 @@
-name: 'Tunet'
+name: 'Nyx'
 description: 'A modern, responsive dashboard for Home Assistant'
 version: "1.20.38-maindev"
-slug: 'tunet'
-url: 'https://github.com/estebanri87/Tunet'
+slug: 'nyx'
+url: 'https://github.com/estebanri87/Nyx'
 init: false
 startup: application
 arch:
@@ -13,11 +13,11 @@ auth_api: true
 ingress: true
 ingress_port: 3002
 panel_icon: 'mdi:view-dashboard-variant'
-panel_title: 'Tunet New'
+panel_title: 'Nyx New'
 ports:
   3002/tcp: null
 ports_description:
-  3002/tcp: 'Tunet Web Interface (not needed when using Ingress)'
+  3002/tcp: 'Nyx Web Interface (not needed when using Ingress)'
 options:
   data_encryption_mode: 'off'
   data_encryption_key: ''

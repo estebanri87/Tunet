@@ -51,7 +51,7 @@ test.describe('OAuth Authentication Flow', () => {
   test('should persist OAuth tokens to localStorage', async ({ page, mockHAConnection }) => {
     await page.addInitScript(() => {
       localStorage.setItem(
-        'tunet_auth_cache_v1',
+        'nyx_auth_cache_v1',
         JSON.stringify({
           access_token: 'test_access_token_123',
           refresh_token: 'test_refresh_token_456',
@@ -67,7 +67,7 @@ test.describe('OAuth Authentication Flow', () => {
 
     // Check localStorage persists
     const authToken = await page.evaluate(() => {
-      const auth = localStorage.getItem('tunet_auth_cache_v1');
+      const auth = localStorage.getItem('nyx_auth_cache_v1');
       return auth ? JSON.parse(auth) : null;
     });
 

@@ -634,7 +634,7 @@ describe('StatusPillsConfigModal', () => {
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(dispatchSpy).toHaveBeenCalledWith(expect.any(CustomEvent));
-    expect(dispatchSpy.mock.calls.some((call) => call[0]?.type === 'tunet:edit-done')).toBe(true);
+    expect(dispatchSpy.mock.calls.some((call) => call[0]?.type === 'nyx:edit-done')).toBe(true);
 
     dispatchSpy.mockRestore();
   });

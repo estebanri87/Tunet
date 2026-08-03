@@ -775,7 +775,7 @@
   "profiles.edit": "编辑",
   "profiles.export": "导出到文件",
   "profiles.import": "从文件导入",
-  "profiles.invalidFile": "文件格式无效。必须是 Tunet 仪表板导出。",
+  "profiles.invalidFile": "文件格式无效。必须是 Nyx 仪表板导出。",
   "profiles.load": "加载",
   "profiles.myProfiles": "我的个人资料",
   "profiles.name": "个人资料名称",

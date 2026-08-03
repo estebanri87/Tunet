@@ -17,7 +17,7 @@ export const GRADIENT_PRESETS = {
 
 /** @type {import('react').Context<ConfigContextValue | null>} */
 const ConfigContext = createContext(null);
-const CONFIG_STORAGE_VERSION_KEY = 'tunet_config_storage_version';
+const CONFIG_STORAGE_VERSION_KEY = 'nyx_config_storage_version';
 const CONFIG_STORAGE_VERSION = '1';
 const BACKGROUND_MODES = ['theme', 'solid', 'gradient', 'custom', 'animated', 'lavaLamp', 'silk'];
 
@@ -41,7 +41,7 @@ export const ConfigProvider = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState(() => {
     if (typeof globalThis.window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('tunet_theme');
+        const saved = localStorage.getItem('nyx_theme');
         return saved && themes[saved] ? saved : 'dark';
       } catch (error) {
         console.error('Failed to read theme from localStorage:', error);
@@ -53,7 +53,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [language, setLanguage] = useState(() => {
     try {
-      const rawLanguage = localStorage.getItem('tunet_language') || DEFAULT_LANGUAGE;
+      const rawLanguage = localStorage.getItem('nyx_language') || DEFAULT_LANGUAGE;
       return normalizeLanguage(rawLanguage);
     } catch (error) {
       console.error('Failed to read language from localStorage:', error);
@@ -64,7 +64,7 @@ export const ConfigProvider = ({ children }) => {
   const [unitsMode, setUnitsMode] = useState(
     /** @returns {'follow_ha' | 'metric' | 'imperial'} */ () => {
       try {
-        const saved = localStorage.getItem('tunet_units_mode');
+        const saved = localStorage.getItem('nyx_units_mode');
         if (saved === 'follow_ha' || saved === 'metric' || saved === 'imperial') return saved;
         return 'follow_ha';
       } catch {
@@ -75,7 +75,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [settingsLockEnabled, setSettingsLockEnabled] = useState(() => {
     try {
-      return localStorage.getItem('tunet_settings_lock_enabled') === '1';
+      return localStorage.getItem('nyx_settings_lock_enabled') === '1';
     } catch {
       return false;
     }
@@ -83,7 +83,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [settingsLockPinHash, setSettingsLockPinHash] = useState(() => {
     try {
-      return localStorage.getItem('tunet_settings_lock_pin_hash') || '';
+      return localStorage.getItem('nyx_settings_lock_pin_hash') || '';
     } catch {
       return '';
     }
@@ -91,7 +91,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [settingsLockSessionUnlocked, setSettingsLockSessionUnlocked] = useState(() => {
     try {
-      return globalThis.sessionStorage.getItem('tunet_settings_lock_unlocked') === '1';
+      return globalThis.sessionStorage.getItem('nyx_settings_lock_unlocked') === '1';
     } catch {
       return false;
     }
@@ -100,7 +100,7 @@ export const ConfigProvider = ({ children }) => {
   const [inactivityTimeout, setInactivityTimeout] = useState(() => {
     if (typeof globalThis.window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('tunet_inactivity_timeout');
+        const saved = localStorage.getItem('nyx_inactivity_timeout');
         if (saved !== null) {
           const parsed = Number.parseInt(saved, 10);
           if (!Number.isNaN(parsed)) return parsed;
@@ -114,7 +114,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [bgMode, setBgMode] = useState(() => {
     try {
-      const saved = localStorage.getItem('tunet_bg_mode');
+      const saved = localStorage.getItem('nyx_bg_mode');
       return saved && BACKGROUND_MODES.includes(saved) ? saved : 'theme';
     } catch {
       return 'theme';
@@ -123,7 +123,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [bgColor, setBgColor] = useState(() => {
     try {
-      return localStorage.getItem('tunet_bg_color') || '#0f172a';
+      return localStorage.getItem('nyx_bg_color') || '#0f172a';
     } catch {
       return '#0f172a';
     }
@@ -131,7 +131,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [bgGradient, setBgGradient] = useState(() => {
     try {
-      const saved = localStorage.getItem('tunet_bg_gradient');
+      const saved = localStorage.getItem('nyx_bg_gradient');
       return saved && GRADIENT_PRESETS[saved] ? saved : 'midnight';
     } catch {
       return 'midnight';
@@ -140,7 +140,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [bgImage, setBgImage] = useState(() => {
     try {
-      return localStorage.getItem('tunet_bg_image') || '';
+      return localStorage.getItem('nyx_bg_image') || '';
     } catch {
       return '';
     }
@@ -148,7 +148,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [cardTransparency, setCardTransparency] = useState(() => {
     try {
-      const saved = localStorage.getItem('tunet_card_transparency');
+      const saved = localStorage.getItem('nyx_card_transparency');
       if (saved === null) return 40;
       return Number.parseInt(saved, 10);
     } catch {
@@ -158,7 +158,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [cardBorderOpacity, setCardBorderOpacity] = useState(() => {
     try {
-      const saved = localStorage.getItem('tunet_card_border_opacity');
+      const saved = localStorage.getItem('nyx_card_border_opacity');
       if (saved === null) return 5;
       return Number.parseInt(saved, 10);
     } catch {
@@ -168,7 +168,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [cardBgColor, setCardBgColor] = useState(() => {
     try {
-      return localStorage.getItem('tunet_card_bg_color') || '';
+      return localStorage.getItem('nyx_card_bg_color') || '';
     } catch {
       return '';
     }
@@ -176,7 +176,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [cardMaterial, setCardMaterial] = useState(() => {
     try {
-      return localStorage.getItem('tunet_card_material') || 'glass';
+      return localStorage.getItem('nyx_card_material') || 'glass';
     } catch {
       return 'glass';
     }
@@ -184,7 +184,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [density, setDensity] = useState(() => {
     try {
-      return localStorage.getItem('tunet_density') || 'comfortable';
+      return localStorage.getItem('nyx_density') || 'comfortable';
     } catch {
       return 'comfortable';
     }
@@ -192,7 +192,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [cardScale, setCardScale] = useState(() => {
     try {
-      const saved = localStorage.getItem('tunet_card_scale');
+      const saved = localStorage.getItem('nyx_card_scale');
       return saved ? Number(saved) : 100;
     } catch {
       return 100;
@@ -201,7 +201,7 @@ export const ConfigProvider = ({ children }) => {
 
   const [appFont, setAppFont] = useState(() => {
     try {
-      const saved = localStorage.getItem('tunet_app_font');
+      const saved = localStorage.getItem('nyx_app_font');
       if (saved) return saved;
     } catch {}
     return 'sans';
@@ -285,7 +285,7 @@ export const ConfigProvider = ({ children }) => {
     metaThemeColor.content = theme['--bg-primary'];
 
     try {
-      localStorage.setItem('tunet_theme', themeKey);
+      localStorage.setItem('nyx_theme', themeKey);
     } catch (error) {
       console.error('Failed to save theme to localStorage:', error);
     }
@@ -432,47 +432,47 @@ export const ConfigProvider = ({ children }) => {
   // Persist background settings
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_bg_mode', bgMode);
+      localStorage.setItem('nyx_bg_mode', bgMode);
     } catch {}
   }, [bgMode]);
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_bg_color', bgColor);
+      localStorage.setItem('nyx_bg_color', bgColor);
     } catch {}
   }, [bgColor]);
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_bg_gradient', bgGradient);
+      localStorage.setItem('nyx_bg_gradient', bgGradient);
     } catch {}
   }, [bgGradient]);
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_bg_image', bgImage);
+      localStorage.setItem('nyx_bg_image', bgImage);
     } catch {}
   }, [bgImage]);
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_card_transparency', String(cardTransparency));
+      localStorage.setItem('nyx_card_transparency', String(cardTransparency));
     } catch {}
   }, [cardTransparency]);
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_card_border_opacity', String(cardBorderOpacity));
+      localStorage.setItem('nyx_card_border_opacity', String(cardBorderOpacity));
     } catch {}
   }, [cardBorderOpacity]);
   useEffect(() => {
     try {
       if (cardBgColor) {
-        localStorage.setItem('tunet_card_bg_color', cardBgColor);
+        localStorage.setItem('nyx_card_bg_color', cardBgColor);
       } else {
-        localStorage.removeItem('tunet_card_bg_color');
+        localStorage.removeItem('nyx_card_bg_color');
       }
     } catch {}
   }, [cardBgColor]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_card_material', cardMaterial);
+      localStorage.setItem('nyx_card_material', cardMaterial);
     } catch {}
     if (cardMaterial && cardMaterial !== 'glass') {
       document.documentElement.dataset.cardMaterial = cardMaterial;
@@ -483,7 +483,7 @@ export const ConfigProvider = ({ children }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_density', density);
+      localStorage.setItem('nyx_density', density);
     } catch {}
     if (density && density !== 'comfortable') {
       document.documentElement.dataset.density = density;
@@ -494,13 +494,13 @@ export const ConfigProvider = ({ children }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_card_scale', String(cardScale));
+      localStorage.setItem('nyx_card_scale', String(cardScale));
     } catch {}
   }, [cardScale]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_app_font', appFont);
+      localStorage.setItem('nyx_app_font', appFont);
     } catch {}
   }, [appFont]);
 
@@ -508,7 +508,7 @@ export const ConfigProvider = ({ children }) => {
   useEffect(() => {
     try {
       const normalizedLanguage = normalizeLanguage(language);
-      localStorage.setItem('tunet_language', normalizedLanguage);
+      localStorage.setItem('nyx_language', normalizedLanguage);
     } catch (error) {
       console.error('Failed to save language to localStorage:', error);
     }
@@ -516,22 +516,22 @@ export const ConfigProvider = ({ children }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_units_mode', unitsMode);
+      localStorage.setItem('nyx_units_mode', unitsMode);
     } catch {}
   }, [unitsMode]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('tunet_settings_lock_enabled', settingsLockEnabled ? '1' : '0');
+      localStorage.setItem('nyx_settings_lock_enabled', settingsLockEnabled ? '1' : '0');
     } catch {}
   }, [settingsLockEnabled]);
 
   useEffect(() => {
     try {
       if (settingsLockPinHash) {
-        localStorage.setItem('tunet_settings_lock_pin_hash', settingsLockPinHash);
+        localStorage.setItem('nyx_settings_lock_pin_hash', settingsLockPinHash);
       } else {
-        localStorage.removeItem('tunet_settings_lock_pin_hash');
+        localStorage.removeItem('nyx_settings_lock_pin_hash');
       }
     } catch {}
   }, [settingsLockPinHash]);
@@ -539,7 +539,7 @@ export const ConfigProvider = ({ children }) => {
   useEffect(() => {
     try {
       globalThis.sessionStorage.setItem(
-        'tunet_settings_lock_unlocked',
+        'nyx_settings_lock_unlocked',
         settingsLockSessionUnlocked ? '1' : '0'
       );
     } catch {}

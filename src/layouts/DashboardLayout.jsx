@@ -126,7 +126,7 @@ export default function DashboardLayout(props) {
   try {
     profilingEnabled =
       typeof window !== 'undefined' &&
-      window.localStorage?.getItem('tunet_profile_renders') === '1';
+      window.localStorage?.getItem('nyx_profile_renders') === '1';
   } catch {
     profilingEnabled = false;
   }

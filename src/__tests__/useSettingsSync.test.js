@@ -288,7 +288,7 @@ describe('useSettingsSync', () => {
     );
 
     await act(async () => {
-      window.dispatchEvent(new CustomEvent('tunet:edit-done'));
+      window.dispatchEvent(new CustomEvent('nyx:edit-done'));
       await new Promise((resolve) => setTimeout(resolve, 5));
     });
 
@@ -502,7 +502,7 @@ describe('useSettingsSync', () => {
   });
 
   it('allows manual sync even when auto-sync is disabled', async () => {
-    localStorage.setItem('tunet_auto_sync_enabled', '0');
+    localStorage.setItem('nyx_auto_sync_enabled', '0');
     const { result } = renderHook(() =>
       useSettingsSync({ haUserId: 'user-1', contextSettersRef: { current: {} } })
     );

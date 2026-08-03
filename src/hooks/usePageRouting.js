@@ -12,7 +12,7 @@ export function usePageRouting() {
 
   const [activePage, _setActivePage] = useState(() => {
     try {
-      return localStorage.getItem('tunet_active_page') || 'home';
+      return localStorage.getItem('nyx_active_page') || 'home';
     } catch {
       return 'home';
     }
@@ -21,7 +21,7 @@ export function usePageRouting() {
   const setActivePage = useCallback((page) => {
     _setActivePage(page);
     try {
-      localStorage.setItem('tunet_active_page', page);
+      localStorage.setItem('nyx_active_page', page);
     } catch {}
   }, []);
 
@@ -30,7 +30,7 @@ export function usePageRouting() {
     _setActivePage((prev) => {
       if (prev !== pageId) {
         try {
-          localStorage.setItem('tunet_active_page', pageId);
+          localStorage.setItem('nyx_active_page', pageId);
         } catch {}
         return pageId;
       }

@@ -30,7 +30,7 @@ export default function CalendarModal({ show, onClose, conn, entities, language,
     }));
 
   const [selectedCalendars, setSelectedCalendars] = useState(() => {
-    const stored = localStorage.getItem('tunet_calendar_modal_selection');
+    const stored = localStorage.getItem('nyx_calendar_modal_selection');
     if (stored) {
       try {
         return JSON.parse(stored);
@@ -78,7 +78,7 @@ export default function CalendarModal({ show, onClose, conn, entities, language,
   useEffect(() => {
     if (!show) return;
     try {
-      localStorage.setItem('tunet_calendar_modal_selection', JSON.stringify(selectedCalendars));
+      localStorage.setItem('nyx_calendar_modal_selection', JSON.stringify(selectedCalendars));
     } catch (error) {
       console.error('Failed to save calendar selection:', error);
     }

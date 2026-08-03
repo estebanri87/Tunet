@@ -7,7 +7,7 @@ describe('snapshot service', () => {
   });
 
   it('collectSnapshot includes cardBorderRadius from storage', () => {
-    localStorage.setItem('tunet_card_border_radius', '28');
+    localStorage.setItem('nyx_card_border_radius', '28');
 
     const snapshot = collectSnapshot();
 
@@ -26,12 +26,12 @@ describe('snapshot service', () => {
       { setCardBorderRadius }
     );
 
-    expect(localStorage.getItem('tunet_card_border_radius')).toBe('34');
+    expect(localStorage.getItem('nyx_card_border_radius')).toBe('34');
     expect(setCardBorderRadius).toHaveBeenCalledWith(34);
   });
 
   it('collectSnapshot includes cards-only mode from storage', () => {
-    localStorage.setItem('tunet_cards_only_mode', '1');
+    localStorage.setItem('nyx_cards_only_mode', '1');
 
     const snapshot = collectSnapshot();
 
@@ -50,12 +50,12 @@ describe('snapshot service', () => {
       { updateCardsOnlyMode }
     );
 
-    expect(localStorage.getItem('tunet_cards_only_mode')).toBe('1');
+    expect(localStorage.getItem('nyx_cards_only_mode')).toBe('1');
     expect(updateCardsOnlyMode).toHaveBeenCalledWith(true);
   });
 
   it('collectSnapshot includes card background color from storage', () => {
-    localStorage.setItem('tunet_card_bg_color', '#223344');
+    localStorage.setItem('nyx_card_bg_color', '#223344');
 
     const snapshot = collectSnapshot();
 
@@ -74,12 +74,12 @@ describe('snapshot service', () => {
       { setCardBgColor }
     );
 
-    expect(localStorage.getItem('tunet_card_bg_color')).toBe('#445566');
+    expect(localStorage.getItem('nyx_card_bg_color')).toBe('#445566');
     expect(setCardBgColor).toHaveBeenCalledWith('#445566');
   });
 
   it('collectSnapshot includes app font from storage', () => {
-    localStorage.setItem('tunet_app_font', 'Montserrat');
+    localStorage.setItem('nyx_app_font', 'Montserrat');
 
     const snapshot = collectSnapshot();
 
@@ -98,12 +98,12 @@ describe('snapshot service', () => {
       { setAppFont }
     );
 
-    expect(localStorage.getItem('tunet_app_font')).toBe('Inter');
+    expect(localStorage.getItem('nyx_app_font')).toBe('Inter');
     expect(setAppFont).toHaveBeenCalledWith('Inter');
   });
 
   it('collectSnapshot includes units mode from storage', () => {
-    localStorage.setItem('tunet_units_mode', 'imperial');
+    localStorage.setItem('nyx_units_mode', 'imperial');
 
     const snapshot = collectSnapshot();
 
@@ -122,11 +122,11 @@ describe('snapshot service', () => {
       { setUnitsMode }
     );
 
-    expect(localStorage.getItem('tunet_units_mode')).toBe('metric');
+    expect(localStorage.getItem('nyx_units_mode')).toBe('metric');
     expect(setUnitsMode).toHaveBeenCalledWith('metric');
   });
 
-  it('collectSnapshot includes spacer/divider card settings from tunet_card_settings', () => {
+  it('collectSnapshot includes spacer/divider card settings from nyx_card_settings', () => {
     const cardSettings = {
       'home::spacer_card_123': {
         variant: 'divider',
@@ -136,7 +136,7 @@ describe('snapshot service', () => {
         heading: 'Section',
       },
     };
-    localStorage.setItem('tunet_card_settings', JSON.stringify(cardSettings));
+    localStorage.setItem('nyx_card_settings', JSON.stringify(cardSettings));
 
     const snapshot = collectSnapshot();
 
@@ -164,7 +164,7 @@ describe('snapshot service', () => {
       { persistCardSettings }
     );
 
-    expect(JSON.parse(localStorage.getItem('tunet_card_settings') || '{}')).toEqual(cardSettings);
+    expect(JSON.parse(localStorage.getItem('nyx_card_settings') || '{}')).toEqual(cardSettings);
     expect(persistCardSettings).toHaveBeenCalledWith(cardSettings);
   });
 });

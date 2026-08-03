@@ -88,7 +88,7 @@ export default function StatusBar({
   const setMediaNameDisplayFilter = (pill) => {
     try {
       localStorage.setItem(
-        'tunet_media_name_display_filter',
+        'nyx_media_name_display_filter',
         typeof pill?.playerNameDisplayFilter === 'string' ? pill.playerNameDisplayFilter : ''
       );
     } catch {

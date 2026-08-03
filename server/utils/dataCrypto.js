@@ -2,7 +2,7 @@ import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:
 
 const SUPPORTED_MODES = new Set(['off', 'dual', 'enc_only']);
 const ENCRYPTION_PREFIX = 'enc:v1:';
-const PASSPHRASE_SALT = process.env.TUNET_DATA_KEY_SALT || '';
+const PASSPHRASE_SALT = process.env.NYX_DATA_KEY_SALT || '';
 const warnedMessages = new Set();
 
 const warnOnce = (message) => {
@@ -49,14 +49,14 @@ const deriveEncryptionKey = (rawKey) => {
 
   if (trimmed.length < 16) {
     warnOnce(
-      '[data-crypto] TUNET_DATA_KEY is too short. Use a 32-byte base64/hex key or a long passphrase.'
+      '[data-crypto] NYX_DATA_KEY is too short. Use a 32-byte base64/hex key or a long passphrase.'
     );
     return null;
   }
 
   if (!PASSPHRASE_SALT) {
     warnOnce(
-      '[data-crypto] TUNET_DATA_KEY_SALT is required when TUNET_DATA_KEY is a passphrase. Use a 32-byte base64/hex key to avoid salt requirements.'
+      '[data-crypto] NYX_DATA_KEY_SALT is required when NYX_DATA_KEY is a passphrase. Use a 32-byte base64/hex key to avoid salt requirements.'
     );
     return null;
   }
@@ -64,17 +64,17 @@ const deriveEncryptionKey = (rawKey) => {
   try {
     return scryptSync(trimmed, PASSPHRASE_SALT, 32, { N: 16384, r: 8, p: 1 });
   } catch {
-    warnOnce('[data-crypto] Failed to derive encryption key from TUNET_DATA_KEY.');
+    warnOnce('[data-crypto] Failed to derive encryption key from NYX_DATA_KEY.');
     return null;
   }
 };
 
-const DATA_ENCRYPTION_MODE = normalizeMode(process.env.TUNET_ENCRYPTION_MODE);
-const DATA_ENCRYPTION_KEY = deriveEncryptionKey(process.env.TUNET_DATA_KEY || '');
+const DATA_ENCRYPTION_MODE = normalizeMode(process.env.NYX_ENCRYPTION_MODE);
+const DATA_ENCRYPTION_KEY = deriveEncryptionKey(process.env.NYX_DATA_KEY || '');
 
 if (DATA_ENCRYPTION_MODE !== 'off' && !DATA_ENCRYPTION_KEY) {
   warnOnce(
-    '[data-crypto] TUNET_ENCRYPTION_MODE is enabled but TUNET_DATA_KEY is missing. Falling back to plaintext reads/writes.'
+    '[data-crypto] NYX_ENCRYPTION_MODE is enabled but NYX_DATA_KEY is missing. Falling back to plaintext reads/writes.'
   );
 }
 

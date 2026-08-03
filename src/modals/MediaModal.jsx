@@ -90,7 +90,7 @@ const BLOCKED_TITLE_WORDS = [
   'cctv',
 ];
 
-const MEDIA_VIEW_MODE_KEY = 'tunet_media_view_mode_by_modal';
+const MEDIA_VIEW_MODE_KEY = 'nyx_media_view_mode_by_modal';
 
 function inferMediaSourceFromId(value) {
   const text = String(value || '').toLowerCase();
@@ -328,13 +328,13 @@ export default function MediaModal({
   conn,
 }) {
   const [sessionSensorIds, setSessionSensorIds] = useState(() =>
-    readJSON('tunet_media_session_sensors', [])
+    readJSON('nyx_media_session_sensors', [])
   );
   const [showChoosePanel, setShowChoosePanel] = useState(false);
   const [chooseTab, setChooseTab] = useState('favorites');
   const [chooseQuery, setChooseQuery] = useState('');
   const [lastChoiceByPlayer, setLastChoiceByPlayer] = useState(() =>
-    readJSON('tunet_media_last_choice', {})
+    readJSON('nyx_media_last_choice', {})
   );
   const [browseChoicesByPlayer, setBrowseChoicesByPlayer] = useState({});
   const [browseLoading, setBrowseLoading] = useState(false);
@@ -349,17 +349,17 @@ export default function MediaModal({
   const [failedImageMap, setFailedImageMap] = useState({});
   const wasOpenRef = useRef(false);
   const [playerNameDisplayFilter, setPlayerNameDisplayFilter] = useState(() =>
-    readText('tunet_media_name_display_filter', '')
+    readText('nyx_media_name_display_filter', '')
   );
 
   // Load initial state from localStorage
   const [extraSelectedPlayerIds, setExtraSelectedPlayerIds] = useState(() => {
-    return readJSON('tunet_media_extra_players', []);
+    return readJSON('nyx_media_extra_players', []);
   });
 
   // Persist to localStorage whenever it changes
   useEffect(() => {
-    writeJSON('tunet_media_extra_players', extraSelectedPlayerIds);
+    writeJSON('nyx_media_extra_players', extraSelectedPlayerIds);
   }, [extraSelectedPlayerIds]);
 
   const normalizeChoiceArray = useCallback(
@@ -380,21 +380,21 @@ export default function MediaModal({
   useEffect(() => {
     if (Array.isArray(activeMediaSessionSensorIds)) {
       setSessionSensorIds(activeMediaSessionSensorIds);
-      writeJSON('tunet_media_session_sensors', activeMediaSessionSensorIds);
+      writeJSON('nyx_media_session_sensors', activeMediaSessionSensorIds);
     }
   }, [activeMediaSessionSensorIds]);
 
   useEffect(() => {
-    writeJSON('tunet_media_session_sensors', sessionSensorIds);
+    writeJSON('nyx_media_session_sensors', sessionSensorIds);
   }, [sessionSensorIds]);
 
   useEffect(() => {
-    writeJSON('tunet_media_last_choice', lastChoiceByPlayer);
+    writeJSON('nyx_media_last_choice', lastChoiceByPlayer);
   }, [lastChoiceByPlayer]);
 
   useEffect(() => {
     if (!show) return;
-    setPlayerNameDisplayFilter(readText('tunet_media_name_display_filter', ''));
+    setPlayerNameDisplayFilter(readText('nyx_media_name_display_filter', ''));
   }, [show]);
 
   const getViewModeScope = useCallback(() => {

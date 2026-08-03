@@ -23,7 +23,7 @@ describe('usePageRouting', () => {
   });
 
   it('initializes from localStorage and navigates when path differs', () => {
-    localStorage.setItem('tunet_active_page', 'kitchen');
+    localStorage.setItem('nyx_active_page', 'kitchen');
     routerState.location = { pathname: '/page/home' };
 
     const { result } = renderHook(() => usePageRouting());
@@ -41,7 +41,7 @@ describe('usePageRouting', () => {
     await waitFor(() => {
       expect(result.current.activePage).toBe('media');
     });
-    expect(localStorage.getItem('tunet_active_page')).toBe('media');
+    expect(localStorage.getItem('nyx_active_page')).toBe('media');
   });
 
   it('setActivePage updates localStorage and navigates', () => {
@@ -51,7 +51,7 @@ describe('usePageRouting', () => {
       result.current.setActivePage('office');
     });
 
-    expect(localStorage.getItem('tunet_active_page')).toBe('office');
+    expect(localStorage.getItem('nyx_active_page')).toBe('office');
     expect(routerState.navigate).toHaveBeenCalledWith('/page/office', { replace: true });
   });
 });

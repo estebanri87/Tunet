@@ -167,7 +167,7 @@ const setupPageWithCards = (page, cardIds, cardSettings = {}) =>
       localStorage.setItem('ha_auth_method', 'token');
       localStorage.setItem('ha_token', 'test_token');
       localStorage.setItem(
-        'tunet_auth_cache_v1',
+        'nyx_auth_cache_v1',
         JSON.stringify({
           access_token: 'test_token',
           refresh_token: 'test_refresh_token',
@@ -176,13 +176,13 @@ const setupPageWithCards = (page, cardIds, cardSettings = {}) =>
         })
       );
       localStorage.setItem(
-        'tunet_pages_config',
+        'nyx_pages_config',
         JSON.stringify({ header: [], pages: ['home'], home: cardIds })
       );
-      localStorage.setItem('tunet_active_page', 'home');
-      localStorage.setItem('tunet_card_settings', JSON.stringify(cardSettings));
-      localStorage.setItem('tunet_hidden_cards', JSON.stringify([]));
-      localStorage.setItem('tunet_page_settings', JSON.stringify({}));
+      localStorage.setItem('nyx_active_page', 'home');
+      localStorage.setItem('nyx_card_settings', JSON.stringify(cardSettings));
+      localStorage.setItem('nyx_hidden_cards', JSON.stringify([]));
+      localStorage.setItem('nyx_page_settings', JSON.stringify({}));
     },
     { cardIds, cardSettings }
   );

@@ -27,7 +27,7 @@ export default function EditToolbar({
     const currentSettings = pageSettings[activePage];
     if (currentSettings?.hidden) setActivePage('home');
     if (editMode && typeof window !== 'undefined') {
-      window.dispatchEvent(new window.CustomEvent('tunet:edit-done'));
+      window.dispatchEvent(new window.CustomEvent('nyx:edit-done'));
     }
     setEditMode(!editMode);
   };

@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a Tunet dashboard feature or UX improvement
+about: Suggest a Nyx dashboard feature or UX improvement
 title: '[Feature] '
 labels: enhancement
 assignees: ''

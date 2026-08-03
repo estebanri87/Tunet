@@ -264,7 +264,7 @@ export function useProfiles({ haUser, contextSetters, prefetchProfiles = true })
     }
 
     return {
-      format: 'tunet-dashboard-export',
+      format: 'nyx-dashboard-export',
       version: 1,
       exported_at: new Date().toISOString(),
       data: snapshot,

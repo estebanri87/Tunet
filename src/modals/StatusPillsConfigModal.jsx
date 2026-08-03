@@ -302,7 +302,7 @@ export default function StatusPillsConfigModal({
     }));
     onSave(cleaned);
     if (typeof globalThis.window !== 'undefined') {
-      globalThis.window.dispatchEvent(new globalThis.window.CustomEvent('tunet:edit-done'));
+      globalThis.window.dispatchEvent(new globalThis.window.CustomEvent('nyx:edit-done'));
     }
     onClose();
   };

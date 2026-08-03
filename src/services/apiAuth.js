@@ -1,7 +1,7 @@
 import { getAuth } from 'home-assistant-js-websocket';
 import { clearOAuthTokens, getOAuthTokenSavedAt, loadTokens, saveTokens } from './oauthStorage';
 
-export const HOME_ASSISTANT_API_UNAUTHORIZED_EVENT = 'tunet:api-auth-unauthorized';
+export const HOME_ASSISTANT_API_UNAUTHORIZED_EVENT = 'nyx:api-auth-unauthorized';
 const OAUTH_PROACTIVE_REFRESH_MS = 45 * 60 * 1000;
 const OAUTH_REFRESH_SKEW_MS = 60 * 1000;
 

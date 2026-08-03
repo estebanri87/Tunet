@@ -14,16 +14,16 @@ test.describe('Drag and Drop Interactions', () => {
       localStorage.setItem('ha_auth_method', 'token');
       localStorage.setItem('ha_token', 'test_token');
       localStorage.setItem(
-        'tunet_pages_config',
+        'nyx_pages_config',
         JSON.stringify({
           header: [],
           pages: ['home'],
           home: ['light.bedroom', 'light.kitchen'],
         })
       );
-      localStorage.setItem('tunet_card_settings', JSON.stringify({}));
+      localStorage.setItem('nyx_card_settings', JSON.stringify({}));
       localStorage.setItem(
-        'tunet_auth_cache_v1',
+        'nyx_auth_cache_v1',
         JSON.stringify({
           access_token: 'test_token',
           refresh_token: 'test_refresh_token',
@@ -64,7 +64,7 @@ test.describe('Drag and Drop Interactions', () => {
     await page.waitForTimeout(200);
 
     const storedConfig = await page.evaluate(() => {
-      const raw = localStorage.getItem('tunet_pages_config');
+      const raw = localStorage.getItem('nyx_pages_config');
       return raw ? JSON.parse(raw) : null;
     });
 
@@ -187,16 +187,16 @@ test.describe('Drag and Drop Interactions', () => {
       localStorage.setItem('ha_auth_method', 'token');
       localStorage.setItem('ha_token', 'test_token');
       localStorage.setItem(
-        'tunet_pages_config',
+        'nyx_pages_config',
         JSON.stringify({
           header: [],
           pages: ['home'],
           home: ['light.bedroom', 'light.kitchen'],
         })
       );
-      localStorage.setItem('tunet_card_settings', JSON.stringify({}));
+      localStorage.setItem('nyx_card_settings', JSON.stringify({}));
       localStorage.setItem(
-        'tunet_auth_cache_v1',
+        'nyx_auth_cache_v1',
         JSON.stringify({
           access_token: 'test_token',
           refresh_token: 'test_refresh_token',

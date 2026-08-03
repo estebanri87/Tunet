@@ -46,47 +46,47 @@ export function collectSnapshot() {
   return {
     version: SNAPSHOT_VERSION,
     layout: {
-      pagesConfig: readJSON('tunet_pages_config', { header: [], pages: ['home'], home: [] }),
-      cardSettings: readJSON('tunet_card_settings', {}),
-      hiddenCards: readJSON('tunet_hidden_cards', []),
-      customNames: readJSON('tunet_custom_names', {}),
-      customIcons: readJSON('tunet_custom_icons', {}),
-      pageSettings: readJSON('tunet_page_settings', {}),
-      gridColumns: readNumber('tunet_grid_columns', 4),
-      dynamicGridColumns: readBoolean('tunet_grid_columns_dynamic', true),
-      gridGapH: readNumber('tunet_grid_gap_h', 20),
-      gridGapV: readNumber('tunet_grid_gap_v', 20),
-      cardBorderRadius: readNumber('tunet_card_border_radius', 16),
-      cardsOnlyMode: readBoolean('tunet_cards_only_mode', false),
-      headerSettings: readJSON('tunet_header_settings', {
+      pagesConfig: readJSON('nyx_pages_config', { header: [], pages: ['home'], home: [] }),
+      cardSettings: readJSON('nyx_card_settings', {}),
+      hiddenCards: readJSON('nyx_hidden_cards', []),
+      customNames: readJSON('nyx_custom_names', {}),
+      customIcons: readJSON('nyx_custom_icons', {}),
+      pageSettings: readJSON('nyx_page_settings', {}),
+      gridColumns: readNumber('nyx_grid_columns', 4),
+      dynamicGridColumns: readBoolean('nyx_grid_columns_dynamic', true),
+      gridGapH: readNumber('nyx_grid_gap_h', 20),
+      gridGapV: readNumber('nyx_grid_gap_v', 20),
+      cardBorderRadius: readNumber('nyx_card_border_radius', 16),
+      cardsOnlyMode: readBoolean('nyx_cards_only_mode', false),
+      headerSettings: readJSON('nyx_header_settings', {
         showTitle: true,
         showClock: true,
         showDate: true,
       }),
-      headerTitle: localStorage.getItem('tunet_header_title') || '',
-      headerScale: readNumber('tunet_header_scale', 1),
-      sectionSpacing: readJSON('tunet_section_spacing', {
+      headerTitle: localStorage.getItem('nyx_header_title') || '',
+      headerScale: readNumber('nyx_header_scale', 1),
+      sectionSpacing: readJSON('nyx_section_spacing', {
         headerToStatus: 16,
         statusToNav: 24,
         navToGrid: 24,
       }),
-      statusPillsConfig: readJSON('tunet_status_pills_config', []),
+      statusPillsConfig: readJSON('nyx_status_pills_config', []),
     },
     appearance: {
-      theme: localStorage.getItem('tunet_theme') || 'dark',
+      theme: localStorage.getItem('nyx_theme') || 'dark',
       language: normalizeSnapshotLanguage(
-        localStorage.getItem('tunet_language') || DEFAULT_LANGUAGE
+        localStorage.getItem('nyx_language') || DEFAULT_LANGUAGE
       ),
-      appFont: localStorage.getItem('tunet_app_font') || 'sans',
-      unitsMode: localStorage.getItem('tunet_units_mode') || 'follow_ha',
-      bgMode: localStorage.getItem('tunet_bg_mode') || 'theme',
-      bgColor: localStorage.getItem('tunet_bg_color') || '#0f172a',
-      bgGradient: localStorage.getItem('tunet_bg_gradient') || 'midnight',
-      bgImage: localStorage.getItem('tunet_bg_image') || '',
-      cardBgColor: localStorage.getItem('tunet_card_bg_color') || '',
-      cardTransparency: readNumber('tunet_card_transparency', 40),
-      cardBorderOpacity: readNumber('tunet_card_border_opacity', 5),
-      inactivityTimeout: readNumber('tunet_inactivity_timeout', 60),
+      appFont: localStorage.getItem('nyx_app_font') || 'sans',
+      unitsMode: localStorage.getItem('nyx_units_mode') || 'follow_ha',
+      bgMode: localStorage.getItem('nyx_bg_mode') || 'theme',
+      bgColor: localStorage.getItem('nyx_bg_color') || '#0f172a',
+      bgGradient: localStorage.getItem('nyx_bg_gradient') || 'midnight',
+      bgImage: localStorage.getItem('nyx_bg_image') || '',
+      cardBgColor: localStorage.getItem('nyx_card_bg_color') || '',
+      cardTransparency: readNumber('nyx_card_transparency', 40),
+      cardBorderOpacity: readNumber('nyx_card_border_opacity', 5),
+      inactivityTimeout: readNumber('nyx_inactivity_timeout', 60),
     },
   };
 }
@@ -107,64 +107,64 @@ export function applySnapshot(snapshot, contextSetters = {}) {
 
   // ── Layout → localStorage ──
   if (layout.pagesConfig)
-    localStorage.setItem('tunet_pages_config', JSON.stringify(layout.pagesConfig));
+    localStorage.setItem('nyx_pages_config', JSON.stringify(layout.pagesConfig));
   if (layout.cardSettings)
-    localStorage.setItem('tunet_card_settings', JSON.stringify(layout.cardSettings));
+    localStorage.setItem('nyx_card_settings', JSON.stringify(layout.cardSettings));
   if (layout.hiddenCards)
-    localStorage.setItem('tunet_hidden_cards', JSON.stringify(layout.hiddenCards));
+    localStorage.setItem('nyx_hidden_cards', JSON.stringify(layout.hiddenCards));
   if (layout.customNames)
-    localStorage.setItem('tunet_custom_names', JSON.stringify(layout.customNames));
+    localStorage.setItem('nyx_custom_names', JSON.stringify(layout.customNames));
   if (layout.customIcons)
-    localStorage.setItem('tunet_custom_icons', JSON.stringify(layout.customIcons));
+    localStorage.setItem('nyx_custom_icons', JSON.stringify(layout.customIcons));
   if (layout.pageSettings)
-    localStorage.setItem('tunet_page_settings', JSON.stringify(layout.pageSettings));
+    localStorage.setItem('nyx_page_settings', JSON.stringify(layout.pageSettings));
   if (layout.statusPillsConfig)
-    localStorage.setItem('tunet_status_pills_config', JSON.stringify(layout.statusPillsConfig));
+    localStorage.setItem('nyx_status_pills_config', JSON.stringify(layout.statusPillsConfig));
   if (layout.headerSettings)
-    localStorage.setItem('tunet_header_settings', JSON.stringify(layout.headerSettings));
+    localStorage.setItem('nyx_header_settings', JSON.stringify(layout.headerSettings));
   if (layout.sectionSpacing)
-    localStorage.setItem('tunet_section_spacing', JSON.stringify(layout.sectionSpacing));
+    localStorage.setItem('nyx_section_spacing', JSON.stringify(layout.sectionSpacing));
 
   if (layout.gridColumns !== undefined)
-    localStorage.setItem('tunet_grid_columns', String(layout.gridColumns));
+    localStorage.setItem('nyx_grid_columns', String(layout.gridColumns));
   if (layout.dynamicGridColumns !== undefined)
-    localStorage.setItem('tunet_grid_columns_dynamic', layout.dynamicGridColumns ? '1' : '0');
+    localStorage.setItem('nyx_grid_columns_dynamic', layout.dynamicGridColumns ? '1' : '0');
   if (layout.gridGapH !== undefined)
-    localStorage.setItem('tunet_grid_gap_h', String(layout.gridGapH));
+    localStorage.setItem('nyx_grid_gap_h', String(layout.gridGapH));
   if (layout.gridGapV !== undefined)
-    localStorage.setItem('tunet_grid_gap_v', String(layout.gridGapV));
+    localStorage.setItem('nyx_grid_gap_v', String(layout.gridGapV));
   if (layout.cardBorderRadius !== undefined)
-    localStorage.setItem('tunet_card_border_radius', String(layout.cardBorderRadius));
+    localStorage.setItem('nyx_card_border_radius', String(layout.cardBorderRadius));
   if (layout.cardsOnlyMode !== undefined)
-    localStorage.setItem('tunet_cards_only_mode', layout.cardsOnlyMode ? '1' : '0');
+    localStorage.setItem('nyx_cards_only_mode', layout.cardsOnlyMode ? '1' : '0');
   if (layout.headerScale !== undefined)
-    localStorage.setItem('tunet_header_scale', String(layout.headerScale));
+    localStorage.setItem('nyx_header_scale', String(layout.headerScale));
   if (layout.headerTitle !== undefined)
-    localStorage.setItem('tunet_header_title', layout.headerTitle);
+    localStorage.setItem('nyx_header_title', layout.headerTitle);
 
   // ── Appearance → localStorage ──
-  if (appearance.theme) localStorage.setItem('tunet_theme', appearance.theme);
+  if (appearance.theme) localStorage.setItem('nyx_theme', appearance.theme);
   if (appearance.language)
-    localStorage.setItem('tunet_language', normalizeSnapshotLanguage(appearance.language));
-  if (appearance.appFont) localStorage.setItem('tunet_app_font', appearance.appFont);
-  if (appearance.unitsMode) localStorage.setItem('tunet_units_mode', appearance.unitsMode);
-  if (appearance.bgMode) localStorage.setItem('tunet_bg_mode', appearance.bgMode);
-  if (appearance.bgColor) localStorage.setItem('tunet_bg_color', appearance.bgColor);
-  if (appearance.bgGradient) localStorage.setItem('tunet_bg_gradient', appearance.bgGradient);
-  if (appearance.bgImage !== undefined) localStorage.setItem('tunet_bg_image', appearance.bgImage);
+    localStorage.setItem('nyx_language', normalizeSnapshotLanguage(appearance.language));
+  if (appearance.appFont) localStorage.setItem('nyx_app_font', appearance.appFont);
+  if (appearance.unitsMode) localStorage.setItem('nyx_units_mode', appearance.unitsMode);
+  if (appearance.bgMode) localStorage.setItem('nyx_bg_mode', appearance.bgMode);
+  if (appearance.bgColor) localStorage.setItem('nyx_bg_color', appearance.bgColor);
+  if (appearance.bgGradient) localStorage.setItem('nyx_bg_gradient', appearance.bgGradient);
+  if (appearance.bgImage !== undefined) localStorage.setItem('nyx_bg_image', appearance.bgImage);
   if (appearance.cardBgColor !== undefined) {
     if (appearance.cardBgColor) {
-      localStorage.setItem('tunet_card_bg_color', appearance.cardBgColor);
+      localStorage.setItem('nyx_card_bg_color', appearance.cardBgColor);
     } else {
-      localStorage.removeItem('tunet_card_bg_color');
+      localStorage.removeItem('nyx_card_bg_color');
     }
   }
   if (appearance.cardTransparency !== undefined)
-    localStorage.setItem('tunet_card_transparency', String(appearance.cardTransparency));
+    localStorage.setItem('nyx_card_transparency', String(appearance.cardTransparency));
   if (appearance.cardBorderOpacity !== undefined)
-    localStorage.setItem('tunet_card_border_opacity', String(appearance.cardBorderOpacity));
+    localStorage.setItem('nyx_card_border_opacity', String(appearance.cardBorderOpacity));
   if (appearance.inactivityTimeout !== undefined)
-    localStorage.setItem('tunet_inactivity_timeout', String(appearance.inactivityTimeout));
+    localStorage.setItem('nyx_inactivity_timeout', String(appearance.inactivityTimeout));
 
   // ── Update React contexts (if setters provided) ──
   const s = contextSetters;

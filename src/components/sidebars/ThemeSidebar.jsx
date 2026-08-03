@@ -548,7 +548,7 @@ export default function ThemeSidebar({
                   const newVal = inactivityTimeout > 0 ? 0 : 60;
                   setInactivityTimeout(newVal);
                   try {
-                    localStorage.setItem('tunet_inactivity_timeout', String(newVal));
+                    localStorage.setItem('nyx_inactivity_timeout', String(newVal));
                   } catch {}
                 }}
                 className={`relative h-6 w-10 rounded-full p-1 transition-colors ${inactivityTimeout > 0 ? 'bg-[var(--glass-bg-hover)]' : 'bg-gray-500/30'}`}
@@ -576,7 +576,7 @@ export default function ThemeSidebar({
                   const val = parseInt(e.target.value, 10);
                   setInactivityTimeout(val);
                   try {
-                    localStorage.setItem('tunet_inactivity_timeout', String(val));
+                    localStorage.setItem('nyx_inactivity_timeout', String(val));
                   } catch {}
                 }}
                 colorClass="bg-[var(--text-secondary)]"

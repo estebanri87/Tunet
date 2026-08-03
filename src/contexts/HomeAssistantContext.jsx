@@ -23,7 +23,7 @@ import { buildRegistryLookupMap, enrichEntitiesWithRegistryMetadata, isEntityDat
 /** @typedef {import('../types/dashboard').HomeAssistantProviderProps} HomeAssistantProviderProps */
 /** @typedef {Omit<HomeAssistantContextValue, 'entities'>} HomeAssistantMetaValue */
 
-const ENTITY_CACHE_KEY = 'tunet_entity_snapshot';
+const ENTITY_CACHE_KEY = 'nyx_entity_snapshot';
 const ENTITY_CACHE_MAX_AGE_MS = 5 * 60_000; // 5 minutes — stale snapshots are discarded
 
 /** Read cached entity snapshot from sessionStorage (returns {} if absent/expired). */

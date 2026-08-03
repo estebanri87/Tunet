@@ -57,7 +57,7 @@ const DEFAULT_SECTION_SPACING = {
   navToGrid: 24,
 };
 
-const CARDS_ONLY_MODE_KEY = 'tunet_cards_only_mode';
+const CARDS_ONLY_MODE_KEY = 'nyx_cards_only_mode';
 
 const normalizeGridColumns = (value) => {
   const parsed = Number(value);
@@ -159,7 +159,7 @@ function migrateCardSettings(rawSettings) {
 
 /** Synchronously load & migrate pagesConfig from localStorage. */
 function loadPagesConfig() {
-  const parsed = readJSON('tunet_pages_config', null);
+  const parsed = readJSON('nyx_pages_config', null);
   if (!parsed) return DEFAULT_PAGES_CONFIG;
 
   let modified = false;
@@ -200,13 +200,13 @@ function loadPagesConfig() {
     modified = true;
   }
 
-  if (modified) writeJSON('tunet_pages_config', parsed);
+  if (modified) writeJSON('nyx_pages_config', parsed);
   return parsed;
 }
 
 /** Synchronously load & migrate status pills config from localStorage. */
 function loadStatusPillsConfig() {
-  const parsed = readJSON('tunet_status_pills_config', []);
+  const parsed = readJSON('nyx_status_pills_config', []);
   if (!Array.isArray(parsed)) return [];
 
   let modified = false;
@@ -242,7 +242,7 @@ function loadStatusPillsConfig() {
     return { ...normalizedPill, ...updates };
   });
 
-  if (modified) writeJSON('tunet_status_pills_config', next);
+  if (modified) writeJSON('nyx_status_pills_config', next);
   return next;
 }
 
@@ -275,31 +275,31 @@ export const PageProvider = ({ children }) => {
   const [sectionSpacing, setSectionSpacing] = useState(DEFAULT_SECTION_SPACING);
   const [cardsOnlyMode, setCardsOnlyMode] = useState(() => readBoolean(CARDS_ONLY_MODE_KEY, false));
   const [headerTitle, setHeaderTitle] = useState(
-    () => localStorage.getItem('tunet_header_title') || ''
+    () => localStorage.getItem('nyx_header_title') || ''
   );
 
   // Load remaining configuration from localStorage
   useEffect(() => {
-    const hidden = readJSON('tunet_hidden_cards', null);
+    const hidden = readJSON('nyx_hidden_cards', null);
     if (hidden) {
       setHiddenCards(hidden);
     }
 
-    const names = readJSON('tunet_custom_names', null);
+    const names = readJSON('nyx_custom_names', null);
     if (names) setCustomNames(names);
 
-    const icons = readJSON('tunet_custom_icons', null);
+    const icons = readJSON('nyx_custom_icons', null);
     if (icons) setCustomIcons(icons);
 
-    const savedCols = readNumber('tunet_grid_columns', null);
+    const savedCols = readNumber('nyx_grid_columns', null);
     if (savedCols !== null) setGridColumns(normalizeGridColumns(savedCols));
 
-    const savedDynamicCols = readBoolean('tunet_grid_columns_dynamic', true);
+    const savedDynamicCols = readBoolean('nyx_grid_columns_dynamic', true);
     setDynamicGridColumns(savedDynamicCols);
 
-    const savedGap = readNumber('tunet_grid_gap', null);
-    const savedGapH = readNumber('tunet_grid_gap_h', null);
-    const savedGapV = readNumber('tunet_grid_gap_v', null);
+    const savedGap = readNumber('nyx_grid_gap', null);
+    const savedGapH = readNumber('nyx_grid_gap_h', null);
+    const savedGapV = readNumber('nyx_grid_gap_v', null);
 
     if (savedGapH !== null) setGridGapH(savedGapH);
     else if (savedGap !== null) setGridGapH(savedGap);
@@ -307,13 +307,13 @@ export const PageProvider = ({ children }) => {
     if (savedGapV !== null) setGridGapV(savedGapV);
     else if (savedGap !== null) setGridGapV(savedGap);
 
-    const savedRadius = readNumber('tunet_card_border_radius', null);
+    const savedRadius = readNumber('nyx_card_border_radius', null);
     if (savedRadius !== null) setCardBorderRadius(savedRadius);
 
-    const savedScale = readNumber('tunet_header_scale', null);
+    const savedScale = readNumber('nyx_header_scale', null);
     if (savedScale !== null) setHeaderScale(savedScale);
 
-    const spacingSaved = readJSON('tunet_section_spacing', null);
+    const spacingSaved = readJSON('nyx_section_spacing', null);
     if (spacingSaved) {
       const nextSpacing = {
         headerToStatus: Number.isFinite(spacingSaved.headerToStatus)
@@ -329,7 +329,7 @@ export const PageProvider = ({ children }) => {
       setSectionSpacing(nextSpacing);
     }
 
-    const pageSettingsSaved = readJSON('tunet_page_settings', null);
+    const pageSettingsSaved = readJSON('nyx_page_settings', null);
     if (pageSettingsSaved) {
       let modified = false;
       const nextSettings = { ...pageSettingsSaved };
@@ -340,14 +340,14 @@ export const PageProvider = ({ children }) => {
         }
       });
       setPageSettings(nextSettings);
-      if (modified) writeJSON('tunet_page_settings', nextSettings);
+      if (modified) writeJSON('nyx_page_settings', nextSettings);
     }
 
-    const cardSettingsSaved = readJSON('tunet_card_settings', null);
+    const cardSettingsSaved = readJSON('nyx_card_settings', null);
     if (cardSettingsSaved) {
       const { migratedSettings, changed } = migrateCardSettings(cardSettingsSaved);
       setCardSettings(migratedSettings);
-      if (changed) writeJSON('tunet_card_settings', migratedSettings);
+      if (changed) writeJSON('nyx_card_settings', migratedSettings);
     }
   }, []);
 
@@ -356,13 +356,13 @@ export const PageProvider = ({ children }) => {
   }, [cardBorderRadius]);
 
   useEffect(() => {
-    writeJSON('tunet_pages_config', pagesConfig);
+    writeJSON('nyx_pages_config', pagesConfig);
   }, [pagesConfig]);
 
   const saveCustomName = useCallback((id, name) => {
     setCustomNames((prev) => {
       const newNames = { ...prev, [id]: name };
-      writeJSON('tunet_custom_names', newNames);
+      writeJSON('nyx_custom_names', newNames);
       return newNames;
     });
   }, []);
@@ -370,7 +370,7 @@ export const PageProvider = ({ children }) => {
   const saveCustomIcon = useCallback((id, iconName) => {
     setCustomIcons((prev) => {
       const newIcons = { ...prev, [id]: iconName };
-      writeJSON('tunet_custom_icons', newIcons);
+      writeJSON('nyx_custom_icons', newIcons);
       return newIcons;
     });
   }, []);
@@ -381,7 +381,7 @@ export const PageProvider = ({ children }) => {
         ...prev,
         [id]: { ...(prev[id] || {}), [setting]: value },
       };
-      writeJSON('tunet_card_settings', newSettings);
+      writeJSON('nyx_card_settings', newSettings);
       return newSettings;
     });
   }, []);
@@ -392,29 +392,29 @@ export const PageProvider = ({ children }) => {
         ...prev,
         [id]: { ...(prev[id] || {}), [setting]: value },
       };
-      writeJSON('tunet_page_settings', newSettings);
+      writeJSON('nyx_page_settings', newSettings);
       return newSettings;
     });
   }, []);
 
   const persistPageSettings = useCallback((newSettings) => {
     setPageSettings(newSettings);
-    writeJSON('tunet_page_settings', newSettings);
+    writeJSON('nyx_page_settings', newSettings);
   }, []);
 
   const persistCustomNames = useCallback((newNames) => {
     setCustomNames(newNames);
-    writeJSON('tunet_custom_names', newNames);
+    writeJSON('nyx_custom_names', newNames);
   }, []);
 
   const persistCustomIcons = useCallback((newIcons) => {
     setCustomIcons(newIcons);
-    writeJSON('tunet_custom_icons', newIcons);
+    writeJSON('nyx_custom_icons', newIcons);
   }, []);
 
   const persistHiddenCards = useCallback((newHidden) => {
     setHiddenCards(newHidden);
-    writeJSON('tunet_hidden_cards', newHidden);
+    writeJSON('nyx_hidden_cards', newHidden);
   }, []);
 
   const toggleCardVisibility = useCallback((cardId) => {
@@ -422,7 +422,7 @@ export const PageProvider = ({ children }) => {
       const newHidden = prev.includes(cardId)
         ? prev.filter((id) => id !== cardId)
         : [...prev, cardId];
-      writeJSON('tunet_hidden_cards', newHidden);
+      writeJSON('nyx_hidden_cards', newHidden);
       return newHidden;
     });
   }, []);
@@ -430,7 +430,7 @@ export const PageProvider = ({ children }) => {
   const updateHeaderScale = useCallback((newScale) => {
     setHeaderScale(newScale);
     try {
-      localStorage.setItem('tunet_header_scale', String(newScale));
+      localStorage.setItem('nyx_header_scale', String(newScale));
     } catch (error) {
       console.error('Failed to save header scale:', error);
     }
@@ -439,7 +439,7 @@ export const PageProvider = ({ children }) => {
   const updateHeaderTitle = useCallback((newTitle) => {
     setHeaderTitle(newTitle);
     try {
-      localStorage.setItem('tunet_header_title', newTitle);
+      localStorage.setItem('nyx_header_title', newTitle);
     } catch (error) {
       console.error('Failed to save header title:', error);
     }
@@ -448,7 +448,7 @@ export const PageProvider = ({ children }) => {
   const updateSectionSpacing = useCallback((partial) => {
     setSectionSpacing((prev) => {
       const nextSpacing = { ...prev, ...partial };
-      writeJSON('tunet_section_spacing', nextSpacing);
+      writeJSON('nyx_section_spacing', nextSpacing);
       return nextSpacing;
     });
   }, []);
@@ -464,7 +464,7 @@ export const PageProvider = ({ children }) => {
   }, []);
 
   const [headerSettings, setHeaderSettings] = useState(() => {
-    const saved = readJSON('tunet_header_settings');
+    const saved = readJSON('nyx_header_settings');
     return (
       saved || {
         showTitle: true,
@@ -480,7 +480,7 @@ export const PageProvider = ({ children }) => {
 
   const updateHeaderSettings = useCallback((newSettings) => {
     setHeaderSettings(newSettings);
-    writeJSON('tunet_header_settings', newSettings);
+    writeJSON('nyx_header_settings', newSettings);
   }, []);
 
   const [statusPillsConfig, setStatusPillsConfig] = useState(loadStatusPillsConfig);
@@ -490,24 +490,24 @@ export const PageProvider = ({ children }) => {
       ? newConfig.map((pill) => normalizeStatusPillConfig(pill))
       : [];
     setStatusPillsConfig(normalized);
-    writeJSON('tunet_status_pills_config', normalized);
+    writeJSON('nyx_status_pills_config', normalized);
   }, []);
 
   const persistConfig = useCallback((newConfig) => {
     setPagesConfig(newConfig);
-    writeJSON('tunet_pages_config', newConfig);
+    writeJSON('nyx_pages_config', newConfig);
   }, []);
 
   const persistCardSettings = useCallback((newSettings) => {
     setCardSettings(newSettings);
-    writeJSON('tunet_card_settings', newSettings);
+    writeJSON('nyx_card_settings', newSettings);
   }, []);
 
   const setGridColumnsPersisted = useCallback((val) => {
     const next = normalizeGridColumns(val);
     setGridColumns(next);
     try {
-      localStorage.setItem('tunet_grid_columns', String(next));
+      localStorage.setItem('nyx_grid_columns', String(next));
     } catch (error) {
       console.error('Failed to save grid columns:', error);
     }
@@ -517,7 +517,7 @@ export const PageProvider = ({ children }) => {
     const next = Boolean(val);
     setDynamicGridColumns(next);
     try {
-      localStorage.setItem('tunet_grid_columns_dynamic', next ? '1' : '0');
+      localStorage.setItem('nyx_grid_columns_dynamic', next ? '1' : '0');
     } catch (error) {
       console.error('Failed to save dynamic grid columns setting:', error);
     }
@@ -526,7 +526,7 @@ export const PageProvider = ({ children }) => {
   const setGridGapHPersisted = useCallback((val) => {
     setGridGapH(val);
     try {
-      localStorage.setItem('tunet_grid_gap_h', String(val));
+      localStorage.setItem('nyx_grid_gap_h', String(val));
     } catch (error) {
       console.error('Failed to save grid gap h:', error);
     }
@@ -535,7 +535,7 @@ export const PageProvider = ({ children }) => {
   const setGridGapVPersisted = useCallback((val) => {
     setGridGapV(val);
     try {
-      localStorage.setItem('tunet_grid_gap_v', String(val));
+      localStorage.setItem('nyx_grid_gap_v', String(val));
     } catch (error) {
       console.error('Failed to save grid gap v:', error);
     }
@@ -544,7 +544,7 @@ export const PageProvider = ({ children }) => {
   const setCardBorderRadiusPersisted = useCallback((val) => {
     setCardBorderRadius(val);
     try {
-      localStorage.setItem('tunet_card_border_radius', String(val));
+      localStorage.setItem('nyx_card_border_radius', String(val));
     } catch (error) {
       console.error('Failed to save card border radius:', error);
     }

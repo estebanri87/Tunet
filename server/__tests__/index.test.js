@@ -18,11 +18,11 @@ const closeServer = async (server) =>
   });
 
 const createDistFixture = () => {
-  const distPath = mkdtempSync(join(tmpdir(), 'tunet-server-dist-'));
+  const distPath = mkdtempSync(join(tmpdir(), 'nyx-server-dist-'));
   mkdirSync(join(distPath, 'assets'));
   writeFileSync(
     join(distPath, 'index.html'),
-    '<!doctype html><html><head><title>Tunet Test</title></head><body><div id="root"></div></body></html>',
+    '<!doctype html><html><head><title>Nyx Test</title></head><body><div id="root"></div></body></html>',
     'utf8'
   );
   tempDirs.push(distPath);
@@ -68,7 +68,7 @@ describe('createApp SPA fallback', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
-    await expect(response.text()).resolves.toContain('<title>Tunet Test</title>');
+    await expect(response.text()).resolves.toContain('<title>Nyx Test</title>');
   });
 
   it('does not rewrite missing API routes to the SPA shell', async () => {
@@ -83,6 +83,6 @@ describe('createApp SPA fallback', () => {
     const response = await harness.request('/api/does-not-exist');
 
     expect(response.status).toBe(404);
-    await expect(response.text()).resolves.not.toContain('Tunet Test');
+    await expect(response.text()).resolves.not.toContain('Nyx Test');
   });
 });

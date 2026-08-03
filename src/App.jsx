@@ -205,7 +205,7 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
   useEffect(() => {
     if (!cardsOnlyMode || !editMode) return;
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new window.CustomEvent('tunet:edit-done'));
+      window.dispatchEvent(new window.CustomEvent('nyx:edit-done'));
     }
     setEditMode(false);
   }, [cardsOnlyMode, editMode, setEditMode]);
@@ -907,7 +907,7 @@ export default function App() {
   const [oauthTokenRevision, setOAuthTokenRevision] = useState(0);
   const [initialPage] = useState(() => {
     try {
-      return localStorage.getItem('tunet_active_page') || 'home';
+      return localStorage.getItem('nyx_active_page') || 'home';
     } catch {
       return 'home';
     }

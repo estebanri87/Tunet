@@ -290,7 +290,7 @@ export default function VacuumModal({
   const [isAreasLoading, setIsAreasLoading] = useState(true);
   const [showMapToggle, setShowMapToggle] = useState(() => {
     try {
-      const saved = localStorage.getItem(`tunet_vacuum_show_map_${vacuumId}`);
+      const saved = localStorage.getItem(`nyx_vacuum_show_map_${vacuumId}`);
       return saved !== 'false';
     } catch {
       return true;
@@ -322,8 +322,8 @@ export default function VacuumModal({
     if (!show || !vacuumId) return;
     const timer = setTimeout(() => {
       try {
-        localStorage.setItem(`tunet_vacuum_map_scale_${vacuumId}`, String(mapScale));
-        localStorage.setItem(`tunet_vacuum_map_pan_${vacuumId}`, JSON.stringify(mapPan));
+        localStorage.setItem(`nyx_vacuum_map_scale_${vacuumId}`, String(mapScale));
+        localStorage.setItem(`nyx_vacuum_map_pan_${vacuumId}`, JSON.stringify(mapPan));
       } catch {}
     }, 200);
     return () => clearTimeout(timer);
@@ -438,7 +438,7 @@ export default function VacuumModal({
     const nextVal = !showMapToggle;
     setShowMapToggle(nextVal);
     try {
-      localStorage.setItem(`tunet_vacuum_show_map_${vacuumId}`, String(nextVal));
+      localStorage.setItem(`nyx_vacuum_show_map_${vacuumId}`, String(nextVal));
     } catch (e) {
       console.error(e);
     }
@@ -1039,7 +1039,7 @@ export default function VacuumModal({
   // Selected Map Entity Id with persistence
   const [selectedMapEntityId, setSelectedMapEntityId] = useState(() => {
     try {
-      const saved = localStorage.getItem(`tunet_vacuum_selected_map_${vacuumId}`);
+      const saved = localStorage.getItem(`nyx_vacuum_selected_map_${vacuumId}`);
       if (saved) return saved;
     } catch {}
     return null;
@@ -1049,17 +1049,17 @@ export default function VacuumModal({
   useEffect(() => {
     if (show && vacuumId) {
       try {
-        const savedMap = localStorage.getItem(`tunet_vacuum_selected_map_${vacuumId}`);
+        const savedMap = localStorage.getItem(`nyx_vacuum_selected_map_${vacuumId}`);
         setSelectedMapEntityId(savedMap || null);
       } catch {
         setSelectedMapEntityId(null);
       }
 
       try {
-        const savedScale = localStorage.getItem(`tunet_vacuum_map_scale_${vacuumId}`);
+        const savedScale = localStorage.getItem(`nyx_vacuum_map_scale_${vacuumId}`);
         setMapScale(savedScale ? parseFloat(savedScale) : 1.1);
 
-        const savedPan = localStorage.getItem(`tunet_vacuum_map_pan_${vacuumId}`);
+        const savedPan = localStorage.getItem(`nyx_vacuum_map_pan_${vacuumId}`);
         setMapPan(savedPan ? JSON.parse(savedPan) : { x: 0, y: 0 });
       } catch {
         setMapScale(1.1);
@@ -1863,7 +1863,7 @@ export default function VacuumModal({
                     onChange={(val) => {
                       setSelectedMapEntityId(val);
                       try {
-                        localStorage.setItem(`tunet_vacuum_selected_map_${vacuumId}`, val);
+                        localStorage.setItem(`nyx_vacuum_selected_map_${vacuumId}`, val);
                       } catch {}
                     }}
                     map={mapEntitiesNamesMap}
@@ -2670,7 +2670,7 @@ export default function VacuumModal({
                         onChange={(val) => {
                           setSelectedMapEntityId(val);
                           try {
-                            localStorage.setItem(`tunet_vacuum_selected_map_${vacuumId}`, val);
+                            localStorage.setItem(`nyx_vacuum_selected_map_${vacuumId}`, val);
                           } catch {}
                         }}
                         map={mapEntitiesNamesMap}

@@ -1,4 +1,4 @@
-﻿import json, re, time
+import json, re, time
 from deep_translator import GoogleTranslator
 from pathlib import Path
 
@@ -10,7 +10,7 @@ data = json.loads(src.read_text(encoding='utf-8'))
 translator = GoogleTranslator(source='en', target='de')
 
 brand_terms = [
-    'Home Assistant', 'OAuth2', 'Sonos', 'Nordpool', 'MediaSide', 'Tunet'
+    'Home Assistant', 'OAuth2', 'Sonos', 'Nordpool', 'MediaSide', 'Nyx'
 ]
 
 cache = {}

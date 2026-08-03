@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug to help improve Tunet Dashboard
+about: Report a bug to help improve Nyx Dashboard
 title: '[Bug] '
 labels: bug
 assignees: ''
@@ -27,7 +27,7 @@ If applicable, add screenshots to help explain the problem.
 ## Environment
 
 - **Browser**: [e.g. Chrome 120, Firefox 121]
-- **Tunet version**: [e.g. 1.0.0-beta.3]
+- **Nyx version**: [e.g. 1.0.0-beta.3]
 - **Home Assistant version**: [e.g. 2025.1.0]
 - **Deployment**: [Docker / npm run dev / npm run build]
 

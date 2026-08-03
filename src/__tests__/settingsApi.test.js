@@ -92,7 +92,7 @@ describe('settingsApi OAuth refresh retry', () => {
       ok: false,
       status: 503,
       json: vi.fn().mockResolvedValue({
-        error: 'Tunet backend could not reach Home Assistant while validating the current user.',
+        error: 'Nyx backend could not reach Home Assistant while validating the current user.',
         code: 'HA_VALIDATION_UNREACHABLE',
       }),
     });
@@ -100,7 +100,7 @@ describe('settingsApi OAuth refresh retry', () => {
     const { fetchCurrentSettings } = await import('../services/settingsApi');
 
     await expect(fetchCurrentSettings('user-1', 'device-1')).rejects.toMatchObject({
-      message: 'Tunet backend could not reach Home Assistant while validating the current user.',
+      message: 'Nyx backend could not reach Home Assistant while validating the current user.',
       status: 503,
       body: {
         code: 'HA_VALIDATION_UNREACHABLE',

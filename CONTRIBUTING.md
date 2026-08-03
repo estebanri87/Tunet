@@ -1,6 +1,6 @@
-# Contributing to Tunet
+# Contributing to Nyx
 
-Thank you for your interest in contributing to Tunet!
+Thank you for your interest in contributing to Nyx!
 
 ## How to Contribute
 

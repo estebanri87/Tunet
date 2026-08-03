@@ -1,5 +1,5 @@
 /**
- * Frontend API client for the Tunet backend.
+ * Frontend API client for the Nyx backend.
  * All calls go to /api/* which Vite proxies to the backend in dev mode,
  * and Express serves directly in production.
  */

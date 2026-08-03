@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 const makeProps = (overrides = {}) => ({
-  resolvedHeaderTitle: 'Tunet Dashboard',
+  resolvedHeaderTitle: 'Nyx Dashboard',
   inactivityTimeout: 0,
   resetToHome: vi.fn(),
   activeMediaModal: null,

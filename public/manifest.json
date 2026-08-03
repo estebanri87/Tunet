@@ -1,6 +1,6 @@
 {
-  "name": "Tunet Dashboard",
-  "short_name": "Tunet",
+  "name": "Nyx Dashboard",
+  "short_name": "Nyx",
   "description": "Home Assistant Dashboard",
   "start_url": "./",
   "scope": "./",

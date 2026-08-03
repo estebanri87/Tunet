@@ -1,6 +1,6 @@
 # CSS Variables Reference
 
-This file is the source of truth for theme tokens used by Tunet Dashboard.
+This file is the source of truth for theme tokens used by Nyx Dashboard.
 
 ## Where tokens are defined
 

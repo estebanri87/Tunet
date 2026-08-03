@@ -1,4 +1,4 @@
-# Tunet Dashboard — Copilot Instructions
+# Nyx Dashboard — Copilot Instructions
 
 ## Big picture
 
@@ -81,9 +81,9 @@ E2E_TESTS_SETUP.md        # Comprehensive E2E setup guide
 - **Code quality review** (March 2026): Overall 8.1/10 rating with strong architecture (9/10) and services (9/10)
   - Key improvement areas: E2E testing (now complete), bundle size tracking, API caching layer, design token documentation
 
-## LocalStorage keys (prefix `tunet_*`)
+## LocalStorage keys (prefix `nyx_*`)
 
-- `tunet_pages_config` (layout), `tunet_card_settings` (entity mappings), `tunet_hidden_cards`, `tunet_theme`, `tunet_language`.
+- `nyx_pages_config` (layout), `nyx_card_settings` (entity mappings), `nyx_hidden_cards`, `nyx_theme`, `nyx_language`.
 
 ## Dev workflow
 

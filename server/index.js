@@ -161,7 +161,7 @@ export const createApp = ({
         const fallbackFileName = hashedAssetFallbackMap.get(fallbackKey);
         if (!fallbackFileName || fallbackFileName === requested) return next();
 
-        res.setHeader('X-Tunet-Asset-Fallback', fallbackFileName);
+        res.setHeader('X-Nyx-Asset-Fallback', fallbackFileName);
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
         return res.sendFile(join(assetsPath, fallbackFileName));
       });
@@ -209,7 +209,7 @@ const app = createApp();
 if (isMainModule) {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(
-      `[server] Tunet backend running on port ${PORT} (${process.env.NODE_ENV === 'production' ? 'production' : 'development'})`
+      `[server] Nyx backend running on port ${PORT} (${process.env.NODE_ENV === 'production' ? 'production' : 'development'})`
     );
   });
 }

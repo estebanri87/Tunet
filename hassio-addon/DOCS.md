@@ -1,4 +1,4 @@
-# Tunet Dashboard
+# Nyx Dashboard
 
 A modern, responsive dashboard for Home Assistant with glassmorphism design,
 real-time entity updates, and drag-and-drop customisation.
@@ -7,7 +7,7 @@ real-time entity updates, and drag-and-drop customisation.
 
 1. Install the add-on from the repository.
 2. Start the add-on.
-3. Open the **Tunet** panel in the sidebar.
+3. Open the **Nyx** panel in the sidebar.
 4. On first launch you will see the onboarding screen.
 5. Create a **Long-Lived Access Token** in your HA profile
    (click your username → scroll down → _Long-Lived Access Tokens_ → _Create Token_).
@@ -29,7 +29,7 @@ real-time entity updates, and drag-and-drop customisation.
 
 ### Home Assistant Add-on update
 
-1. Go to **Settings → Add-ons → Tunet**.
+1. Go to **Settings → Add-ons → Nyx**.
 2. Click **Update** (when a new version is available).
 3. Restart the add-on after update.
 4. Hard-refresh browser (`Ctrl+Shift+R`) if old UI is still cached.
@@ -50,7 +50,7 @@ real-time entity updates, and drag-and-drop customisation.
   3.  Use **Rebuild** once, then start again.
   4.  Hard-refresh browser (`Ctrl+Shift+R`).
 
-Tunet add-on builds are now version-resolved from release tags before falling back to `main`, which prevents this mismatch in normal updates.
+Nyx add-on builds are now version-resolved from release tags before falling back to `main`, which prevents this mismatch in normal updates.
 
 ## Troubleshooting
 
@@ -77,4 +77,4 @@ Tunet add-on builds are now version-resolved from release tags before falling ba
 
 ## Support
 
-Report issues at <https://github.com/estebanri87/Tunet/issues>.
+Report issues at <https://github.com/estebanri87/Nyx/issues>.
