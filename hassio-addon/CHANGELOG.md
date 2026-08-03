@@ -60,12 +60,6 @@
 - Redesigns the Status Pills config modal with a cleaner layout and clearer smart-pill setup.
 - Refines the smart pill popup and entity scoping controls.
 
-<p>
-  <img src="https://raw.githubusercontent.com/oyvhov/Tunet/v1.19.0/public/release-assets/Pills.png" alt="Redesigned Status Pills and smart pill preview" width="430" />
-</p>
-
-**Full Changelog**: https://github.com/oyvhov/Tunet/compare/v1.18.1...v1.19.0
-
 ## 1.18.1
 
 ### Added
@@ -84,8 +78,6 @@
 
 - Clears the `ip-address` advisory through the `express-rate-limit` dependency update.
 
-**Full Changelog**: https://github.com/oyvhov/Tunet/compare/v1.18.0...v1.18.1
-
 ## 1.18.0
 
 ### Added
@@ -101,8 +93,6 @@
 
 - Handles Home Assistant `open`/`opening` lock states and code-protected lock actions.
 - Retries settings-sync revision conflicts when the local device has unsynced changes.
-
-**Full Changelog**: https://github.com/oyvhov/Tunet/compare/v1.17.0...v1.18.0
 
 ## 1.17.0
 
@@ -120,8 +110,6 @@
 
 - Keeps critical recovery UI available in cards-only mode, including connection/auth warning surfaces, so users are not locked out of setup or troubleshooting.
 
-**Full Changelog**: https://github.com/oyvhov/Tunet/compare/v1.16.2...v1.17.0
-
 ## 1.16.2
 
 ### Added
@@ -129,10 +117,6 @@
 - Includes dashboard release `1.16.2`.
 - Small release preview for the refreshed Status Pills feature.
 - Adds new animation presets for Status Pills.
-
-<p>
-  <img src="https://raw.githubusercontent.com/oyvhov/Tunet/v1.16.2/public/release-assets/image.png" alt="Status Pills release preview" width="430" />
-</p>
 
 ### Changed
 
@@ -144,8 +128,6 @@
 - Keeps Status Pills heading and subtitle visibility settings stable across reopen and reload, and commits pending condition values when saving.
 - Prevents newly added visible sensor and alarm pills from disappearing after save by requiring an entity selection before the pill can be saved.
 - Improves Home Assistant backend auth logging and Docker fallback URL handling for easier connection troubleshooting.
-
-**Full Changelog**: https://github.com/oyvhov/Tunet/compare/v1.16.1...v1.16.2
 
 ## 1.16.1
 

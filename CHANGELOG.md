@@ -553,12 +553,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- Fixed Person popup units not following HA configuration (Imperial/Metric switching) ([#66](https://github.com/oyvhov/Tunet/issues/66)).
-- Fixed logic where lights always showed brightness ([#64](https://github.com/oyvhov/Tunet/issues/64)).
+- Fixed Person popup units not following HA configuration (Imperial/Metric switching).
+- Fixed logic where lights always showed brightness.
 
 ### Changed
 
-- Redesigned Person popup to align with Car modal aesthetics (glassmorphism/rounded) ([#65](https://github.com/oyvhov/Tunet/issues/65)).
+- Redesigned Person popup to align with Car modal aesthetics (glassmorphism/rounded).
 - Implemented strict sensor configuration for Person popups (no more unconfigured "ghost" sensors).
 - Dynamic map layout in Person popup: map expands to full width when no sensors are present.
 - Improved Editor experience for Person card: unrestricted entity selection and removed count badges.

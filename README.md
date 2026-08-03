@@ -79,5 +79,5 @@ This project is licensed under the GNU General Public License v3.0 — see the [
 
 ---
 <div align="center">
-  Originally created by <a href="https://github.com/oyvhov">oyvhov</a> — this fork maintained by <a href="https://github.com/estebanri87">estebanri87</a>
+  Maintained by <a href="https://github.com/estebanri87">estebanri87</a>
 </div>
