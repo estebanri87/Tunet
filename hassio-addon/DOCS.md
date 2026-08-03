@@ -77,4 +77,4 @@ Tunet add-on builds are now version-resolved from release tags before falling ba
 
 ## Support
 
-Report issues at <https://github.com/oyvhov/Tunet/issues>.
+Report issues at <https://github.com/estebanri87/Tunet/issues>.
