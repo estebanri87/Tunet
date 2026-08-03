@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import db from '../db.js';
 import {
   encryptDataText,
@@ -23,7 +23,7 @@ const profilesRateLimiter = rateLimit({
   // (Ingress traffic all arrives from the Supervisor's proxy). Skips
   // express-rate-limit's trust-proxy sanity check, which would otherwise
   // log a warning on every request in this setup.
-  keyGenerator: (req) => req.socket?.remoteAddress || req.ip,
+  keyGenerator: (req) => ipKeyGenerator(req.socket?.remoteAddress || req.ip),
 });
 
 router.use(profilesRateLimiter);

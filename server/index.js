@@ -1,5 +1,5 @@
 import express from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { existsSync, readFileSync, readdirSync } from 'fs';
@@ -73,7 +73,7 @@ export const createApp = ({
   // X-Forwarded-For (Ingress traffic all arrives from the Supervisor's
   // proxy). This skips express-rate-limit's trust-proxy sanity check,
   // which would otherwise log a warning on every request in this setup.
-  const remoteAddressKeyGenerator = (req) => req.socket?.remoteAddress || req.ip;
+  const remoteAddressKeyGenerator = (req) => ipKeyGenerator(req.socket?.remoteAddress || req.ip);
 
   const apiRateLimiter = rateLimit({
     windowMs: Math.max(Number(process.env.API_RATE_LIMIT_WINDOW_MS) || 60_000, 1_000),
