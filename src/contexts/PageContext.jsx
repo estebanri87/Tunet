@@ -468,7 +468,7 @@ export const PageProvider = ({ children }) => {
     return (
       saved || {
         enabled: false,
-        hideNav: true,
+        hideNav: false,
         hideMenuButton: true,
       }
     );

@@ -82,7 +82,7 @@ describe('PageContext persistence', () => {
 
     expect(first.result.current.kioskDisplaySettings).toEqual({
       enabled: false,
-      hideNav: true,
+      hideNav: false,
       hideMenuButton: true,
     });
 

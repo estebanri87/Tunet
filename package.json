@@ -1,7 +1,7 @@
 {
   "name": "nyx-dashboard",
   "private": true,
-  "version": "1.20.50-v1dev",
+  "version": "1.20.51-v1dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/estebanri87/Nyx.git"

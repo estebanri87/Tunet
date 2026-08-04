@@ -60,7 +60,7 @@ export function collectSnapshot() {
       cardsOnlyMode: readBoolean('nyx_cards_only_mode', false),
       kioskDisplaySettings: readJSON('nyx_kiosk_display_settings', {
         enabled: false,
-        hideNav: true,
+        hideNav: false,
         hideMenuButton: true,
       }),
       headerSettings: readJSON('nyx_header_settings', {

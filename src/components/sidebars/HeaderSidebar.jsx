@@ -593,7 +593,7 @@ export default function HeaderSidebar({
             />
             <Toggle
               label={t('header.kioskHideNav')}
-              value={Boolean(kioskSetting('hideNav', true))}
+              value={Boolean(kioskSetting('hideNav', false))}
               onChange={(v) => updateKiosk('hideNav', v)}
             />
             <Toggle
