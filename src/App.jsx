@@ -125,6 +125,8 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
     updateSectionSpacing,
     cardsOnlyMode,
     updateCardsOnlyMode,
+    kioskDisplaySettings,
+    updateKioskDisplaySettings,
     persistCardSettings,
     statusPillsConfig,
     saveStatusPillsConfig,
@@ -210,6 +212,16 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
     setEditMode(false);
   }, [cardsOnlyMode, editMode, setEditMode]);
 
+  const kioskEditLocked = Boolean(kioskDisplaySettings?.enabled && kioskDisplaySettings?.hideMenuButton);
+
+  useEffect(() => {
+    if (!kioskEditLocked || !editMode) return;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new window.CustomEvent('nyx:edit-done'));
+    }
+    setEditMode(false);
+  }, [kioskEditLocked, editMode, setEditMode]);
+
   useEffect(() => {
     if (!editMode) return undefined;
     return scheduleModalPrefetch([
@@ -222,7 +234,7 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
     ]);
   }, [editMode]);
 
-  const visibleEditMode = cardsOnlyMode ? false : editMode;
+  const visibleEditMode = cardsOnlyMode || kioskEditLocked ? false : editMode;
 
   const { activePage, setActivePage } = usePageRouting();
 
@@ -667,6 +679,8 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
     updateSectionSpacing,
     cardsOnlyMode,
     updateCardsOnlyMode,
+    kioskDisplaySettings,
+    updateKioskDisplaySettings,
     headerTitle,
     headerScale,
     headerSettings,
@@ -817,6 +831,8 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
         sectionSpacing={sectionSpacing}
         cardsOnlyMode={cardsOnlyMode}
         updateCardsOnlyMode={updateCardsOnlyMode}
+        kioskDisplaySettings={kioskDisplaySettings}
+        updateKioskDisplaySettings={updateKioskDisplaySettings}
         pagesConfig={pagesConfig}
         personStatus={personStatus}
         requestSettingsAccess={requestSettingsAccess}

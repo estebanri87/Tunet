@@ -159,6 +159,8 @@ export default function HeaderSidebar({
   updateHeaderSettings,
   cardsOnlyMode,
   updateCardsOnlyMode,
+  kioskDisplaySettings,
+  updateKioskDisplaySettings,
   onSwitchToTheme,
   onSwitchToLayout,
   t,
@@ -174,6 +176,10 @@ export default function HeaderSidebar({
 
   const setting = (key, fallback) => headerSettings?.[key] ?? fallback;
   const update = (key, value) => updateHeaderSettings({ ...headerSettings, [key]: value });
+
+  const kioskSetting = (key, fallback) => kioskDisplaySettings?.[key] ?? fallback;
+  const updateKiosk = (key, value) =>
+    updateKioskDisplaySettings({ ...kioskDisplaySettings, [key]: value });
 
   const fontWeight = setting('fontWeight', '300');
   const letterSpacing = setting('letterSpacing', 'normal');
@@ -579,6 +585,21 @@ export default function HeaderSidebar({
               label={t('header.cardsOnlyMode')}
               value={Boolean(cardsOnlyMode)}
               onChange={updateCardsOnlyMode}
+            />
+            <Toggle
+              label={t('header.kioskModeEnabled')}
+              value={Boolean(kioskSetting('enabled', false))}
+              onChange={(v) => updateKiosk('enabled', v)}
+            />
+            <Toggle
+              label={t('header.kioskHideNav')}
+              value={Boolean(kioskSetting('hideNav', true))}
+              onChange={(v) => updateKiosk('hideNav', v)}
+            />
+            <Toggle
+              label={t('header.kioskHideMenuButton')}
+              value={Boolean(kioskSetting('hideMenuButton', true))}
+              onChange={(v) => updateKiosk('hideMenuButton', v)}
             />
           </div>
 

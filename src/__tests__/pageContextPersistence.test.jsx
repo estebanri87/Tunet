@@ -77,6 +77,42 @@ describe('PageContext persistence', () => {
     });
   });
 
+  it('persists kiosk display settings across a provider reload', async () => {
+    const first = renderHook(() => usePages(), { wrapper });
+
+    expect(first.result.current.kioskDisplaySettings).toEqual({
+      enabled: false,
+      hideNav: true,
+      hideMenuButton: true,
+    });
+
+    act(() => {
+      first.result.current.updateKioskDisplaySettings({
+        enabled: true,
+        hideNav: true,
+        hideMenuButton: false,
+      });
+    });
+
+    await waitFor(() => {
+      expect(JSON.parse(localStorage.getItem('nyx_kiosk_display_settings'))).toEqual({
+        enabled: true,
+        hideNav: true,
+        hideMenuButton: false,
+      });
+    });
+
+    first.unmount();
+
+    const second = renderHook(() => usePages(), { wrapper });
+
+    expect(second.result.current.kioskDisplaySettings).toEqual({
+      enabled: true,
+      hideNav: true,
+      hideMenuButton: false,
+    });
+  });
+
   it('persists status pill text visibility flags across a provider reload', async () => {
     const first = renderHook(() => usePages(), { wrapper });
 

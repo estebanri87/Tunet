@@ -85,6 +85,8 @@ const makeParams = (overrides = {}) => ({
   updateSectionSpacing: vi.fn(),
   cardsOnlyMode: false,
   updateCardsOnlyMode: vi.fn(),
+  kioskDisplaySettings: { enabled: false, hideNav: true, hideMenuButton: true },
+  updateKioskDisplaySettings: vi.fn(),
   headerTitle: 'Nyx',
   headerScale: 1,
   headerSettings: {},
@@ -183,6 +185,11 @@ describe('useAppViewModels', () => {
     expect(result.current.dashboardGridGrid.gridColCount).toBe(4);
     expect(result.current.modalManagerCore.language).toBe('en');
     expect(result.current.modalManagerLayout.cardsOnlyMode).toBe(false);
+    expect(result.current.modalManagerLayout.kioskDisplaySettings).toEqual({
+      enabled: false,
+      hideNav: true,
+      hideMenuButton: true,
+    });
     expect(result.current).not.toHaveProperty('modalManagerState');
     expect(result.current.modalManagerCardConfig.statusPillsConfig).toEqual({});
   });

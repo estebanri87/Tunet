@@ -58,6 +58,11 @@ export function collectSnapshot() {
       gridGapV: readNumber('nyx_grid_gap_v', 20),
       cardBorderRadius: readNumber('nyx_card_border_radius', 16),
       cardsOnlyMode: readBoolean('nyx_cards_only_mode', false),
+      kioskDisplaySettings: readJSON('nyx_kiosk_display_settings', {
+        enabled: false,
+        hideNav: true,
+        hideMenuButton: true,
+      }),
       headerSettings: readJSON('nyx_header_settings', {
         showTitle: true,
         showClock: true,
@@ -137,6 +142,8 @@ export function applySnapshot(snapshot, contextSetters = {}) {
     localStorage.setItem('nyx_card_border_radius', String(layout.cardBorderRadius));
   if (layout.cardsOnlyMode !== undefined)
     localStorage.setItem('nyx_cards_only_mode', layout.cardsOnlyMode ? '1' : '0');
+  if (layout.kioskDisplaySettings)
+    localStorage.setItem('nyx_kiosk_display_settings', JSON.stringify(layout.kioskDisplaySettings));
   if (layout.headerScale !== undefined)
     localStorage.setItem('nyx_header_scale', String(layout.headerScale));
   if (layout.headerTitle !== undefined)
@@ -185,6 +192,8 @@ export function applySnapshot(snapshot, contextSetters = {}) {
     s.setCardBorderRadius(layout.cardBorderRadius);
   if (s.updateCardsOnlyMode && layout.cardsOnlyMode !== undefined)
     s.updateCardsOnlyMode(layout.cardsOnlyMode);
+  if (s.updateKioskDisplaySettings && layout.kioskDisplaySettings)
+    s.updateKioskDisplaySettings(layout.kioskDisplaySettings);
   if (s.updateHeaderScale && layout.headerScale !== undefined)
     s.updateHeaderScale(layout.headerScale);
   if (s.updateHeaderTitle && layout.headerTitle !== undefined)

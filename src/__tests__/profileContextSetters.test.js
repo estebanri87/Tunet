@@ -20,6 +20,7 @@ describe('buildProfilesContextSetters', () => {
       updateHeaderSettings: vi.fn(),
       updateSectionSpacing: vi.fn(),
       updateCardsOnlyMode: vi.fn(),
+      updateKioskDisplaySettings: vi.fn(),
       setCurrentTheme: vi.fn(),
       setLanguage: vi.fn(),
       setBgMode: vi.fn(),
@@ -52,6 +53,7 @@ describe('buildProfilesContextSetters', () => {
         updateHeaderSettings: refs.updateHeaderSettings,
         updateSectionSpacing: refs.updateSectionSpacing,
         updateCardsOnlyMode: refs.updateCardsOnlyMode,
+        updateKioskDisplaySettings: refs.updateKioskDisplaySettings,
       },
       appearance: {
         setCurrentTheme: refs.setCurrentTheme,
@@ -73,5 +75,6 @@ describe('buildProfilesContextSetters', () => {
     expect(result.setLanguage).toBe(refs.setLanguage);
     expect(result.setInactivityTimeout).toBe(refs.setInactivityTimeout);
     expect(result.updateCardsOnlyMode).toBe(refs.updateCardsOnlyMode);
+    expect(result.updateKioskDisplaySettings).toBe(refs.updateKioskDisplaySettings);
   });
 });

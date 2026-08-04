@@ -15,6 +15,7 @@ export function buildProfilesContextSetters({ page, layout, appearance, setLangu
     updateHeaderSettings: layout.updateHeaderSettings,
     updateSectionSpacing: layout.updateSectionSpacing,
     updateCardsOnlyMode: layout.updateCardsOnlyMode,
+    updateKioskDisplaySettings: layout.updateKioskDisplaySettings,
     saveStatusPillsConfig: page.saveStatusPillsConfig,
     setCurrentTheme: appearance.setCurrentTheme,
     setLanguage,

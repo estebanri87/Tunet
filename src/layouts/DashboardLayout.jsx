@@ -47,6 +47,8 @@ export default function DashboardLayout(props) {
     sectionSpacing,
     cardsOnlyMode,
     updateCardsOnlyMode,
+    kioskDisplaySettings,
+    updateKioskDisplaySettings,
     pagesConfig,
     personStatus,
     requestSettingsAccess,
@@ -82,6 +84,20 @@ export default function DashboardLayout(props) {
 
   const cardsOnlyExitTimerRef = useRef(null);
   const showDashboardChrome = !cardsOnlyMode;
+  const kioskEnabled = Boolean(kioskDisplaySettings?.enabled);
+  const kioskHideNav = kioskEnabled && kioskDisplaySettings?.hideNav;
+  const kioskHideMenuButton = kioskEnabled && kioskDisplaySettings?.hideMenuButton;
+  const showPageNav = showDashboardChrome && !kioskHideNav;
+  const showEditToolbar = showDashboardChrome && !kioskHideMenuButton;
+  const showNavRow = showPageNav || showEditToolbar;
+  const hasOverlayMode = cardsOnlyMode || kioskEnabled;
+
+  const exitOverlayMode = useCallback(() => {
+    if (cardsOnlyMode && typeof updateCardsOnlyMode === 'function') updateCardsOnlyMode(false);
+    if (kioskEnabled && typeof updateKioskDisplaySettings === 'function') {
+      updateKioskDisplaySettings({ ...kioskDisplaySettings, enabled: false });
+    }
+  }, [cardsOnlyMode, updateCardsOnlyMode, kioskEnabled, kioskDisplaySettings, updateKioskDisplaySettings]);
 
   const clearCardsOnlyLongPress = useCallback(() => {
     if (cardsOnlyExitTimerRef.current !== null && typeof window !== 'undefined') {
@@ -96,29 +112,29 @@ export default function DashboardLayout(props) {
 
   const handleCardsOnlyPointerDown = useCallback(
     (event) => {
-      if (!cardsOnlyMode || typeof updateCardsOnlyMode !== 'function') return;
+      if (!hasOverlayMode) return;
       if (event.button !== 0) return;
       if (shouldIgnoreCardsOnlyLongPress(event.target)) return;
 
       clearCardsOnlyLongPress();
       cardsOnlyExitTimerRef.current = window.setTimeout(() => {
         cardsOnlyExitTimerRef.current = null;
-        updateCardsOnlyMode(false);
+        exitOverlayMode();
       }, CARDS_ONLY_EXIT_MS);
     },
-    [cardsOnlyMode, clearCardsOnlyLongPress, shouldIgnoreCardsOnlyLongPress, updateCardsOnlyMode]
+    [hasOverlayMode, clearCardsOnlyLongPress, shouldIgnoreCardsOnlyLongPress, exitOverlayMode]
   );
 
   useEffect(() => {
-    if (!cardsOnlyMode || typeof updateCardsOnlyMode !== 'function') return undefined;
+    if (!hasOverlayMode) return undefined;
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') updateCardsOnlyMode(false);
+      if (event.key === 'Escape') exitOverlayMode();
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [cardsOnlyMode, updateCardsOnlyMode]);
+  }, [hasOverlayMode, exitOverlayMode]);
 
   useEffect(() => clearCardsOnlyLongPress, [clearCardsOnlyLongPress]);
 
@@ -261,37 +277,41 @@ export default function DashboardLayout(props) {
 
         <ConnectionBanner t={t} setConfigTab={setConfigTab} />
 
-        {showDashboardChrome && (
+        {showNavRow && (
           <div
-            className={`flex flex-nowrap items-center justify-between ${
+            className={`flex flex-nowrap items-center ${showPageNav && showEditToolbar ? 'justify-between' : 'justify-end'} ${
               isMobile ? 'gap-2' : 'gap-4'
             }`}
             style={{ marginBottom: `${sectionSpacing?.navToGrid ?? 24}px` }}
           >
-            <PageNavigation
-              pages={pages}
-              activePage={activePage}
-              setActivePage={setActivePage}
-              editMode={editMode}
-              setEditingPage={setEditingPage}
-              t={t}
-            />
-            <EditToolbar
-              editMode={editMode}
-              setEditMode={guardedSetEditMode}
-              activePage={activePage}
-              setActivePage={setActivePage}
-              setShowAddCardModal={guardedSetShowAddCardModal}
-              setShowConfigModal={guardedSetShowConfigModal}
-              setConfigTab={setConfigTab}
-              setShowThemeSidebar={guardedSetShowThemeSidebar}
-              setShowLayoutSidebar={guardedSetShowLayoutSidebar}
-              setShowHeaderEditModal={guardedSetShowHeaderEditModal}
-              connected={connected}
-              updateCount={updateCount}
-              isMobile={isMobile}
-              t={t}
-            />
+            {showPageNav && (
+              <PageNavigation
+                pages={pages}
+                activePage={activePage}
+                setActivePage={setActivePage}
+                editMode={editMode}
+                setEditingPage={setEditingPage}
+                t={t}
+              />
+            )}
+            {showEditToolbar && (
+              <EditToolbar
+                editMode={editMode}
+                setEditMode={guardedSetEditMode}
+                activePage={activePage}
+                setActivePage={setActivePage}
+                setShowAddCardModal={guardedSetShowAddCardModal}
+                setShowConfigModal={guardedSetShowConfigModal}
+                setConfigTab={setConfigTab}
+                setShowThemeSidebar={guardedSetShowThemeSidebar}
+                setShowLayoutSidebar={guardedSetShowLayoutSidebar}
+                setShowHeaderEditModal={guardedSetShowHeaderEditModal}
+                connected={connected}
+                updateCount={updateCount}
+                isMobile={isMobile}
+                t={t}
+              />
+            )}
           </div>
         )}
 

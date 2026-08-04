@@ -463,6 +463,22 @@ export const PageProvider = ({ children }) => {
     }
   }, []);
 
+  const [kioskDisplaySettings, setKioskDisplaySettings] = useState(() => {
+    const saved = readJSON('nyx_kiosk_display_settings');
+    return (
+      saved || {
+        enabled: false,
+        hideNav: true,
+        hideMenuButton: true,
+      }
+    );
+  });
+
+  const updateKioskDisplaySettings = useCallback((newSettings) => {
+    setKioskDisplaySettings(newSettings);
+    writeJSON('nyx_kiosk_display_settings', newSettings);
+  }, []);
+
   const [headerSettings, setHeaderSettings] = useState(() => {
     const saved = readJSON('nyx_header_settings');
     return (
@@ -586,6 +602,8 @@ export const PageProvider = ({ children }) => {
       updateSectionSpacing,
       cardsOnlyMode,
       updateCardsOnlyMode,
+      kioskDisplaySettings,
+      updateKioskDisplaySettings,
       persistCardSettings,
       gridGapH,
       setGridGapH: setGridGapHPersisted,
@@ -627,6 +645,8 @@ export const PageProvider = ({ children }) => {
       updateSectionSpacing,
       cardsOnlyMode,
       updateCardsOnlyMode,
+      kioskDisplaySettings,
+      updateKioskDisplaySettings,
       persistCardSettings,
       gridGapH,
       setGridGapHPersisted,

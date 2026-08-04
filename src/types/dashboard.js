@@ -157,6 +157,13 @@
  */
 
 /**
+ * @typedef {Object} KioskDisplaySettings
+ * @property {boolean} enabled
+ * @property {boolean} hideNav
+ * @property {boolean} hideMenuButton
+ */
+
+/**
  * @typedef {Object} StatusPillConfig
  * @property {string} id
  * @property {string} type - 'alarm' | 'media_player' | 'emby' | 'sonos' | 'sensor' etc.
@@ -217,6 +224,8 @@
  * @property {(partial: Partial<SectionSpacing>) => void} updateSectionSpacing
  * @property {boolean} cardsOnlyMode
  * @property {(nextValue: boolean) => void} updateCardsOnlyMode
+ * @property {KioskDisplaySettings} kioskDisplaySettings
+ * @property {(newSettings: KioskDisplaySettings) => void} updateKioskDisplaySettings
  * @property {(newSettings: CardSettingsMap) => void} persistCardSettings
  * @property {number} gridGapH
  * @property {(val: number) => void} setGridGapH

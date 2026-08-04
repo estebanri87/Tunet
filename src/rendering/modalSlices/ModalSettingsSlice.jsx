@@ -73,6 +73,8 @@ export function ModalSettingsSlice({
     updateSectionSpacing,
     cardsOnlyMode,
     updateCardsOnlyMode,
+    kioskDisplaySettings,
+    updateKioskDisplaySettings,
     headerTitle,
     headerScale,
     headerSettings,
@@ -238,6 +240,8 @@ export function ModalSettingsSlice({
             updateHeaderSettings={updateHeaderSettings}
             cardsOnlyMode={cardsOnlyMode}
             updateCardsOnlyMode={updateCardsOnlyMode}
+            kioskDisplaySettings={kioskDisplaySettings}
+            updateKioskDisplaySettings={updateKioskDisplaySettings}
             onSwitchToTheme={() => {
               setShowHeaderEditModal(false);
               setShowThemeSidebar(true);

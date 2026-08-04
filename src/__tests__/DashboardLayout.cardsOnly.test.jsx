@@ -60,6 +60,8 @@ const baseProps = {
   sectionSpacing: { headerToStatus: 0, statusToNav: 0, navToGrid: 24 },
   cardsOnlyMode: false,
   updateCardsOnlyMode: vi.fn(),
+  kioskDisplaySettings: { enabled: false, hideNav: true, hideMenuButton: true },
+  updateKioskDisplaySettings: vi.fn(),
   pagesConfig: { header: [] },
   personStatus: vi.fn(),
   requestSettingsAccess: vi.fn((callback) => callback()),
@@ -156,5 +158,85 @@ describe('DashboardLayout cards-only mode', () => {
     act(() => vi.advanceTimersByTime(1000));
 
     expect(updateCardsOnlyMode).not.toHaveBeenCalled();
+  });
+});
+
+describe('DashboardLayout kiosk display settings', () => {
+  it('keeps the header visible but hides only page navigation when hideNav is enabled', () => {
+    renderLayout({
+      kioskDisplaySettings: { enabled: true, hideNav: true, hideMenuButton: false },
+    });
+
+    expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
+    expect(screen.queryByTestId('page-navigation')).not.toBeInTheDocument();
+    expect(screen.getByTestId('edit-toolbar')).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-grid')).toBeInTheDocument();
+  });
+
+  it('keeps the header visible but hides only the edit toolbar when hideMenuButton is enabled', () => {
+    renderLayout({
+      kioskDisplaySettings: { enabled: true, hideNav: false, hideMenuButton: true },
+    });
+
+    expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
+    expect(screen.getByTestId('page-navigation')).toBeInTheDocument();
+    expect(screen.queryByTestId('edit-toolbar')).not.toBeInTheDocument();
+  });
+
+  it('keeps the header visible while hiding both nav and edit toolbar when fully enabled', () => {
+    renderLayout({
+      kioskDisplaySettings: { enabled: true, hideNav: true, hideMenuButton: true },
+    });
+
+    expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
+    expect(screen.queryByTestId('page-navigation')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('edit-toolbar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-grid')).toBeInTheDocument();
+  });
+
+  it('exits kiosk mode with Escape', () => {
+    const updateKioskDisplaySettings = vi.fn();
+    const kioskDisplaySettings = { enabled: true, hideNav: true, hideMenuButton: true };
+
+    renderLayout({ kioskDisplaySettings, updateKioskDisplaySettings });
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(updateKioskDisplaySettings).toHaveBeenCalledWith({
+      ...kioskDisplaySettings,
+      enabled: false,
+    });
+  });
+
+  it('exits kiosk mode after a long press outside cards', () => {
+    vi.useFakeTimers();
+    const updateKioskDisplaySettings = vi.fn();
+    const kioskDisplaySettings = { enabled: true, hideNav: true, hideMenuButton: true };
+
+    renderLayout({ kioskDisplaySettings, updateKioskDisplaySettings });
+
+    fireEvent.pointerDown(screen.getByRole('main', { name: 'Dashboard' }), { button: 0 });
+    act(() => vi.advanceTimersByTime(999));
+    expect(updateKioskDisplaySettings).not.toHaveBeenCalled();
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(updateKioskDisplaySettings).toHaveBeenCalledWith({
+      ...kioskDisplaySettings,
+      enabled: false,
+    });
+  });
+
+  it('does not exit kiosk mode when long-pressing a card', () => {
+    vi.useFakeTimers();
+    const updateKioskDisplaySettings = vi.fn();
+
+    renderLayout({
+      kioskDisplaySettings: { enabled: true, hideNav: true, hideMenuButton: true },
+      updateKioskDisplaySettings,
+    });
+
+    fireEvent.pointerDown(screen.getByTestId('dashboard-card'), { button: 0 });
+    act(() => vi.advanceTimersByTime(1000));
+
+    expect(updateKioskDisplaySettings).not.toHaveBeenCalled();
   });
 });

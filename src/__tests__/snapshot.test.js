@@ -54,6 +54,45 @@ describe('snapshot service', () => {
     expect(updateCardsOnlyMode).toHaveBeenCalledWith(true);
   });
 
+  it('collectSnapshot includes kiosk display settings from storage', () => {
+    localStorage.setItem(
+      'nyx_kiosk_display_settings',
+      JSON.stringify({ enabled: true, hideNav: true, hideMenuButton: false })
+    );
+
+    const snapshot = collectSnapshot();
+
+    expect(snapshot.layout.kioskDisplaySettings).toEqual({
+      enabled: true,
+      hideNav: true,
+      hideMenuButton: false,
+    });
+  });
+
+  it('applySnapshot persists and applies kiosk display settings', () => {
+    const updateKioskDisplaySettings = vi.fn();
+
+    applySnapshot(
+      {
+        version: 1,
+        layout: { kioskDisplaySettings: { enabled: true, hideNav: false, hideMenuButton: true } },
+        appearance: {},
+      },
+      { updateKioskDisplaySettings }
+    );
+
+    expect(JSON.parse(localStorage.getItem('nyx_kiosk_display_settings'))).toEqual({
+      enabled: true,
+      hideNav: false,
+      hideMenuButton: true,
+    });
+    expect(updateKioskDisplaySettings).toHaveBeenCalledWith({
+      enabled: true,
+      hideNav: false,
+      hideMenuButton: true,
+    });
+  });
+
   it('collectSnapshot includes card background color from storage', () => {
     localStorage.setItem('nyx_card_bg_color', '#223344');
 
